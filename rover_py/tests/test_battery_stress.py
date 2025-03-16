@@ -5,7 +5,7 @@ import time
 import numpy
 from canlib import canlib, kvadblib
 
-from ..rover import battery, rover
+from rover import battery, rover
 
 # Test uses 3S battery, capacity 6000mAh and discharge rate 70C.
 #

@@ -6,19 +6,24 @@ For more documentation, visit [CanEduDev's Documentation website](https://www.ca
 
 Feel free to submit issues if anything is unclear.
 
-## Building the Board Applications
+## Working with the repository
 
 This project is built using [Meson](https://mesonbuild.com/) with the Ninja backend.
 
 Supported OS: Ubuntu 24.04. If you're using Windows, you can utilize the Ubuntu 24.04 [WSL](https://learn.microsoft.com/en-us/windows/wsl/) distribution.
 
-### Build Steps
+### Prerequisites
 
 1. Run `./scripts/bootstrap.sh` to set up the build environment. This step installs all dependencies and prepares the build folder.
-2. Execute `meson compile -C build` to initiate the build process.
-3. The build output can be found in the `build` folder.
+2. Enter virtual environment: `source .venv/bin/activate`
 
-## ROS2 Gateway
+It is required to activate the virtual environment to run most tasks in the repo. As such, all the next sections assume the environment has been sourced.
+
+## Building the Firmware
+
+Execute `meson compile -C build` to initiate the build process. The build output can be found in the `build` folder.
+
+## Building the ROS2 Gateway
 
 There is a ROS gateway available which exposes the Rover's CAN messages as ROS topics, and allows the user to control the Rover via ROS. The gateway is deployed as a docker container and available as part of this repository's Github packages.
 
@@ -38,7 +43,7 @@ To run all unit tests, execute `meson test -C build`.
 
 Additionally, there are integration tests that run against the boards. Note that these tests require hardware that supports canlib, such as the [Kvaser Leaf Light](https://www.kvaser.com/product/kvaser-leaf-light-hs-v2/).
 
-The integration tests are found in `rover_py/tests`. To run a test from the repo root directory run `python -m rover_py.tests.<test_name>`. Make sure to omit the `.py` file extension.
+The integration tests are found in `rover_py/tests`. They can be run using `python <path-to-test>.py`.
 
 ## Using STM32CubeMX to Generate Code
 

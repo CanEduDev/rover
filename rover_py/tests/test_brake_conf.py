@@ -2,7 +2,7 @@ import time
 
 from canlib import canlib
 
-from ..rover import Envelope, brake, rover
+from rover import Envelope, brake, rover
 
 with canlib.openChannel(
     channel=0,
