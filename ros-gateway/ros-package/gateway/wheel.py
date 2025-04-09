@@ -1,9 +1,9 @@
 import enum
 import struct
 
-import std_msgs.msg as msgtype  # pyright: ignore
-from rclpy.node import Node  # pyright: ignore
-from rclpy.qos import ReliabilityPolicy  # pyright: ignore
+import std_msgs.msg as msgtype
+from rclpy.node import Node
+from rclpy.qos import ReliabilityPolicy
 
 import rover
 

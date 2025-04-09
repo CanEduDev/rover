@@ -1,6 +1,6 @@
 import can
-import rclpy  # pyright: ignore
-import rclpy.logging  # pyright: ignore
+import rclpy
+import rclpy.logging
 
 import rover
 
