@@ -3,10 +3,9 @@ ARG ROS_DISTRO=jazzy
 # Build stage
 FROM ros:$ROS_DISTRO-ros-base AS base
 
-WORKDIR /app
+WORKDIR /ros2_ws
 
-COPY rover_py/rover rover
-COPY ros-gateway/ros-package .
+COPY ros2 .
 
 RUN bash -c 'source "/opt/ros/$ROS_DISTRO/setup.bash" && colcon build'
 
@@ -17,17 +16,19 @@ RUN apt-get update \
     && apt-get install -y python3-can \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
-COPY --from=base /app .
+COPY rover_py /opt/rover_py
+ENV PYTHONPATH=/opt/rover_py
 
-COPY ros-gateway/entrypoint.sh .
-RUN chmod a+x entrypoint.sh
+WORKDIR /ros2_ws
+COPY --from=base /ros2_ws .
+
+RUN chmod a+x ./src/gateway/entrypoint.sh
 
 # Create user if it doesn't exist
 RUN bash -c 'id -u 1000 &>/dev/null || useradd -m -s /bin/bash ubuntu'
 
-RUN chown -R 1000:1000 /app
+RUN chown -R 1000:1000 /ros2_ws
 
 USER 1000:1000
 
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT [ "./src/gateway/entrypoint.sh" ]

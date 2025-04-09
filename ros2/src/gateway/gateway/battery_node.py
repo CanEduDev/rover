@@ -1,69 +1,113 @@
 import enum
+import threading
 import struct
 
+import can
+import rclpy
 import std_msgs.msg as msgtype
 from rclpy.node import Node
 from rclpy.qos import ReliabilityPolicy
 
 import rover
 
-from .topic import rover_topic
-
 
 @enum.unique
-class BatteryMonitor(enum.IntEnum):
-    BATTERY_MONITOR_CONTROL_SYSTEM = 0
-    BATTERY_MONITOR_AD_SYSTEM = 1
+class BatteryPosition(enum.Enum):
+    CONTROL_SYSTEM = "control_system"
+    AD_SYSTEM = "ad_system"
 
 
-class Publisher(Node):
-    def __init__(self, battery_monitor):
-        if battery_monitor not in BatteryMonitor:
+class BatteryNode(Node):
+    def __init__(self):
+        super().__init__("battery_node")
+
+        self.declare_parameter("position", "control_system")
+
+        position = self.get_parameter("position").get_parameter_value().string_value
+
+        if position not in BatteryPosition:
             raise ValueError()
 
-        self.battery_monitor = battery_monitor
-        self.name = battery_monitor.name.lower()
-        super().__init__(self.name)
+        self.position = BatteryPosition(position)
 
-        self.get_logger().info(f"initializing {self.name}")
+        self.get_logger().info(f"initializing {self.get_name()}")
 
-        self.cell_voltages_topic = f"{self.name}/cell_voltage_mV"
+        self.cell_voltages_topic = f"{self.get_name()}/cell_voltage_mV"
         self.cell_voltages_publisher = self.create_publisher(
             msgtype.UInt16MultiArray,
-            rover_topic(self.cell_voltages_topic),
+            self.cell_voltages_topic,
             ReliabilityPolicy.BEST_EFFORT,
         )
         self.cell_voltages = []
 
-        self.voltage_topic = f"{self.name}/battery_output/voltage_mV"
-        self.current_topic = f"{self.name}/battery_output/current_mA"
+        self.voltage_topic = f"{self.get_name()}/battery_output/voltage_mV"
+        self.current_topic = f"{self.get_name()}/battery_output/current_mA"
         self.voltage_publisher = self.create_publisher(
             msgtype.UInt32,
-            rover_topic(self.voltage_topic),
+            self.voltage_topic,
             ReliabilityPolicy.BEST_EFFORT,
         )
         self.current_publisher = self.create_publisher(
             msgtype.UInt32,
-            rover_topic(self.current_topic),
+            self.current_topic,
             ReliabilityPolicy.BEST_EFFORT,
         )
 
-        self.reg_output_voltage_topic = f"{self.name}/regulated_output/voltage_mV"
-        self.reg_output_current_topic = f"{self.name}/regulated_output/current_mA"
+        self.reg_output_voltage_topic = f"{self.get_name()}/regulated_output/voltage_mV"
+        self.reg_output_current_topic = f"{self.get_name()}/regulated_output/current_mA"
         self.reg_output_voltage_publisher = self.create_publisher(
             msgtype.UInt32,
-            rover_topic(self.reg_output_voltage_topic),
+            self.reg_output_voltage_topic,
             ReliabilityPolicy.BEST_EFFORT,
         )
         self.reg_output_current_publisher = self.create_publisher(
             msgtype.UInt32,
-            rover_topic(self.reg_output_current_topic),
+            self.reg_output_current_topic,
             ReliabilityPolicy.BEST_EFFORT,
         )
 
+        self.can_bus = can.ThreadSafeBus(
+            interface="socketcan", channel="can0", bitrate=125_000
+        )
+        self.can_reader_thread = threading.Thread(target=self.can_reader_task)
+        # Daemon thread will exit when the main program ends
+        self.can_reader_thread.daemon = True
+        self.can_reader_thread.start()
+
         self.get_logger().info("finished intialization")
 
-    def __publish_cell_voltages(self, msg):
+    def destroy_node(self):
+        self.can_reader_thread.join()
+        self.can_bus.shutdown()
+        super().destroy_node()
+
+    def can_reader_task(self):
+        for msg in self.can_bus:
+            self.publish(msg)
+
+            if not rclpy.ok():
+                break
+
+    def publish(self, msg):
+        id = msg.arbitration_id
+
+        if self.position == BatteryPosition.CONTROL_SYSTEM:
+            if id == rover.Envelope.BATTERY_CELL_VOLTAGES:
+                self.publish_cell_voltages(msg)
+            if id == rover.Envelope.BATTERY_OUTPUT:
+                self.publish_output(msg)
+            if id == rover.Envelope.BATTERY_REGULATED_OUTPUT:
+                self.publish_reg_output(msg)
+
+        if self.position == BatteryPosition.AD_SYSTEM:
+            if id == rover.Envelope.AD_BATTERY_CELL_VOLTAGES:
+                self.publish_cell_voltages(msg)
+            if id == rover.Envelope.AD_BATTERY_OUTPUT:
+                self.publish_output(msg)
+            if id == rover.Envelope.AD_BATTERY_REGULATED_OUTPUT:
+                self.publish_reg_output(msg)
+
+    def publish_cell_voltages(self, msg):
         # If first message received is for the last 3 cells, skip it
         # If something went wrong with the reception order, we also skip it
         if (msg.data[0] == 1 and len(self.cell_voltages) < 3) or (
@@ -86,7 +130,7 @@ class Publisher(Node):
 
             self.cell_voltages.clear()
 
-    def __publish_output(self, msg):
+    def publish_output(self, msg):
         voltage_msg = msgtype.UInt32()
         current_msg = msgtype.UInt32()
 
@@ -102,7 +146,7 @@ class Publisher(Node):
             f'Publishing {self.current_topic}: "{current_msg.data}"'
         )
 
-    def __publish_reg_output(self, msg):
+    def publish_reg_output(self, msg):
         voltage_msg = msgtype.UInt32()
         current_msg = msgtype.UInt32()
 
@@ -118,21 +162,19 @@ class Publisher(Node):
             f'Publishing {self.reg_output_current_topic}: "{current_msg.data}"'
         )
 
-    def publish(self, msg):
-        id = msg.arbitration_id
 
-        if self.battery_monitor == BatteryMonitor.BATTERY_MONITOR_CONTROL_SYSTEM:
-            if id == rover.Envelope.BATTERY_CELL_VOLTAGES:
-                self.__publish_cell_voltages(msg)
-            if id == rover.Envelope.BATTERY_OUTPUT:
-                self.__publish_output(msg)
-            if id == rover.Envelope.BATTERY_REGULATED_OUTPUT:
-                self.__publish_reg_output(msg)
+def main(args=None):
+    rclpy.init(args=args)
 
-        if self.battery_monitor == BatteryMonitor.BATTERY_MONITOR_AD_SYSTEM:
-            if id == rover.Envelope.AD_BATTERY_CELL_VOLTAGES:
-                self.__publish_cell_voltages(msg)
-            if id == rover.Envelope.AD_BATTERY_OUTPUT:
-                self.__publish_output(msg)
-            if id == rover.Envelope.AD_BATTERY_REGULATED_OUTPUT:
-                self.__publish_reg_output(msg)
+    node = BatteryNode()
+
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+
+
+if __name__ == "__main__":
+    main()

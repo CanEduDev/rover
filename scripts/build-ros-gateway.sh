@@ -5,14 +5,14 @@ set -eo pipefail
 usage() {
     cat <<EOF
 
-$(basename "$0") [--help] [--rover-root DIR] [--dockerfile FILE] [--push DEST]
+$(basename "$0") [-h | --help] [--local] [--push]
 
 Build the ros-gateway docker image. Requires docker to be installed
 and usable without sudo.
 
 args:
     --help      show this help
-    --local     build local version for testing with tag "rover-ros-gateway-test"
+    --local     build local version with tag "rover-ros-gateway"
     --push      push containers
 
 default env vars:
@@ -20,8 +20,7 @@ default env vars:
     PLATFORMS=linux/amd64,linux/arm64                       Target platforms
     PACKAGE_BASENAME=ghcr.io/canedudev/rover/ros-gateway    Docker container base name
     BUILDER=ced-rover-builder                               Docker buildx builder
-    BUILD_CONTEXT=.                                         Docker build context
-    DOCKERFILE=./ros-gateway/Dockerfile                     Path to dockerfile
+    DOCKERFILE=ros2/src/gateway/Dockerfile                  Path to dockerfile
     VERSION_TAGS=                                           Space separated tags
 EOF
 
@@ -57,12 +56,14 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+ROOT_DIR=$(git rev-parse --show-toplevel)
+
 PLATFORMS="${PLATFORMS:-linux/amd64,linux/arm64}"
 PACKAGE_BASENAME="${PACKAGE_BASENAME:-ghcr.io/canedudev/rover/ros-gateway}"
 ROS_DISTRO="${ROS_DISTRO:-jazzy}"
 BUILDER="${BUILDER:-ced-rover-builder}"
-BUILD_CONTEXT="${BUILD_CONTEXT:-.}"
-DOCKERFILE="${DOCKERFILE:-ros-gateway/Dockerfile}"
+BUILD_CONTEXT="${BUILD_CONTEXT:-${ROOT_DIR}}"
+DOCKERFILE="${DOCKERFILE:-${ROOT_DIR}/ros2/src/gateway/Dockerfile}"
 PACKAGE="${PACKAGE_BASENAME}-${ROS_DISTRO}"
 VERSION_TAGS="${VERSION_TAGS:-}"
 
@@ -104,7 +105,7 @@ if [[ -z ${LOCAL} ]]; then
 else
     docker build \
         -f "${DOCKERFILE}" \
-        -t rover-ros-gateway-test \
+        -t rover-ros-gateway \
         --build-arg ROS_DISTRO="${ROS_DISTRO}" \
         "${BUILD_CONTEXT}"
 fi

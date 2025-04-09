@@ -7,6 +7,8 @@
   <maintainer email="ubuntu@todo.todo">ubuntu</maintainer>
   <license>MIT</license>
 
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
 

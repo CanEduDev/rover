@@ -134,16 +134,8 @@ release_tgt = custom_target(
 )
 
 ros_gateway_build_script = files('scripts' / 'build-ros-gateway.sh')
-ros_gateway_dockerfile = files('ros-gateway' / 'Dockerfile')
 
-run_target(
-    'ros-gateway',
-    command: [ros_gateway_build_script],
-    env: [
-        'BUILD_CONTEXT=' + meson.project_source_root(),
-        'DOCKERFILE=' + ros_gateway_dockerfile[0].full_path(),
-    ],
-)
+run_target('ros-gateway', command: [ros_gateway_build_script, '--local'])
 
 # Try to find python3.exe first, in case we're running in WSL.
 python_flash = find_program('python3.exe', 'python3', required: false)
