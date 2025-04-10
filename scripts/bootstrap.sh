@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-TOOL_DIR=.tools
+ROOT_DIR=$(git rev-parse --show-toplevel)
+TOOL_DIR=${ROOT_DIR}/.tools
 
 TOOLCHAIN_URL=https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz
 YAMLFMT_URL=https://github.com/google/yamlfmt/releases/download/v0.13.0/yamlfmt_0.13.0_Linux_x86_64.tar.gz
@@ -38,10 +39,10 @@ fi
 uv sync
 
 # shellcheck disable=SC1091,SC2312
-source .venv/bin/activate
+source "${ROOT_DIR}"/.venv/bin/activate
 
 echo "Setting up build dir..."
-meson setup --cross-file stm32f302ret6.ini --wipe build
+meson setup --cross-file "${ROOT_DIR}"/stm32f302ret6.ini --wipe "${ROOT_DIR}"/build
 
 echo "
 Finished bootstrapping. Next steps:
