@@ -24,7 +24,10 @@ class ObstacleDetectorNode(Node):
 
         position = self.get_parameter("position").get_parameter_value().string_value
 
-        if position not in ObstacleDetectorPosition:
+        # Workaround for ROS Humble (python 3.10) which doesn't support StrEnum natively.
+        valid_positions = [pos.value for pos in ObstacleDetectorPosition]
+
+        if position not in valid_positions:
             raise ValueError()
 
         self.position = ObstacleDetectorPosition(position)

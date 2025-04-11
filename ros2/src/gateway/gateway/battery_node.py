@@ -25,7 +25,10 @@ class BatteryNode(Node):
 
         position = self.get_parameter("position").get_parameter_value().string_value
 
-        if position not in BatteryPosition:
+        # Workaround for ROS Humble (python 3.10) which doesn't support StrEnum natively.
+        valid_positions = [pos.value for pos in BatteryPosition]
+
+        if position not in valid_positions:
             raise ValueError()
 
         self.position = BatteryPosition(position)

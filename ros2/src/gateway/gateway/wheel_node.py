@@ -27,7 +27,10 @@ class WheelNode(Node):
 
         position = self.get_parameter("position").get_parameter_value().string_value
 
-        if position not in WheelPosition:
+        # Workaround for ROS Humble (python 3.10) which doesn't support StrEnum natively.
+        valid_positions = [pos.value for pos in WheelPosition]
+
+        if position not in valid_positions:
             raise ValueError()
 
         self.position = WheelPosition(position)
