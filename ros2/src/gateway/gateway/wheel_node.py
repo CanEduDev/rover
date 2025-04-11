@@ -49,6 +49,14 @@ class WheelNode(Node):
             ReliabilityPolicy.BEST_EFFORT,
         )
 
+        self.report_freq_topic = f"{self.get_name()}/report_frequency_hz"
+        self.report_freq_subscriber = self.create_subscription(
+            msgtype.UInt32,
+            self.report_freq_topic,
+            self.report_freq_callback,
+            ReliabilityPolicy.RELIABLE,
+        )
+
         self.can_bus = can.ThreadSafeBus(
             interface="socketcan", channel="can0", bitrate=125_000
         )
@@ -106,6 +114,60 @@ class WheelNode(Node):
         ):
             self.publish_rpm(msg)
             self.publish_speed(msg)
+
+    def report_freq_callback(self, msg):
+        max_freq = 100
+        min_freq = 1
+
+        report_freq_hz = msg.data
+        self.get_logger().info("Received report frequency change request")
+
+        if report_freq_hz > max_freq:
+            self.get_logger().warn(
+                f"Received invalid frequency value: {msg.data}, limiting to {max_freq}"
+            )
+            report_freq_hz = max_freq
+
+        if report_freq_hz < min_freq:
+            self.get_logger().warn(
+                f"Received invalid frequency value: {msg.data}, limiting to {min_freq}"
+            )
+            report_freq_hz = max_freq
+
+        self.report_freq_hz = report_freq_hz
+
+        try:
+            self.can_bus.send(self.set_report_period_message())
+            self.get_logger().info(
+                f"sent CAN configuration command (report period: {self.report_freq_hz} hz"
+            )
+
+        except can.exceptions.CanOperationError:
+            self.get_logger().error(
+                "CAN error: configuration command not sent. Will not retry transmission."
+            )
+            self.get_logger().info(
+                "Potential causes: Rover offline, broken CAN connection, CAN Tx buffer overflow, CAN error frame or invalid bitrate setting"
+            )
+            self.can_bus.flush_tx_buffer()
+
+    def set_report_period_message(self):
+        if self.position == WheelPosition.FRONT_LEFT:
+            envelope = rover.Envelope.WHEEL_FRONT_LEFT_REPORT_FREQUENCY
+        elif self.position == WheelPosition.FRONT_RIGHT:
+            envelope = rover.Envelope.WHEEL_FRONT_RIGHT_REPORT_FREQUENCY
+        elif self.position == WheelPosition.REAR_LEFT:
+            envelope = rover.Envelope.WHEEL_REAR_LEFT_REPORT_FREQUENCY
+        else:
+            envelope = rover.Envelope.WHEEL_REAR_RIGHT_REPORT_FREQUENCY
+
+        report_freq_ms = round(1000 / self.report_freq_hz)
+
+        return can.Message(
+            arbitration_id=envelope,
+            data=list(struct.pack("H", report_freq_ms)),
+            is_extended_id=False,
+        )
 
 
 def main(args=None):

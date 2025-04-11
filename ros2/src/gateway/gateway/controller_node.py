@@ -114,7 +114,7 @@ class ControllerNode(Node):
                 "CAN error: steering command not sent. Retrying in 1 s."
             )
             self.get_logger().info(
-                "Potential causes: Rover offline, broken CAN connection, CAN Tx buffer overflow, CAN error frame, less than 2 nodes on bus, or invalid bitrate setting"
+                "Potential causes: Rover offline, broken CAN connection, CAN Tx buffer overflow, CAN error frame or invalid bitrate setting"
             )
             self.can_bus.flush_tx_buffer()
 
