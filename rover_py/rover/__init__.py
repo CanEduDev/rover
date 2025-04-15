@@ -17,6 +17,8 @@ class City(enum.IntEnum):
     WHEEL_REAR_RIGHT = 8
     OBSTACLE_DETECTOR_FRONT = 9
     OBSTACLE_DETECTOR_REAR = 10
+    LIGHT_ARRAY_FRONT = 11
+    LIGHT_ARRAY_REAR = 12
 
     # For AD systems
     AD_BATTERY_MONITOR = 100
@@ -28,6 +30,8 @@ class Envelope(enum.IntEnum):
     # Control messages
     STEERING = 0x100
     THROTTLE = 0x101
+    LIGHT_ARRAY_FRONT_STATE = 0x120
+    LIGHT_ARRAY_REAR_STATE = 0x121
 
     # Report messages
     BATTERY_CELL_VOLTAGES = 0x200
@@ -183,6 +187,14 @@ class ObstacleDetectorFolder(enum.IntEnum):
 
     def prefix(self):
         return "OBSTACLE_DETECTOR"
+
+
+@enum.unique
+class LightArrayFolder(enum.IntEnum):
+    LIGHT_STATE = 2
+
+    def prefix(self):
+        return "LIGHT_ARRAY"
 
 
 class Assignment:
@@ -521,6 +533,22 @@ OBSTACLE_DETECTOR_REAR_ASSIGNMENTS = [
     ),
 ]
 
+LIGHT_ARRAY_FRONT_ASSIGNMENTS = [
+    Assignment(
+        City.LIGHT_ARRAY_FRONT,
+        Envelope.LIGHT_ARRAY_FRONT_STATE,
+        LightArrayFolder.LIGHT_STATE,
+    )
+]
+
+LIGHT_ARRAY_REAR_ASSIGNMENTS = [
+    Assignment(
+        City.LIGHT_ARRAY_REAR,
+        Envelope.LIGHT_ARRAY_REAR_STATE,
+        LightArrayFolder.LIGHT_STATE,
+    )
+]
+
 # List of assignments in the form (city, envelope, folder)
 APP_ASSIGNMENTS = (
     SERVO_ASSIGNMENTS
@@ -533,6 +561,8 @@ APP_ASSIGNMENTS = (
     + WHEEL_REAR_RIGHT_ASSIGNMENTS
     + OBSTACLE_DETECTOR_FRONT_ASSIGNMENTS
     + OBSTACLE_DETECTOR_REAR_ASSIGNMENTS
+    + LIGHT_ARRAY_FRONT_ASSIGNMENTS
+    + LIGHT_ARRAY_REAR_ASSIGNMENTS
     + AD_BATTERY_MONITOR_ASSIGNMENTS
 )
 

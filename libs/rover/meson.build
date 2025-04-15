@@ -1,10 +1,13 @@
 rover_inc = include_directories('include')
 
+rover_py_def_file = meson.project_source_root() / 'rover_py' / 'rover' / '__init__.py'
+
 rover_assignments_c = custom_target(
     'rover-assignments.c',
     input: files('src' / 'gen-rover-sources.py'),
     output: 'rover-assignments.c',
     command: [python, '@INPUT@', '--source', '@OUTPUT@'],
+    depend_files: rover_py_def_file,
 )
 
 rover_defs_h = custom_target(
@@ -12,6 +15,7 @@ rover_defs_h = custom_target(
     input: files('src' / 'gen-rover-sources.py'),
     output: 'rover-defs.h',
     command: [python, '@INPUT@', '--header', '@OUTPUT@'],
+    depend_files: rover_py_def_file,
 )
 
 rover_helpers_src = [

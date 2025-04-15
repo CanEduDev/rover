@@ -1,5 +1,6 @@
 subdir('battery-monitor')
 subdir('brake')
+subdir('light-array')
 subdir('obstacle-detector')
 subdir('sbus-receiver')
 subdir('servo')

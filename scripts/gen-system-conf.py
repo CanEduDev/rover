@@ -21,6 +21,7 @@ def parse_args():
     apps = [
         "battery-monitor",
         "brake",
+        "light-array",
         "obstacle-detector",
         "sbus-receiver",
         "servo",
@@ -57,11 +58,19 @@ def gen_system_base(args):
 
     battery_monitor = Path(args.battery_monitor_bin)
     brake = Path(args.brake_bin)
+    light_array = Path(args.light_array_bin)
     obstacle_detector = Path(args.obstacle_detector_bin)
     sbus_receiver = Path(args.sbus_receiver_bin)
     servo = Path(args.servo_bin)
 
-    binaries = [battery_monitor, brake, sbus_receiver, servo]
+    binaries = [
+        battery_monitor,
+        brake,
+        light_array,
+        obstacle_detector,
+        sbus_receiver,
+        servo,
+    ]
 
     for bin in binaries:
         if not bin.exists():
@@ -108,6 +117,14 @@ def gen_system_base(args):
         "obstacle-detector-rear": {
             "id": rover.City.OBSTACLE_DETECTOR_REAR,
             "binary": obstacle_detector.name,
+        },
+        "light-array-front": {
+            "id": rover.City.LIGHT_ARRAY_FRONT,
+            "binary": light_array.name,
+        },
+        "light-array-rear": {
+            "id": rover.City.LIGHT_ARRAY_REAR,
+            "binary": light_array.name,
         },
         "ad-battery-monitor": {
             "id": rover.City.AD_BATTERY_MONITOR,
