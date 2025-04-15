@@ -5,6 +5,7 @@
 
 #define TIM2_IRQ_PRIORITY 5
 #define DMA1_Channel1_IRQ_PRIORITY 5
+#define DMA1_Channel5_IRQ_PRIORITY 5
 
 static peripherals_t peripherals;
 
@@ -158,14 +159,6 @@ void tim2_init(void) {
     error();
   }
 
-  GPIO_InitTypeDef gpio_init;
-  gpio_init.Pin = SENSOR_PIN;
-  gpio_init.Mode = GPIO_MODE_AF_PP;
-  gpio_init.Pull = GPIO_NOPULL;
-  gpio_init.Speed = GPIO_SPEED_FREQ_LOW;
-  gpio_init.Alternate = GPIO_AF1_TIM2;
-  HAL_GPIO_Init(SENSOR_GPIO_PORT, &gpio_init);
-
   HAL_NVIC_SetPriority(TIM2_IRQn, TIM2_IRQ_PRIORITY, 0);
   HAL_NVIC_EnableIRQ(TIM2_IRQn);
 }
@@ -178,6 +171,10 @@ void dma_init(void) {
   /* DMA1_Channel1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, DMA1_Channel1_IRQ_PRIORITY, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+
+  /* DMA1_Channel5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, DMA1_Channel5_IRQ_PRIORITY, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 }
 
 void gpio_init(void) {
@@ -247,6 +244,23 @@ void adc1_dma_init(ADC_HandleTypeDef* hadc) {
     error();
   }
   __HAL_LINKDMA(hadc, DMA_Handle, *hdma_adc1);
+}
+
+void tim2_dma_init(TIM_HandleTypeDef* htim) {
+  DMA_HandleTypeDef* hdma_tim2_ch1 = &peripherals.hdma_tim2_ch1;
+  hdma_tim2_ch1->Instance = DMA1_Channel5;
+  hdma_tim2_ch1->Init.Direction = DMA_PERIPH_TO_MEMORY;
+  hdma_tim2_ch1->Init.PeriphInc = DMA_PINC_DISABLE;
+  hdma_tim2_ch1->Init.MemInc = DMA_MINC_ENABLE;
+  hdma_tim2_ch1->Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+  hdma_tim2_ch1->Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+  hdma_tim2_ch1->Init.Mode = DMA_NORMAL;
+  hdma_tim2_ch1->Init.Priority = DMA_PRIORITY_LOW;
+  if (HAL_DMA_Init(hdma_tim2_ch1) != HAL_OK) {
+    error();
+  }
+
+  __HAL_LINKDMA(htim, hdma[TIM_DMA_ID_CC1], *hdma_tim2_ch1);
 }
 
 /**
@@ -409,11 +423,21 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi) {
  * @retval None
  */
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base) {
+  GPIO_InitTypeDef gpio_init;
   if (htim_base->Instance == TIM2) {
     /* Peripheral clock enable */
     __HAL_RCC_TIM2_CLK_ENABLE();
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
+
+    gpio_init.Pin = SENSOR_PIN;
+    gpio_init.Mode = GPIO_MODE_AF_PP;
+    gpio_init.Pull = GPIO_NOPULL;
+    gpio_init.Speed = GPIO_SPEED_FREQ_LOW;
+    gpio_init.Alternate = GPIO_AF1_TIM2;
+    HAL_GPIO_Init(SENSOR_GPIO_PORT, &gpio_init);
+
+    tim2_dma_init(htim_base);
   }
 }
 
@@ -428,6 +452,7 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base) {
     /* Peripheral clock disable */
     __HAL_RCC_TIM2_CLK_DISABLE();
     HAL_GPIO_DeInit(SENSOR_GPIO_PORT, SENSOR_PIN);
+    HAL_DMA_DeInit(htim_base->hdma[TIM_DMA_ID_CC1]);
   }
 }
 

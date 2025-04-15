@@ -18,6 +18,7 @@ typedef struct {
 
   ADC_HandleTypeDef hadc1;
   DMA_HandleTypeDef hdma_adc1;
+  DMA_HandleTypeDef hdma_tim2_ch1;
   I2C_HandleTypeDef hi2c1;
   TIM_HandleTypeDef htim2;
 } peripherals_t;
