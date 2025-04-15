@@ -158,12 +158,6 @@ void tim2_init(void) {
     error();
   }
 
-  ic_config.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
-  ic_config.ICSelection = TIM_ICSELECTION_INDIRECTTI;
-  if (HAL_TIM_IC_ConfigChannel(htim2, &ic_config, TIM_CHANNEL_2) != HAL_OK) {
-    error();
-  }
-
   GPIO_InitTypeDef gpio_init;
   gpio_init.Pin = SENSOR_PIN;
   gpio_init.Mode = GPIO_MODE_AF_PP;
