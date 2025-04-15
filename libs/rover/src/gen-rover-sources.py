@@ -149,6 +149,12 @@ def generate_header():
             f"#define {folder_prefix}_OBSTACLE_DETECTOR_{folder.name} {folder}\n"
         )
 
+    output.write(
+        f"\n#define {folder_prefix}_LIGHT_ARRAY_COUNT {len(rover.LightArrayFolder)}\n"
+    )
+    for folder in rover.LightArrayFolder:
+        output.write(f"#define {folder_prefix}_LIGHT_ARRAY_{folder.name} {folder}\n")
+
     contents = output.getvalue()
     output.close()
     return contents

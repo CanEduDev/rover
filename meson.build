@@ -97,6 +97,8 @@ config_dir = custom_target(
         battery_monitor_bin,
         '--brake-bin',
         brake_bin,
+        '--light-array-bin',
+        light_array_bin,
         '--obstacle-detector-bin',
         obstacle_detector_bin,
         '--sbus-receiver-bin',
