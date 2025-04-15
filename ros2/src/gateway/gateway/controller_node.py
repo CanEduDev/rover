@@ -31,6 +31,7 @@ class ControllerNode(Node):
             ReliabilityPolicy.RELIABLE,
         )
 
+        self.radio_override_logged = False
         self.last_radio_timestamp = 0
         self.throttle = 1500
         self.steering_angle = 0
@@ -97,11 +98,16 @@ class ControllerNode(Node):
             self.last_radio_timestamp == 0
             or time.time() - self.last_radio_timestamp <= 0.1
         ):
-            self.get_logger().debug("radio control override active, will not interfere")
-            self.stop_timer()
-            time.sleep(1)
-            self.start_timer()
+            if not self.radio_override_logged:
+                self.radio_override_logged = True
+                self.get_logger().info(
+                    "Safety override activated. Will not send control commands"
+                )
             return
+
+        if self.radio_override_logged:
+            self.radio_override_logged = False
+            self.get_logger().info("Safety override inactivated")
 
         try:
             self.can_bus.send(self.throttle_message())
@@ -111,7 +117,7 @@ class ControllerNode(Node):
             )
         except can.exceptions.CanOperationError:
             self.get_logger().error(
-                "CAN error: steering command not sent. Retrying in 1 s."
+                "CAN error: steering command not sent. Retrying in 1s"
             )
             self.get_logger().info(
                 "Potential causes: Rover offline, broken CAN connection, CAN Tx buffer overflow, CAN error frame or invalid bitrate setting"
@@ -160,7 +166,7 @@ class ControllerNode(Node):
 
         # Reversing directions needs special treatment
         if switch_reverse or switch_forward:
-            self.get_logger().debug("Reversing")
+            self.get_logger().info("Reversing direction")
 
             self.stop_timer()
 
