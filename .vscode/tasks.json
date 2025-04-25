@@ -128,6 +128,22 @@
             "problemMatcher": []
         },
         {
+            "label": "Flash light-array",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "source .venv/bin/activate; meson compile -C build swd-flash-light-array"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "Flash obstacle-detector",
             "type": "shell",
             "command": "bash",
