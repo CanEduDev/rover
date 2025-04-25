@@ -37,10 +37,11 @@ void adc_average_samples(adc_reading_t *average,
 /* Convert the measured servo position sensor value to an angle.
  * Neutral is 180 deg, so we use it as base offset. Outputs -180 to 180 degrees.
  */
-int16_t adc_to_servo_position(uint16_t adc_value) {
+float adc_to_servo_position(uint16_t adc_value) {
+  const float neutral_offset = 180.0F;
   float measured_angle = adc_value_to_angle(adc_value);
-  const float angle = measured_angle - 180;
-  return (int16_t)roundf(angle);
+  float angle = measured_angle - neutral_offset;
+  return angle;
 }
 
 uint16_t adc_to_servo_current(uint16_t adc_value) {

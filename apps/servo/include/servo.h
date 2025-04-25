@@ -18,8 +18,8 @@ typedef struct {
   uint16_t current;
   float steering_angle;
   uint16_t steering_pulse;
-  int16_t position;  // Reported position
-  bool reverse;      // Reverse steering direction
+  float position;  // Reported position
+  bool reverse;    // Reverse steering direction
 } servo_state_t;
 
 typedef enum {

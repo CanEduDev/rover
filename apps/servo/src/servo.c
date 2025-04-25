@@ -123,7 +123,7 @@ int update_servo_angle(float angle) {
 }
 
 uint16_t angle_to_pulse(float angle) {
-  return (uint16_t)roundf(angle * k_angle_to_pulse + m_angle_to_pulse);
+  return (uint16_t)roundf((angle * k_angle_to_pulse) + m_angle_to_pulse);
 }
 
 float pulse_to_angle(uint16_t pulse) {
@@ -131,5 +131,5 @@ float pulse_to_angle(uint16_t pulse) {
 }
 
 uint16_t reverse_pulse(uint16_t pulse) {
-  return 2 * PWM_NEUTRAL_PULSE_MUS - pulse;
+  return (2 * PWM_NEUTRAL_PULSE_MUS) - pulse;
 }
