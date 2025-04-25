@@ -153,7 +153,7 @@ def run_flasher(args):
 
         except Exception as e:
             # restart all nodes
-            ch.writeWait(rover.set_action_mode(mode=rover.ActionMode.RESET), 100)
+            # ch.writeWait(rover.set_action_mode(mode=rover.ActionMode.RESET), 100)
             print(f"error: flashing failed: {e}", file=sys.stderr)
             sys.exit(1)
 

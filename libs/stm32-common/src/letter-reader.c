@@ -79,8 +79,9 @@ static void process_letter(void *unused) {
       continue;
     }
 
-    if (ck_correct_letter_received() != CK_OK) {
-      printf("CAN Kingdom error in ck_correct_letter_received().\r\n");
+    int ret = ck_correct_letter_received();
+    if (ret != CK_OK) {
+      printf("error in ck_correct_letter_received: %d\r\n", ret);
     }
 
     dispatch_letter(&letter);
@@ -90,22 +91,28 @@ static void process_letter(void *unused) {
 static void dispatch_letter(ck_letter_t *letter) {
   ck_folder_t *folder = NULL;
 
+  int ret = CK_OK;
+
   // Check for default letter
   if (ck_is_default_letter(letter) == CK_OK) {
-    if (ck_default_letter_received() != CK_OK) {
-      printf("CAN Kingdom error in ck_default_letter_received().\r\n");
+    ret = ck_default_letter_received();
+    if (ret != CK_OK) {
+      printf("error in ck_default_letter_received: %d\r\n", ret);
     }
   }
   // Check for king's letter
   else if (ck_is_kings_envelope(&letter->envelope) == CK_OK) {
-    if (ck_process_kings_letter(letter) != CK_OK) {
-      printf("failed to process king's letter.\r\n");
+    ret = ck_process_kings_letter(letter);
+    if (ret != CK_OK) {
+      __NOP();
+      printf("failed to process king's letter: %d\r\n", ret);
     }
   }
   // Check for any other letter
   else if (ck_get_envelopes_folder(&letter->envelope, &folder) == CK_OK) {
-    if (task_cfg.app_letter_handler_func(folder, letter) != APP_OK) {
-      printf("failed to process page.\r\n");
+    ret = task_cfg.app_letter_handler_func(folder, letter);
+    if (ret != APP_OK) {
+      printf("failed to process page: %d\r\n", ret);
     }
   }
 }

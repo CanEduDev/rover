@@ -242,7 +242,7 @@ class Flasher:
                 self.default_timeout_ms,
             )
 
-            time.sleep(0.02)  # Wait 20 ms for restart
+            time.sleep(0.05)
 
             # Send default letter. Send should succeed only if node is on the bus again.
             self.ch.writeWait(rover.default_letter(), self.default_timeout_ms)
