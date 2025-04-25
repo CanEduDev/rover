@@ -97,8 +97,9 @@ void folder_init(void) {
     ck_data.folders[i].doc_list_no = 0;
     ck_data.folders[i].doc_no = i - 1;  // 0 reserved by mayor's doc
     ck_data.folders[i].enable = true;
-    ck_data.folders[i].dlc = 2;
+    ck_data.folders[i].dlc = sizeof(uint16_t);
   }
+  ck_data.servo_position_folder->dlc = sizeof(float);
 
   // Set up the receive folders
   for (int i = 2 + CK_DATA_TX_FOLDER_COUNT; i < CK_DATA_FOLDER_COUNT; i++) {
@@ -109,7 +110,6 @@ void folder_init(void) {
     ck_data.folders[i].doc_no = i - (2 + CK_DATA_TX_FOLDER_COUNT);
   }
 
-  // NOLINTBEGIN(*-magic-numbers)
   ck_data.set_servo_voltage_folder->dlc = sizeof(uint16_t);
   ck_data.pwm_conf_folder->dlc = sizeof(uint16_t);
   ck_data.steering_folder->dlc = sizeof(uint8_t) + sizeof(float);
@@ -117,7 +117,6 @@ void folder_init(void) {
   ck_data.report_freq_folder->dlc = sizeof(uint16_t);
   ck_data.reverse_folder->dlc = 0;
   ck_data.failsafe_folder->dlc = sizeof(uint8_t) + 2 * sizeof(uint16_t);
-  // NOLINTEND(*-magic-numbers)
 }
 
 static void assign_stored(void) {

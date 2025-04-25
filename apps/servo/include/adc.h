@@ -24,7 +24,7 @@ typedef struct {
 void adc_average_samples(adc_reading_t *average,
                          const volatile adc_samples_t *samples);
 
-int16_t adc_to_servo_position(uint16_t adc_value);
+float adc_to_servo_position(uint16_t adc_value);
 uint16_t adc_to_servo_current(uint16_t adc_value);
 uint16_t adc_to_battery_voltage(uint16_t adc_value);
 uint16_t adc_to_servo_voltage(uint16_t adc_value);

@@ -23,8 +23,8 @@ int main(void) {
 
 void test_adc_to_servo_position_neutral(void) {
   const uint16_t adc_value_0deg = 2047;
-  const int16_t expected_position_deg = 0;
-  const int16_t accepted_error_deg = 0;
+  const float expected_position_deg = 0.0F;
+  const float accepted_error_deg = 0.1F;
 
   measurement_t measurement = {
       .actual_value = adc_to_servo_position(adc_value_0deg),
