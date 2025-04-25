@@ -90,7 +90,7 @@ void test_default_letter(void) {
       printf(" %u,", expected_data[i]);
     }
     printf(" got:");
-    for (uint8_t i = 0; i < letter.page.line_count; i++) {
+    for (uint8_t i = 0; i < letter.dlc; i++) {
       printf(" %u,", letter.page.lines[i]);
     }
     printf(".");

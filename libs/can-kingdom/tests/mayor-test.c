@@ -17,7 +17,7 @@
 #define TX_DOCUMENT_COUNT 2  // Mayor's document + test doc
 #define FOLDER_COUNT 4
 
-#define RX_BIT_ARRAY_LENGTH (1 + RX_BIT_COUNT / 8)
+#define RX_BIT_ARRAY_LENGTH (1 + (RX_BIT_COUNT / 8))
 
 #define BIT_LIST_COUNT 1
 #define LINE_LIST_COUNT 1
@@ -169,7 +169,7 @@ void test_add_mayors_page(void) {
 
   // Add pages until capacity is reached then check if error is returned.
   // Mayor's doc always contains two pages from the start.
-  ck_page_t page = {.line_count = CK_MAX_LINES_PER_PAGE};
+  ck_page_t page = {0};
   for (int i = 0; i < CK_MAX_PAGES_PER_DOCUMENT - 2; i++) {
     ASSERT(ck_add_mayors_page(&page) == CK_OK,
            "add page failed on iteration %d.", i);
@@ -241,7 +241,8 @@ void test_get_envelopes_folder(void) {
       .envelope = envelope,
       .envelope_action = CK_ENVELOPE_ASSIGN,
   };
-  ck_letter_t letter;
+
+  ck_letter_t letter = {.dlc = CK_MAX_LINES_PER_PAGE};
 
   ASSERT(ck_create_kings_page_2(&args, &letter.page) == CK_OK, "");
   ASSERT(ck_process_kings_letter(&letter) == CK_OK, "");
@@ -303,16 +304,14 @@ void test_process_invalid_kings_letter(void) {
   ASSERT(ck_process_kings_letter(&empty_letter) != CK_OK,
          "empty_letter should fail.");
 
-  ck_letter_t invalid_letter1 = {
-      .page = {.line_count = 1},
-  };
+  ck_letter_t invalid_letter1 = {.dlc = 1};
 
   ASSERT(ck_process_kings_letter(&invalid_letter1) != CK_OK,
          "invalid letter should fail.");
 
   ck_letter_t invalid_letter2 = {
       .envelope.is_remote = true,
-      .page = {.line_count = CK_MAX_LINES_PER_PAGE},
+      .dlc = CK_MAX_LINES_PER_PAGE,
   };
 
   ASSERT(ck_process_kings_letter(&invalid_letter2) != CK_OK,
@@ -536,7 +535,7 @@ void test_process_kp16(void) {
   ck_letter_t letter;
   memset(&letter.envelope, 0, sizeof(letter.envelope));
 
-  letter.page.line_count = CK_MAX_LINES_PER_PAGE;
+  letter.dlc = CK_MAX_LINES_PER_PAGE;
   letter.page.lines[0] = test_city_address;
   letter.page.lines[1] = CK_KP16;
   uint8_t *folder_no = &letter.page.lines[2];
@@ -598,7 +597,7 @@ void test_process_kp17(void) {
   ck_letter_t letter;
   memset(&letter.envelope, 0, sizeof(letter.envelope));
 
-  letter.page.line_count = CK_MAX_LINES_PER_PAGE;
+  letter.dlc = CK_MAX_LINES_PER_PAGE;
   letter.page.lines[0] = test_city_address;
   letter.page.lines[1] = CK_KP17;
   // Try some illegal parameters
@@ -659,9 +658,6 @@ void test_process_kp17(void) {
 
   // Verify the data
   ck_page_t *page_r01 = (ck_page_t *)data.rx_page_list->records[1];
-  ASSERT(page_r01->line_count == 2, "wrong line count, expected: 2, got: %u.",
-         page_r01->line_count);
-
   ASSERT(page_r01->lines[0] == 1 && page_r01->lines[1] == 2,
          "wrong page data, expected: 1, 2, got: %u, %u.", page_r01->lines[0],
          page_r01->lines[1]);
@@ -773,11 +769,8 @@ void init_data(void) {
 }
 
 void init_pages(void) {
-  data.rx_pages[0].line_count = CK_MAX_LINES_PER_PAGE;
   const uint8_t rx_line[8] = {7, 6, 5, 4, 3, 2, 1, 0};
   memcpy(data.rx_pages[0].lines, rx_line, sizeof(rx_line));
-
-  data.tx_pages[0].line_count = 0;
 }
 
 void init_docs(void) {

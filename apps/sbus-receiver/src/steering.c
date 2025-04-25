@@ -112,7 +112,7 @@ static float sbus_to_steering_angle(float sbus_value) {
   steering_subtrim =
       (int16_t)(sbus_to_pwm(sbus_value, sbus_range) - PWM_MID_PULSE);
 
-  const float angle = 90 * sbus_value / sbus_range - 45;
+  const float angle = (90 * sbus_value / sbus_range) - 45;
   return angle;
 }
 
@@ -209,6 +209,6 @@ static uint16_t get_press_time_in_seconds(uint16_t switch_message_count) {
 }
 
 static int16_t sbus_to_pwm(float value, float range) {
-  const float pwm = 1000 * value / range + 1000;
+  const float pwm = (1000 * value / range) + 1000;
   return (int16_t)roundf(pwm);
 }

@@ -249,8 +249,6 @@ typedef enum {
 
 /// Page structure, represents the data in a CAN frame.
 typedef struct {
-  /// Number of lines on page.
-  uint8_t line_count;
   /// Line data.
   uint8_t lines[CK_MAX_LINES_PER_PAGE];
 } ck_page_t;
@@ -273,6 +271,8 @@ typedef struct {
 typedef struct {
   ck_envelope_t envelope;
   ck_page_t page;
+  /// Number of lines on page.
+  uint8_t dlc;
 } ck_letter_t;
 
 /*******************************************************************************

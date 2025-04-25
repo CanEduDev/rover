@@ -313,10 +313,6 @@ void test_kp17(void) {
 
 // These verifications are the same for all king's pages.
 void verify_kp_header(int page_no, ck_page_t *page) {
-  ASSERT(page->line_count == CK_MAX_LINES_PER_PAGE,
-         "KP%d: wrong line count, expected: %u, got: %u.", page_no,
-         CK_MAX_LINES_PER_PAGE, page->line_count);
-
   ASSERT(page->lines[0] == test_city_address,
          "KP%d: wrong address, expected: %u, got: %u.", page_no,
          test_city_address, page->lines[0]);

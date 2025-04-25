@@ -9,10 +9,10 @@
 
 static ck_data_t ck_data;
 
-void page_init(void);
-void doc_init(void);
-void list_init(void);
-void folder_init(void);
+static void page_init(void);
+static void doc_init(void);
+static void list_init(void);
+static void folder_init(void);
 static void assign_stored(void);
 
 static int check_folder(json_object_t *folder);
@@ -31,20 +31,15 @@ ck_data_t *get_ck_data(void) {
   return &ck_data;
 }
 
-void page_init(void) {
+static void page_init(void) {
   ck_data.servo_position_page = &ck_data.pages[0];
   ck_data.servo_current_page = &ck_data.pages[1];
   ck_data.battery_voltage_page = &ck_data.pages[2];
   ck_data.servo_voltage_page = &ck_data.pages[3];
   ck_data.h_bridge_current_page = &ck_data.pages[4];
-
-  // Set up the pages
-  for (uint8_t i = 0; i < CK_DATA_TX_PAGE_COUNT; i++) {
-    ck_data.pages[i].line_count = 2;
-  }
 }
 
-void doc_init(void) {
+static void doc_init(void) {
   for (uint8_t i = 0; i < CK_DATA_TX_DOC_COUNT; i++) {
     ck_data.docs[i].direction = CK_DIRECTION_TRANSMIT;
     ck_data.docs[i].page_count = 1;
@@ -52,7 +47,7 @@ void doc_init(void) {
   }
 }
 
-void list_init(void) {
+static void list_init(void) {
   ck_data.tx_list = &ck_data.lists[0];
   ck_data.rx_list = &ck_data.lists[1];
 
@@ -74,7 +69,7 @@ void list_init(void) {
   }
 }
 
-void folder_init(void) {
+static void folder_init(void) {
   // NOLINTBEGIN(*-magic-numbers)
   ck_data.servo_position_folder = &ck_data.folders[2];
   ck_data.servo_current_folder = &ck_data.folders[3];

@@ -56,7 +56,7 @@ ck_err_t ck_send_letter(const ck_letter_t *letter) {
   }
 
   CAN_TxHeaderTypeDef header = {
-      .DLC = letter->page.line_count,
+      .DLC = letter->dlc,
       .RTR = CAN_RTR_DATA,
       .IDE = CAN_ID_STD,
       .StdId = letter->envelope.envelope_no,

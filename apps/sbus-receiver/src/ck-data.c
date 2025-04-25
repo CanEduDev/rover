@@ -9,10 +9,10 @@
 
 static ck_data_t ck_data;
 
-void page_init(void);
-void doc_init(void);
-void list_init(void);
-void folder_init(void);
+static void page_init(void);
+static void doc_init(void);
+static void list_init(void);
+static void folder_init(void);
 static void assign_stored(void);
 
 static int check_folder(json_object_t *folder);
@@ -31,7 +31,7 @@ ck_data_t *get_ck_data(void) {
   return &ck_data;
 }
 
-void page_init(void) {
+static void page_init(void) {
   ck_data.steering_page = &ck_data.pages[0];
   ck_data.throttle_page = &ck_data.pages[1];
   ck_data.steering_subtrim_page = &ck_data.pages[2];
@@ -39,14 +39,9 @@ void page_init(void) {
 
   ck_data.steering_page->lines[0] = 1;
   ck_data.throttle_page->lines[0] = 0;
-
-  ck_data.steering_page->line_count = 5;  // NOLINT
-  ck_data.throttle_page->line_count = 5;  // NOLINT
-  ck_data.steering_subtrim_page->line_count = 2;
-  ck_data.throttle_subtrim_page->line_count = 2;
 }
 
-void doc_init(void) {
+static void doc_init(void) {
   for (uint8_t i = 0; i < CK_DATA_TX_DOC_COUNT; i++) {
     ck_data.docs[i].direction = CK_DIRECTION_TRANSMIT;
     ck_data.docs[i].page_count = 1;
@@ -54,7 +49,7 @@ void doc_init(void) {
   }
 }
 
-void list_init(void) {
+static void list_init(void) {
   ck_data.tx_list = &ck_data.lists[0];
   ck_data.rx_list = &ck_data.lists[1];
 
@@ -76,7 +71,7 @@ void list_init(void) {
   }
 }
 
-void folder_init(void) {
+static void folder_init(void) {
   ck_data.steering_folder = &ck_data.folders[2];
   ck_data.throttle_folder = &ck_data.folders[3];
   ck_data.steering_subtrim_folder = &ck_data.folders[4];
@@ -91,12 +86,10 @@ void folder_init(void) {
     ck_data.folders[i].enable = true;
   }
 
-  ck_data.steering_folder->dlc = ck_data.steering_page->line_count;
-  ck_data.throttle_folder->dlc = ck_data.throttle_page->line_count;
-  ck_data.steering_subtrim_folder->dlc =
-      ck_data.steering_subtrim_page->line_count;
-  ck_data.throttle_subtrim_folder->dlc =
-      ck_data.throttle_subtrim_page->line_count;
+  ck_data.steering_folder->dlc = 1 + sizeof(float);
+  ck_data.throttle_folder->dlc = 1 + sizeof(float);
+  ck_data.steering_subtrim_folder->dlc = sizeof(int16_t);
+  ck_data.throttle_subtrim_folder->dlc = sizeof(int16_t);
 }
 
 static void assign_stored(void) {

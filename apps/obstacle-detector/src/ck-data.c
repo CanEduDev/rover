@@ -34,7 +34,6 @@ ck_data_t *get_ck_data(void) {
 
 static void page_init(void) {
   ck_data.object_distance_page = &ck_data.pages[0];
-  ck_data.object_distance_page->line_count = 4 * sizeof(uint16_t);
 }
 
 static void doc_init(void) {
@@ -79,8 +78,7 @@ static void folder_init(void) {
     ck_data.folders[i].enable = true;
   }
 
-  ck_data.object_distance_folder->dlc =
-      ck_data.object_distance_page->line_count;
+  ck_data.object_distance_folder->dlc = 4 * sizeof(uint16_t);
 
   // Set up the receive folders
   ck_data.set_report_freq_folder = &ck_data.folders[3];

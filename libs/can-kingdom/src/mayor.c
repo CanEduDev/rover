@@ -161,8 +161,8 @@ ck_err_t ck_process_kings_letter(const ck_letter_t *letter) {
     return CK_ERR_NOT_INITIALIZED;
   }
 
-  // All king's pages have 8 lines.
-  if (letter->page.line_count != CK_MAX_LINES_PER_PAGE) {
+  // All king's pages have DLC 8.
+  if (letter->dlc != CK_MAX_LINES_PER_PAGE) {
     return CK_ERR_INVALID_KINGS_LETTER;
   }
   // King's letter shouldn't have the RTR bit set.
@@ -250,14 +250,14 @@ ck_err_t ck_send_document(uint8_t folder_no) {
     return CK_OK;
   }
 
-  ck_letter_t letter;
+  ck_letter_t letter = {.dlc = folder->dlc};
   for (int i = 0; i < folder->envelope_count; i++) {
     if (!folder->envelopes[i].enable) {
       continue;
     }
     letter.envelope = folder->envelopes[i];
     for (int j = 0; j < doc->page_count; j++) {
-      memcpy(&letter.page, doc->pages[j], sizeof(ck_page_t));
+      memcpy(&letter.page, doc->pages[j], CK_MAX_LINES_PER_PAGE);
 
       ck_err_t ret = ck_send_letter(&letter);
       if (ret != CK_OK) {
@@ -414,9 +414,8 @@ uint32_t ck_get_base_number(void) {
 ck_err_t ck_is_default_letter(ck_letter_t *letter) {
   ck_letter_t dletter = ck_default_letter();
   if (letter->envelope.envelope_no == dletter.envelope.envelope_no &&
-      letter->page.line_count == dletter.page.line_count &&
-      memcmp(letter->page.lines, dletter.page.lines, dletter.page.line_count) ==
-          0) {
+      letter->dlc == dletter.dlc &&
+      memcmp(letter->page.lines, dletter.page.lines, dletter.dlc) == 0) {
     return CK_OK;
   }
   return CK_ERR_FALSE;
@@ -516,8 +515,6 @@ ck_err_t ck_correct_letter_received(void) {
 
 static void init_mayors_pages(void) {
   // Init mayor's pages
-  mayor.pages[0].line_count = CK_MAX_LINES_PER_PAGE;
-  mayor.pages[1].line_count = CK_MAX_LINES_PER_PAGE;
   mayor.pages[0].lines[1] = 0;  // Page 0
   mayor.pages[1].lines[1] = 1;  // Page 1
 
@@ -875,11 +872,6 @@ static ck_err_t process_kp17(const ck_page_t *page) {
           ((uint8_t **)(source_list->records))[source_record_no];
       ck_page_t *target_page =
           ((ck_page_t **)(target_list->records))[target_record_no];
-
-      // Increase size of page if needed.
-      if (target_position >= target_page->line_count) {
-        target_page->line_count = target_position + 1;
-      }
 
       target_page->lines[target_position] = *source_line;
 

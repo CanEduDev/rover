@@ -120,7 +120,7 @@ static ck_letter_t frame_to_letter(CAN_RxHeaderTypeDef *header, uint8_t *data) {
     letter.envelope.envelope_no = header->StdId;
   }
   letter.envelope.is_compressed = false;
-  letter.page.line_count = header->DLC;
+  letter.dlc = header->DLC;
   memcpy(letter.page.lines, data, header->DLC);
   return letter;
 }

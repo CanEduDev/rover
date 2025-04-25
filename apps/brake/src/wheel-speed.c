@@ -43,7 +43,7 @@ void init_wheel_speed_task(uint8_t priority) {
 // bytes 4-7: wheel diameter in meters (float)
 int process_set_wheel_parameters_letter(const ck_letter_t* letter) {
   ck_data_t* ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->set_wheel_parameters_folder->dlc) {
+  if (letter->dlc != ck_data->set_wheel_parameters_folder->dlc) {
     return APP_NOT_OK;
   }
 

@@ -34,7 +34,6 @@ ck_data_t *get_ck_data(void) {
 
 static void page_init(void) {
   ck_data.wheel_speed_page = &ck_data.pages[0];
-  ck_data.wheel_speed_page->line_count = 2 * sizeof(float);
 }
 
 static void doc_init(void) {
@@ -79,7 +78,7 @@ static void folder_init(void) {
     ck_data.folders[i].enable = true;
   }
 
-  ck_data.wheel_speed_folder->dlc = ck_data.wheel_speed_page->line_count;
+  ck_data.wheel_speed_folder->dlc = 2 * sizeof(float);
 
   // Set up the receive folders
   ck_data.set_wheel_parameters_folder = &ck_data.folders[3];

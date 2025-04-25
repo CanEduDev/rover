@@ -13,7 +13,7 @@
 // bytes 1-2: desired servo voltage in mV.
 int process_set_servo_voltage_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->set_servo_voltage_folder->dlc) {
+  if (letter->dlc != ck_data->set_servo_voltage_folder->dlc) {
     return APP_NOT_OK;
   }
 
@@ -28,7 +28,7 @@ int process_set_servo_voltage_letter(const ck_letter_t *letter) {
 // 2 bytes in page, the PWM frequency in Hz. At most 333 Hz.
 int process_pwm_conf_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->pwm_conf_folder->dlc) {
+  if (letter->dlc != ck_data->pwm_conf_folder->dlc) {
     return APP_NOT_OK;
   }
 
@@ -57,7 +57,7 @@ int process_pwm_conf_letter(const ck_letter_t *letter) {
 // +90 degrees pulse width: 2500 microseconds.
 int process_steering_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->steering_folder->dlc) {
+  if (letter->dlc != ck_data->steering_folder->dlc) {
     return APP_NOT_OK;
   }
 
@@ -84,7 +84,7 @@ int process_steering_letter(const ck_letter_t *letter) {
 // Signed integer representing a subtrim value as a pulse width in microseconds.
 int process_subtrim_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->subtrim_folder->dlc) {
+  if (letter->dlc != ck_data->subtrim_folder->dlc) {
     return APP_NOT_OK;
   }
 
@@ -107,7 +107,7 @@ int process_subtrim_letter(const ck_letter_t *letter) {
 //            measurements over CAN.
 int process_report_freq_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->report_freq_folder->dlc) {
+  if (letter->dlc != ck_data->report_freq_folder->dlc) {
     return APP_NOT_OK;
   }
 
@@ -121,7 +121,7 @@ int process_report_freq_letter(const ck_letter_t *letter) {
 
 int process_reverse_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->reverse_folder->dlc) {
+  if (letter->dlc != ck_data->reverse_folder->dlc) {
     return APP_NOT_OK;
   }
 
@@ -141,7 +141,7 @@ int process_reverse_letter(const ck_letter_t *letter) {
 //
 int process_failsafe_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->failsafe_folder->dlc) {
+  if (letter->dlc != ck_data->failsafe_folder->dlc) {
     return APP_NOT_OK;
   }
 

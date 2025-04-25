@@ -18,7 +18,6 @@ ck_err_t ck_create_kings_page_0(const ck_kp0_args_t *args, ck_page_t *page) {
   if (ret != CK_OK) {
     return ret;
   }
-  page->line_count = CK_MAX_LINES_PER_PAGE;
   page->lines[0] = args->address;
   page->lines[1] = CK_KP0;
   page->lines[2] = args->action_mode;
@@ -41,7 +40,6 @@ ck_err_t ck_create_kings_page_1(const ck_kp1_args_t *args, ck_page_t *page) {
     return CK_ERR_INVALID_CAN_ID;
   }
 
-  page->line_count = CK_MAX_LINES_PER_PAGE;
   page->lines[0] = args->address;
   page->lines[1] = CK_KP1;
   page->lines[2] = args->mayor_response_no;
@@ -72,7 +70,6 @@ ck_err_t ck_create_kings_page_2(const ck_kp2_args_t *args, ck_page_t *page) {
     return CK_ERR_INCOMPATIBLE_PARAMS;
   }
 
-  page->line_count = CK_MAX_LINES_PER_PAGE;
   page->lines[0] = args->address;
   page->lines[1] = CK_KP2;
 
@@ -97,7 +94,6 @@ ck_err_t ck_create_kings_page_8(uint8_t address,
     return CK_ERR_INVALID_PARAMETER;
   }
 
-  page->line_count = CK_MAX_LINES_PER_PAGE;
   page->lines[0] = address;
   page->lines[1] = CK_KP8;
   page->lines[2] = 0;
@@ -125,7 +121,6 @@ ck_err_t ck_create_kings_page_16(const ck_kp16_args_t *args, ck_page_t *page) {
     return CK_ERR_INVALID_CAN_DLC;
   }
 
-  page->line_count = CK_MAX_LINES_PER_PAGE;
   page->lines[0] = args->address;
   page->lines[1] = CK_KP16;
   page->lines[2] = args->folder_no;
@@ -165,7 +160,6 @@ ck_err_t ck_create_kings_page_17(const ck_kp17_args_t *args, ck_page_t *page) {
   if (ret != CK_OK) {
     return ret;
   }
-  page->line_count = CK_MAX_LINES_PER_PAGE;
   page->lines[0] = args->address;
   page->lines[1] = CK_KP17;
   page->lines[2] = (args->list_type << 3) | args->direction;

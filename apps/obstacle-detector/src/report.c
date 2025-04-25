@@ -35,7 +35,7 @@ void init_report_task(uint8_t priority) {
 //            measurements over CAN.
 int process_report_freq_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->set_report_freq_folder->dlc) {
+  if (letter->dlc != ck_data->set_report_freq_folder->dlc) {
     return APP_NOT_OK;
   }
 

@@ -53,7 +53,7 @@ static void obstacle_detector(void* unused) {
     }
 
     memcpy(ck_data->object_distance_page->lines, distance,
-           ck_data->object_distance_page->line_count);
+           ck_data->object_distance_folder->dlc);
   }
 }
 

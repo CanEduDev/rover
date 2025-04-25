@@ -290,7 +290,7 @@ static void exit_bootloader(const ck_letter_t *letter) {
 static int process_flash_erase_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
 
-  if (letter->page.line_count != ck_data->flash_erase_folder->dlc) {
+  if (letter->dlc != ck_data->flash_erase_folder->dlc) {
     printf("Incorrect flash erase page length.\r\n");
     send_nack(letter);
     return APP_NOT_OK;
@@ -345,7 +345,7 @@ static int process_flash_erase_letter(const ck_letter_t *letter) {
 static int process_fs_format_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
 
-  if (letter->page.line_count != ck_data->fs_format_folder->dlc) {
+  if (letter->dlc != ck_data->fs_format_folder->dlc) {
     printf("fs format: incorrect page length.\r\n");
     send_nack(letter);
     return APP_NOT_OK;
@@ -394,7 +394,7 @@ static int process_block_transfer(const ck_letter_t *letter,
   }
 
   // Letter validation
-  if (letter->page.line_count != dlc ||
+  if (letter->dlc != dlc ||
       (letter->page.lines[0] != 1 && letter->page.lines[0] != 3 &&
        letter->page.lines[0] != 4)) {
     printf("%s: incorrect letter. Aborting.\r\n", task_name);

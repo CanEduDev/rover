@@ -25,7 +25,7 @@
 //
 int process_jumper_config_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->jumper_config_folder->dlc) {
+  if (letter->dlc != ck_data->jumper_config_folder->dlc) {
     return APP_NOT_OK;
   }
 
@@ -40,7 +40,7 @@ int process_jumper_config_letter(const ck_letter_t *letter) {
 //
 int process_set_reg_out_voltage_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->set_reg_out_voltage_folder->dlc) {
+  if (letter->dlc != ck_data->set_reg_out_voltage_folder->dlc) {
     return APP_NOT_OK;
   }
 
@@ -58,7 +58,7 @@ int process_set_reg_out_voltage_letter(const ck_letter_t *letter) {
 // are ignored
 int process_output_on_off_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->output_on_off_folder->dlc) {
+  if (letter->dlc != ck_data->output_on_off_folder->dlc) {
     return APP_NOT_OK;
   }
 
@@ -103,7 +103,7 @@ int process_output_on_off_letter(const ck_letter_t *letter) {
 // measurements over CAN.
 int process_report_freq_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->report_freq_folder->dlc) {
+  if (letter->dlc != ck_data->report_freq_folder->dlc) {
     return APP_NOT_OK;
   }
 
@@ -126,7 +126,7 @@ int process_report_freq_letter(const ck_letter_t *letter) {
 //
 int process_low_voltage_cutoff_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->low_voltage_cutoff_folder->dlc) {
+  if (letter->dlc != ck_data->low_voltage_cutoff_folder->dlc) {
     return APP_NOT_OK;
   }
 
@@ -149,8 +149,7 @@ int process_low_voltage_cutoff_letter(const ck_letter_t *letter) {
 //
 int process_vbat_out_overcurrent_threshold_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count !=
-      ck_data->vbat_out_overcurrent_threshold_folder->dlc) {
+  if (letter->dlc != ck_data->vbat_out_overcurrent_threshold_folder->dlc) {
     return APP_NOT_OK;
   }
 
@@ -171,8 +170,7 @@ int process_vbat_out_overcurrent_threshold_letter(const ck_letter_t *letter) {
 //
 int process_reg_out_overcurrent_threshold_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count !=
-      ck_data->reg_out_overcurrent_threshold_folder->dlc) {
+  if (letter->dlc != ck_data->reg_out_overcurrent_threshold_folder->dlc) {
     return APP_NOT_OK;
   }
 
@@ -188,7 +186,7 @@ int process_reg_out_overcurrent_threshold_letter(const ck_letter_t *letter) {
 
 int process_cell_calibration_letter(const ck_letter_t *letter) {
   ck_data_t *ck_data = get_ck_data();
-  if (letter->page.line_count != ck_data->cell_calibration_folder->dlc) {
+  if (letter->dlc != ck_data->cell_calibration_folder->dlc) {
     return APP_NOT_OK;
   }
 

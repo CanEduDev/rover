@@ -84,16 +84,9 @@ ck_err_t ck_check_ck_id(const ck_id_t *id) {
 
 ck_letter_t ck_default_letter(void) {
   ck_letter_t letter = {
-      .envelope =
-          {
-              .envelope_no = CK_DEFAULT_LETTER_ENVELOPE,
-          },
-      .page =
-          {
-              .line_count = CK_MAX_LINES_PER_PAGE,
-              // NOLINTNEXTLINE(*-magic-numbers)
-              .lines = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA},
-          },
+      .envelope = {.envelope_no = CK_DEFAULT_LETTER_ENVELOPE},
+      // NOLINTNEXTLINE(*-magic-numbers)
+      .page = {.lines = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA}},
   };
   return letter;
 }

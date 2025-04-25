@@ -97,6 +97,7 @@ ck_err_t set_rover_base_number(void) {
   ck_letter_t letter = {
       .envelope = kings_envelope,
       .page = page,
+      .dlc = CK_MAX_LINES_PER_PAGE,
   };
 
   // Send base number to self
@@ -125,10 +126,7 @@ ck_err_t configure_rover_settings(void) {
       .is_remote = false,
   };
 
-  ck_page_t page = {.line_count = 0};
-
   ck_letter_t letter = {
-      .page = page,
       .envelope = reverse_envelope,
   };
 
@@ -158,6 +156,7 @@ ck_err_t start_communication(void) {
   ck_letter_t letter = {
       .envelope = kings_envelope,
       .page = page,
+      .dlc = CK_MAX_LINES_PER_PAGE,
   };
 
   ret = ck_process_kings_letter(&letter);
