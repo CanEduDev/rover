@@ -33,6 +33,7 @@ void servo_init(void) {
   servo.current = 0;
   servo.steering_angle = 0;
   servo.steering_pulse = PWM_NEUTRAL_PULSE_MUS;
+  servo.position_enabled = false;
   servo.position = 0;
   servo.reverse = false;
 

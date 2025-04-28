@@ -18,6 +18,7 @@ typedef struct {
   uint16_t current;
   float steering_angle;
   uint16_t steering_pulse;
+  bool position_enabled;
   float position;  // Reported position
   bool reverse;    // Reverse steering direction
 } servo_state_t;

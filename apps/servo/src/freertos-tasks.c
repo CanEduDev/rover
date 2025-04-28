@@ -89,6 +89,10 @@ void measure(void *unused) {
 
   servo_state_t *servo = get_servo_state();
 
+  if (!servo->position_enabled) {
+    ck_data->servo_position_folder->enable = false;
+  }
+
   for (;;) {
     sample_adc(&adc_samples);
     adc_average_samples(&adc_average, &adc_samples);

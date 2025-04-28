@@ -228,8 +228,18 @@ SERVO_ASSIGNMENTS = [
     ),
     Assignment(
         City.SERVO,
+        Envelope.SERVO_POSITION,
+        ServoFolder.POSITION,
+    ),
+    Assignment(
+        City.SERVO,
         Envelope.SERVO_VOLTAGE,
         ServoFolder.VOLTAGE,
+    ),
+    Assignment(
+        City.SERVO,
+        Envelope.SERVO_CURRENT,
+        ServoFolder.CURRENT,
     ),
     Assignment(
         City.SERVO,

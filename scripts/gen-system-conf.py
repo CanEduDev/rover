@@ -160,6 +160,7 @@ def assignment_to_config(system, assignment):
 def set_default_settings(system):
     system["servo"]["config"]["settings"] = {
         "reverse": True,
+        "position_enabled": False,
     }
 
 
