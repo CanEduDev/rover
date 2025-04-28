@@ -18,6 +18,7 @@ void pwm_init(void);
 void pwm_set_pulse(uint32_t pulse_mus);
 void pwm_set_subtrim_pulse(int16_t pulse_mus);
 void pwm_set_frequency(uint16_t frequency_hz);
+int32_t pwm_get_subtrim(void);
 
 #ifdef __cplusplus
 }

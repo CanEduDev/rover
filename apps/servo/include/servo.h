@@ -30,7 +30,7 @@ typedef enum {
 servo_state_t* get_servo_state(void);
 void servo_init(void);
 void update_servo_state(adc_reading_t* adc_reading);
-int update_servo_pulse(uint16_t pulse);
+int update_servo_pulse(int32_t pulse);
 int update_servo_angle(float angle);
 
 #ifdef __cplusplus

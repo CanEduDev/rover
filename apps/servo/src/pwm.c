@@ -60,3 +60,7 @@ void pwm_set_frequency(uint16_t frequency_hz) {
   peripherals_t *peripherals = get_peripherals();
   __HAL_TIM_SET_AUTORELOAD(&peripherals->htim1, reload_value);
 }
+
+int32_t pwm_get_subtrim(void) {
+  return subtrim;
+}

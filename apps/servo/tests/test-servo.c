@@ -15,23 +15,25 @@ DEFINE_FFF_GLOBALS
 FAKE_VOID_FUNC(failsafe_init)
 FAKE_VOID_FUNC(failsafe_on)
 FAKE_VOID_FUNC(failsafe_refresh)
+FAKE_VOID_FUNC(init_potentiometers)
 FAKE_VOID_FUNC(pwm_init)
 FAKE_VOID_FUNC(pwm_set_pulse, uint32_t)
-FAKE_VOID_FUNC(init_potentiometers)
 FAKE_VALUE_FUNC(int, read_servo_potentiometer, uint8_t*)
-FAKE_VALUE_FUNC(int, write_servo_potentiometer, uint8_t)
 FAKE_VALUE_FUNC(int, write_sensor_potentiometer, uint8_t)
+FAKE_VALUE_FUNC(int, write_servo_potentiometer, uint8_t)
+FAKE_VALUE_FUNC(int32_t, pwm_get_subtrim)
 
-#define FFF_FAKES_LIST(FAKE)      \
-  FAKE(failsafe_init)             \
-  FAKE(failsafe_on)               \
-  FAKE(failsafe_refresh)          \
-  FAKE(pwm_init)                  \
-  FAKE(pwm_set_pulse)             \
-  FAKE(init_potentiometers)       \
-  FAKE(read_servo_potentiometer)  \
-  FAKE(write_servo_potentiometer) \
-  FAKE(write_sensor_potentiometer)
+#define FFF_FAKES_LIST(FAKE)       \
+  FAKE(failsafe_init)              \
+  FAKE(failsafe_on)                \
+  FAKE(failsafe_refresh)           \
+  FAKE(init_potentiometers)        \
+  FAKE(pwm_get_subtrim)            \
+  FAKE(pwm_init)                   \
+  FAKE(pwm_set_pulse)              \
+  FAKE(read_servo_potentiometer)   \
+  FAKE(write_sensor_potentiometer) \
+  FAKE(write_servo_potentiometer)
 
 void reset_fakes(void) {
   FFF_FAKES_LIST(RESET_FAKE);

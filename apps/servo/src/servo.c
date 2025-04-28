@@ -18,9 +18,10 @@ void update_voltage_controller(void);
 bool is_servo_voltage_stable(void);
 
 // Helpers
-uint16_t angle_to_pulse(float angle);
-float pulse_to_angle(uint16_t pulse);
-uint16_t reverse_pulse(uint16_t pulse);
+static int32_t angle_to_pulse(float angle);
+static float pulse_to_angle(int32_t pulse);
+static float subtrim_pulse_to_angle(int32_t pulse);
+static int32_t reverse_pulse(int32_t pulse);
 
 servo_state_t* get_servo_state(void) {
   return &servo;
@@ -49,7 +50,11 @@ void servo_init(void) {
 void update_servo_state(adc_reading_t* adc_reading) {
   servo.voltage = adc_to_servo_voltage(adc_reading->adc2_buf[0]);
   servo.current = adc_to_servo_current(adc_reading->adc1_buf[1]);
-  servo.position = adc_to_servo_position(adc_reading->adc1_buf[0]);
+
+  float subtrim_angle = subtrim_pulse_to_angle(pwm_get_subtrim());
+  float angle = adc_to_servo_position(adc_reading->adc1_buf[0]);
+  servo.position = angle + subtrim_angle;
+
   update_voltage_controller();
   pwm_set_pulse(servo.steering_pulse);
 }
@@ -85,7 +90,7 @@ bool is_servo_voltage_stable(void) {
   return servo.voltage < max_voltage && servo.voltage > min_voltage;
 }
 
-int update_servo_pulse(uint16_t pulse) {
+int update_servo_pulse(int32_t pulse) {
   if (pulse > PWM_MAX_PULSE || pulse < PWM_MIN_PULSE) {
     return APP_NOT_OK;
   }
@@ -122,14 +127,18 @@ int update_servo_angle(float angle) {
   return APP_OK;
 }
 
-uint16_t angle_to_pulse(float angle) {
-  return (uint16_t)roundf((angle * k_angle_to_pulse) + m_angle_to_pulse);
+static int32_t angle_to_pulse(float angle) {
+  return (int32_t)roundf((angle * k_angle_to_pulse) + m_angle_to_pulse);
 }
 
-float pulse_to_angle(uint16_t pulse) {
+static float pulse_to_angle(int32_t pulse) {
   return ((float)(pulse)-m_angle_to_pulse) / k_angle_to_pulse;
 }
 
-uint16_t reverse_pulse(uint16_t pulse) {
+static float subtrim_pulse_to_angle(int32_t pulse) {
+  return (float)pulse / k_angle_to_pulse;
+}
+
+static int32_t reverse_pulse(int32_t pulse) {
   return (2 * PWM_NEUTRAL_PULSE_MUS) - pulse;
 }
