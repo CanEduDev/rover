@@ -27,8 +27,6 @@ int main(void) {
   peripherals_init();
 
   init_potentiometers();
-  write_sensor_potentiometer(POTENTIOMETER_SENSOR_DEFAULT);
-  write_servo_potentiometer(POTENTIOMETER_SERVO_DEFAULT);
 
   uint8_t priority = LOWEST_TASK_PRIORITY;
 

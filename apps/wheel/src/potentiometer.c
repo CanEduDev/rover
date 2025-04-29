@@ -12,6 +12,8 @@
 #define POTENTIOMETER_WRB_ADDRESS 0x01  // VDD_Sensor potentiometer i2c address
 #define POTENTIOMETER_ACR_ADDRESS 0x10  // Access control register
 
+int write_potentiometer_value(uint8_t terminal_address, uint8_t pot_value);
+
 int init_potentiometers(void) {
   peripherals_t *peripherals = get_peripherals();
   // Volatile RW enable, Shutdown disable
@@ -26,7 +28,14 @@ int init_potentiometers(void) {
     return APP_NOT_OK;
   }
 
-  return APP_OK;
+  int ret = write_potentiometer_value(POTENTIOMETER_WRA_ADDRESS,
+                                      POTENTIOMETER_SENSOR_SUPPLY);
+  if (ret != APP_OK) {
+    return ret;
+  }
+
+  return write_potentiometer_value(POTENTIOMETER_WRB_ADDRESS,
+                                   POTENTIOMETER_SENSOR_MEASURE);
 }
 
 int write_potentiometer_value(uint8_t terminal_address, uint8_t pot_value) {
@@ -44,12 +53,4 @@ int write_potentiometer_value(uint8_t terminal_address, uint8_t pot_value) {
   }
 
   return APP_OK;
-}
-
-int write_servo_potentiometer(uint8_t pot_value) {
-  return write_potentiometer_value(POTENTIOMETER_WRA_ADDRESS, pot_value);
-}
-
-int write_sensor_potentiometer(uint8_t pot_value) {
-  return write_potentiometer_value(POTENTIOMETER_WRB_ADDRESS, pot_value);
 }
