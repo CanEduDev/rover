@@ -272,7 +272,7 @@ def get_screen_dpi():
 root = tk.Tk()
 root.title("CAN Message Viewer")
 root.protocol("WM_DELETE_WINDOW", on_closing)
-root.state("zoomed")
+root.state("normal")
 
 dpi_width, dpi_height = get_screen_dpi()
 
@@ -324,7 +324,8 @@ zoom_out_button = tk.Button(button_frame, text="Zoom out", command=zoom_out)
 zoom_out_button.pack(side="right", pady=10, padx=10, anchor="e")
 
 # Set font size
-font_size = int(round(max(dpi_width, dpi_height) * 1))
+# font_size = int(round(max(dpi_width, dpi_height) * 1))
+font_size = 10
 print(dpi_width, dpi_height)
 print(font_size)
 set_font_size(font_size)
