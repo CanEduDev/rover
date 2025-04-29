@@ -66,8 +66,9 @@ rm -f "rover-release"*
 
 mkdir release
 cp "${OTHER_FILES[@]}" "${RELEASE_DIR}"
-cp "${FLASHER_PATH}/fw_update.py" "${RELEASE_DIR}"
+install "${FLASHER_PATH}/fw_update.py" "${RELEASE_DIR}" # sets executable
 cp -r "${CONFIG_DIR}" "${RELEASE_DIR}"
+cp "${CONFIG_DIR}"/system.json "${RELEASE_DIR}"
 
 mkdir "${RELEASE_DIR}"/binaries
 cp "${BINARIES[@]}" "${RELEASE_DIR}"/binaries

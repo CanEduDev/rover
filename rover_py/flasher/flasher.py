@@ -53,8 +53,15 @@ class Flasher:
         # Flash all online nodes
         for node in self.config.get_nodes():
             id = self.config.get_id(node)
-            binary = self.config.get_binary(node)
-            config = self.config.get_config(node)
+
+            binary = None
+            if not self.config.skip_binaries:
+                binary = self.config.get_binary(node)
+
+            config = None
+            if not self.config.skip_config:
+                config = self.config.get_config(node)
+
             if id in self.online_node_ids:
                 self.__flash_node(id, node=node, binary=binary, config=config)
 
@@ -354,7 +361,7 @@ class Flasher:
 
 
 class FlasherConfig:
-    def __init__(self, flasher_conf, binary_dir):
+    def __init__(self, flasher_conf, binary_dir, skip_binaries=False, skip_config=True):
         try:
             f = _read_binary(flasher_conf)
             self.json = json.loads(f)
@@ -377,7 +384,14 @@ class FlasherConfig:
                     f'invalid flasher configuration, {name} is missing "config" key'
                 )
 
+        self.skip_binaries = skip_binaries
+        self.skip_config = skip_config
+
         self.node_binary_map = {}
+
+        if self.skip_binaries:
+            return
+
         try:
             for node in self.json:
                 file_path = Path(binary_dir, self.json[node]["binary"])

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import sys
 import time
@@ -7,7 +9,7 @@ from flasher import flasher
 
 from rover import rover
 
-default_config = "config/system.json"
+default_config = "system.json"
 default_bindir = "binaries"
 
 
@@ -22,7 +24,7 @@ def main():
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Configure and flash Rover ECUs over CAN.",
+        description="Configure and flash Rover ECUs over CAN",
     )
 
     parser.add_argument(
@@ -32,13 +34,12 @@ def parse_args():
         "--bitrate",
         default="125k",
         choices=["125k", "250k", "500k", "1m"],
-        help="use this option if you have changed the default bitrate",
-    )
-    parser.add_argument(
-        "-l", "--list-online", action="store_true", help="list online nodes"
+        help="use this option if you have changed the default CAN bitrate",
     )
 
     subparsers = parser.add_subparsers(required=False, dest="subcommand")
+
+    subparsers.add_parser("list", help="list online nodes")
 
     parser_system = subparsers.add_parser(
         "system", help="flash a complete Rover system"
@@ -52,6 +53,18 @@ def parse_args():
         "--binary-dir",
         default=default_bindir,
         help="binary file directory (default: binaries)",
+    )
+    parser_system.add_argument(
+        "--skip-binaries",
+        action="store_true",
+        default=False,
+        help="do not flash binaries, only update configuration",
+    )
+    parser_system.add_argument(
+        "--skip-config",
+        action="store_true",
+        default=False,
+        help="do not update configuration, flash binaries only",
     )
 
     parser_single = subparsers.add_parser(
@@ -78,7 +91,12 @@ def parse_args():
         "--config", help="path to node config file", required=True
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
+    if not args.subcommand:
+        parser.print_help()
+        sys.exit(1)
+
+    return args
 
 
 def change_bitrate_125k(args):
@@ -118,7 +136,7 @@ def run_flasher(args):
         try:
             print("Running flasher...")
 
-            if args.list_online:
+            if args.subcommand == "list":
                 f = flasher.Flasher(ch)
                 node_ids = f.detect_online_nodes()
                 print("Found nodes:")
@@ -127,6 +145,9 @@ def run_flasher(args):
 
                 sys.exit(0)
 
+            elif args.subcommand == "system":
+                run_system(ch, args)
+
             elif args.subcommand == "single":
                 run_single(ch, args)
 
@@ -134,10 +155,6 @@ def run_flasher(args):
                 print("Try to enter recovery mode...")
                 flasher.Flasher(ch).enter_recovery_mode(args.binary, args.config)
                 sys.exit(0)
-
-            # Both system subcommand and no subcommand
-            else:
-                run_default(ch, args)
 
         except canlib.exceptions.CanNotFound:
             print(f"error: CAN channel {args.channel} not found.", file=sys.stderr)
@@ -177,7 +194,7 @@ def run_single(ch, args):
         f.run_single(args.id, binary_file=args.binary, config_file=args.config)
 
 
-def run_default(ch, args):
+def run_system(ch, args):
     print("Verifying system configuration...")
     bindir_arg = default_bindir
     config_arg = default_config
@@ -186,7 +203,12 @@ def run_default(ch, args):
         config_arg = args.config
 
     try:
-        config = flasher.FlasherConfig(config_arg, bindir_arg)
+        config = flasher.FlasherConfig(
+            config_arg,
+            bindir_arg,
+            skip_binaries=args.skip_binaries,
+            skip_config=args.skip_config,
+        )
     except Exception as e:
         print(f"error verifying {args.config}: {e}", file=sys.stderr)
         sys.exit(1)
