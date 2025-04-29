@@ -1,4 +1,5 @@
 import csv
+from pathlib import Path
 
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
@@ -8,7 +9,7 @@ import matplotlib.pyplot as plt
 def load_data(file_name):
     timestamps = []
     values = []
-    with open(file_name, "r") as file:
+    with Path(file_name).open() as file:
         reader = csv.reader(file)
         next(reader)  # Skip header
         for row in reader:

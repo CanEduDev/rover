@@ -1,5 +1,6 @@
-import csv
 import argparse
+import csv
+from pathlib import Path
 
 import can
 import cantools
@@ -17,7 +18,7 @@ def main():
     db = cantools.db.load_file(args.dbc_file)
     log = can.LogReader(args.log_file)
 
-    with open(args.output_csv, mode="w", newline="") as f:
+    with Path(args.output_csv).open(mode="w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["Timestamp", "Message Name", "ID", "Signal", "Value"])
 

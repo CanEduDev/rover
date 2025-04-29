@@ -1,10 +1,10 @@
 import csv
 import datetime
 import time
+from pathlib import Path
 
 import numpy
 from canlib import canlib, kvadblib
-
 from rover import battery, rover
 
 # Test uses 3S battery, capacity 6000mAh and discharge rate 70C.
@@ -111,8 +111,8 @@ def write_csv(signal_value_map):
     # Write CSV file
     current_datetime = datetime.datetime.now()
     formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
-    with open(
-        f"battery-stress-test_{formatted_datetime}.csv", "w", newline=""
+    with Path(f"battery-stress-test_{formatted_datetime}.csv").open(
+        "w", newline=""
     ) as csv_file:
         writer = csv.writer(csv_file)
         header = []
@@ -123,7 +123,7 @@ def write_csv(signal_value_map):
             values.append(signal_value_map[signal])
 
         writer.writerow(header)
-        writer.writerows(zip(*values))
+        writer.writerows(zip(*values, strict=False))
 
 
 def teardown_test(ch):

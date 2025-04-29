@@ -1,14 +1,13 @@
 import enum
 import struct
-
 import threading
+
 import can
 import rclpy
+import rover
 import std_msgs.msg as msgtype
 from rclpy.node import Node
 from rclpy.qos import ReliabilityPolicy
-
-import rover
 
 
 @enum.unique

@@ -1,7 +1,6 @@
 from time import sleep
 
 from canlib import canlib
-
 from rover import City, rover, servo
 
 with canlib.openChannel(

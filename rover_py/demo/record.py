@@ -1,7 +1,7 @@
-import csv  # Import the CSV module
+import csv
+from pathlib import Path
 
 from canlib import canlib
-
 from rover import Envelope, servo
 
 # Set up data storage for steering signal and servo current signals.
@@ -59,12 +59,12 @@ with canlib.openChannel(
         print("Error:", e)
 
 # Save collected data to CSV files
-with open("steering_data.csv", "w", newline="") as steering_file:
+with Path("steering_data.csv").open("w", newline="") as steering_file:
     writer = csv.writer(steering_file)
     writer.writerow(["Timestamp", "Steering Value"])
-    writer.writerows(zip(steering_timestamps, steering_data))
+    writer.writerows(zip(steering_timestamps, steering_data, strict=False))
 
-with open("current_data.csv", "w", newline="") as current_file:
+with Path("current_data.csv").open("w", newline="") as current_file:
     writer = csv.writer(current_file)
     writer.writerow(["Timestamp", "Current Value"])
-    writer.writerows(zip(current_timestamps, current_data))
+    writer.writerows(zip(current_timestamps, current_data, strict=False))

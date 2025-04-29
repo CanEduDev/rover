@@ -1,7 +1,6 @@
 import time
 
 from canlib import canlib
-
 from rover import Envelope, battery, rover
 
 with canlib.openChannel(

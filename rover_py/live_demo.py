@@ -1,9 +1,9 @@
 import collections
-import os
 import sys
 import threading
 import time
 import tkinter as tk
+from pathlib import Path
 from tkinter import font
 
 import keyboard
@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 from canlib import canlib, kvadblib
 from matplotlib.animation import FuncAnimation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
 from rover import ActionMode, City, Envelope, rover, servo
 
 sent_messages = {}
@@ -38,9 +37,9 @@ def receive_can_messages():
     try:
         base_path = sys._MEIPASS  # pyright: ignore [reportAttributeAccessIssue]
     except Exception:
-        base_path = os.path.abspath(".")
+        base_path = Path().resolve()
 
-    db = kvadblib.Dbc(filename=os.path.join(base_path, "rover.dbc"))
+    db = kvadblib.Dbc(filename=Path(base_path / "rover.dbc"))
 
     with canlib.openChannel(
         channel=0,

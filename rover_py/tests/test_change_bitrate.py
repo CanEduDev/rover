@@ -2,7 +2,6 @@ import sys
 from time import sleep
 
 from canlib import canlib
-
 from rover import rover
 
 try:

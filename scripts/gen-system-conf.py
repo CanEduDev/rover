@@ -168,11 +168,11 @@ def write_files(system, output_dir):
     dir = Path(output_dir)
     for node, items in system.items():
         config_file = dir / f"{node}.json"
-        with open(config_file, "w") as f:
+        with Path(config_file).open("w") as f:
             json.dump(items["config"], f, indent=4)
             f.write("\n")
 
-    with open(dir / "system.json", "w") as f:
+    with Path(dir / "system.json").open("w") as f:
         json.dump(system, f, indent=4)
         f.write("\n")
 

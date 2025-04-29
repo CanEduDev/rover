@@ -1,7 +1,7 @@
 import csv
+from pathlib import Path
 
 from canlib import canlib
-
 from rover import Envelope
 
 # Initialize CANlib for both signals
@@ -12,7 +12,7 @@ with canlib.openChannel(
     ch.busOn()
 
     # Save collected data to CSV files
-    with open("cells.csv", "w", newline="") as f:
+    with Path("cells.csv").open("w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["Cell 1", "Cell 2", "Cell 3", "Cell 4"])
 

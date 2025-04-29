@@ -1,7 +1,6 @@
 import sys
 
 from canlib import canlib
-
 from rover import Envelope, battery
 
 

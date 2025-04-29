@@ -78,3 +78,23 @@ dependencies = [
 
 [tool.uv.sources]
 rover-py = { path = "rover_py", editable = true }
+
+[tool.ruff.lint]
+# see https://docs.astral.sh/ruff/rules
+select = [
+    # pycodestyle
+    "E", "W",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-use-pathlib
+    "PTH",
+    # isort
+    "I",
+    # pep8-naming
+    "N",
+]
+ignore = ["E501"]

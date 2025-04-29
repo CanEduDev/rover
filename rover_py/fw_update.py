@@ -6,7 +6,6 @@ import time
 
 from canlib import canlib
 from flasher import flasher
-
 from rover import rover
 
 default_config = "system.json"

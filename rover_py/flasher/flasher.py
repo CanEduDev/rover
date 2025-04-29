@@ -3,7 +3,6 @@ import time
 from pathlib import Path
 
 from canlib import Frame, canlib
-
 from rover import Envelope, bootloader, rover
 
 
@@ -184,8 +183,8 @@ class Flasher:
             self.ch.readSyncSpecific(envelope, timeout=1000)
             received = self.ch.readSpecificSkip(envelope)
 
-        except (canlib.exceptions.CanNoMsg, canlib.exceptions.CanTimeout):
-            raise RuntimeError("no bundle request response (1)")
+        except (canlib.exceptions.CanNoMsg, canlib.exceptions.CanTimeout) as e:
+            raise RuntimeError("no bundle request response (1)") from e
 
         if received.data[0] != 2:
             raise RuntimeError("wrong response during block transfer init")
@@ -232,8 +231,8 @@ class Flasher:
             self.ch.readSyncSpecific(envelope, timeout=10000)
             received = self.ch.readSpecificSkip(envelope)
 
-        except (canlib.exceptions.CanNoMsg, canlib.exceptions.CanTimeout):
-            raise RuntimeError("no bundle request response (2)")
+        except (canlib.exceptions.CanNoMsg, canlib.exceptions.CanTimeout) as e:
+            raise RuntimeError("no bundle request response (2)") from e
 
         if received.data[0] != 2:
             raise RuntimeError("wrong response after block transfer")
@@ -346,8 +345,8 @@ class Flasher:
             self.ch.readSyncSpecific(Envelope.BOOTLOADER_COMMAND_ACK, timeout=timeout)
             received = self.ch.readSpecificSkip(Envelope.BOOTLOADER_COMMAND_ACK)
 
-        except (canlib.exceptions.CanNoMsg, canlib.exceptions.CanTimeout):
-            raise RuntimeError("no ACK received")
+        except (canlib.exceptions.CanNoMsg, canlib.exceptions.CanTimeout) as e:
+            raise RuntimeError("no ACK received") from e
 
         command_id = int.from_bytes(received.data[1:5], byteorder="little")
 
@@ -418,7 +417,7 @@ class FlasherConfig:
 
 def _read_binary(file):
     try:
-        with open(Path(file), "rb") as f:
+        with Path(file).open("rb") as f:
             return f.read()
     except Exception as e:
         raise ValueError(f"couldn't read {file}: {e}") from e
@@ -426,7 +425,7 @@ def _read_binary(file):
 
 def _read_json(file):
     try:
-        with open(Path(file), "r") as f:
+        with Path(file).open() as f:
             return json.load(f)
     except Exception as e:
         raise ValueError(f"couldn't read {file}: {e}") from e

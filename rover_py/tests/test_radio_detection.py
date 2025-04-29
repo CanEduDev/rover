@@ -2,7 +2,6 @@ import time
 
 import keyboard
 from canlib import canlib
-
 from rover import Envelope, rover, servo
 
 with canlib.openChannel(

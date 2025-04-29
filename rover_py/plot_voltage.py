@@ -1,5 +1,6 @@
 import argparse
 import csv
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 
@@ -10,7 +11,7 @@ def plot_csv_data(csv_file_path):
     data_values = []
 
     # Open and read the CSV file
-    with open(csv_file_path, "r") as csv_file:
+    with Path(csv_file_path).open() as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
             timestamps.append(float(row["timestamp"]))
