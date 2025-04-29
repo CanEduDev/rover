@@ -20,11 +20,11 @@ def parse_args():
 
     apps = [
         "battery-monitor",
-        "brake",
         "light-array",
         "obstacle-detector",
         "sbus-receiver",
         "servo",
+        "wheel",
     ]
 
     for app in apps:
@@ -57,7 +57,7 @@ def gen_system_base(args):
     dir.mkdir()
 
     battery_monitor = Path(args.battery_monitor_bin)
-    brake = Path(args.brake_bin)
+    wheel = Path(args.wheel_bin)
     light_array = Path(args.light_array_bin)
     obstacle_detector = Path(args.obstacle_detector_bin)
     sbus_receiver = Path(args.sbus_receiver_bin)
@@ -65,11 +65,11 @@ def gen_system_base(args):
 
     binaries = [
         battery_monitor,
-        brake,
         light_array,
         obstacle_detector,
         sbus_receiver,
         servo,
+        wheel,
     ]
 
     for bin in binaries:
@@ -96,19 +96,19 @@ def gen_system_base(args):
         },
         "wheel-front-left": {
             "id": rover.City.WHEEL_FRONT_LEFT,
-            "binary": brake.name,
+            "binary": wheel.name,
         },
         "wheel-front-right": {
             "id": rover.City.WHEEL_FRONT_RIGHT,
-            "binary": brake.name,
+            "binary": wheel.name,
         },
         "wheel-rear-left": {
             "id": rover.City.WHEEL_REAR_LEFT,
-            "binary": brake.name,
+            "binary": wheel.name,
         },
         "wheel-rear-right": {
             "id": rover.City.WHEEL_REAR_RIGHT,
-            "binary": brake.name,
+            "binary": wheel.name,
         },
         "obstacle-detector-front": {
             "id": rover.City.OBSTACLE_DETECTOR_FRONT,

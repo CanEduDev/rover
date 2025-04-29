@@ -71,11 +71,11 @@
             "description": "Select the target to debug",
             "options": [
                 "battery-monitor",
-                "brake",
                 "light-array",
                 "obstacle-detector",
                 "sbus-receiver",
-                "servo"
+                "servo",
+                "wheel"
             ],
             "default": "battery-monitor"
         }

@@ -171,13 +171,13 @@ class BatteryMonitorFolder(enum.IntEnum):
 
 
 @enum.unique
-class BrakeFolder(enum.IntEnum):
+class WheelFolder(enum.IntEnum):
     WHEEL_SPEED = 2
     WHEEL_PARAMETERS = 3
     REPORT_FREQUENCY = 4
 
     def prefix(self):
-        return "BRAKE"
+        return "WHEEL"
 
 
 @enum.unique
@@ -391,17 +391,17 @@ WHEEL_FRONT_LEFT_ASSIGNMENTS = [
     Assignment(
         City.WHEEL_FRONT_LEFT,
         Envelope.WHEEL_FRONT_LEFT_SPEED,
-        BrakeFolder.WHEEL_SPEED,
+        WheelFolder.WHEEL_SPEED,
     ),
     Assignment(
         City.WHEEL_FRONT_LEFT,
         Envelope.WHEEL_FRONT_LEFT_WHEEL_PARAMETERS,
-        BrakeFolder.WHEEL_PARAMETERS,
+        WheelFolder.WHEEL_PARAMETERS,
     ),
     Assignment(
         City.WHEEL_FRONT_LEFT,
         Envelope.WHEEL_FRONT_LEFT_REPORT_FREQUENCY,
-        BrakeFolder.REPORT_FREQUENCY,
+        WheelFolder.REPORT_FREQUENCY,
     ),
 ]
 
@@ -409,17 +409,17 @@ WHEEL_FRONT_RIGHT_ASSIGNMENTS = [
     Assignment(
         City.WHEEL_FRONT_RIGHT,
         Envelope.WHEEL_FRONT_RIGHT_SPEED,
-        BrakeFolder.WHEEL_SPEED,
+        WheelFolder.WHEEL_SPEED,
     ),
     Assignment(
         City.WHEEL_FRONT_RIGHT,
         Envelope.WHEEL_FRONT_RIGHT_WHEEL_PARAMETERS,
-        BrakeFolder.WHEEL_PARAMETERS,
+        WheelFolder.WHEEL_PARAMETERS,
     ),
     Assignment(
         City.WHEEL_FRONT_RIGHT,
         Envelope.WHEEL_FRONT_RIGHT_REPORT_FREQUENCY,
-        BrakeFolder.REPORT_FREQUENCY,
+        WheelFolder.REPORT_FREQUENCY,
     ),
 ]
 
@@ -427,17 +427,17 @@ WHEEL_REAR_LEFT_ASSIGNMENTS = [
     Assignment(
         City.WHEEL_REAR_LEFT,
         Envelope.WHEEL_REAR_LEFT_SPEED,
-        BrakeFolder.WHEEL_SPEED,
+        WheelFolder.WHEEL_SPEED,
     ),
     Assignment(
         City.WHEEL_REAR_LEFT,
         Envelope.WHEEL_REAR_LEFT_WHEEL_PARAMETERS,
-        BrakeFolder.WHEEL_PARAMETERS,
+        WheelFolder.WHEEL_PARAMETERS,
     ),
     Assignment(
         City.WHEEL_REAR_LEFT,
         Envelope.WHEEL_REAR_LEFT_REPORT_FREQUENCY,
-        BrakeFolder.REPORT_FREQUENCY,
+        WheelFolder.REPORT_FREQUENCY,
     ),
 ]
 
@@ -445,17 +445,17 @@ WHEEL_REAR_RIGHT_ASSIGNMENTS = [
     Assignment(
         City.WHEEL_REAR_RIGHT,
         Envelope.WHEEL_REAR_RIGHT_SPEED,
-        BrakeFolder.WHEEL_SPEED,
+        WheelFolder.WHEEL_SPEED,
     ),
     Assignment(
         City.WHEEL_REAR_RIGHT,
         Envelope.WHEEL_REAR_RIGHT_WHEEL_PARAMETERS,
-        BrakeFolder.WHEEL_PARAMETERS,
+        WheelFolder.WHEEL_PARAMETERS,
     ),
     Assignment(
         City.WHEEL_REAR_RIGHT,
         Envelope.WHEEL_REAR_RIGHT_REPORT_FREQUENCY,
-        BrakeFolder.REPORT_FREQUENCY,
+        WheelFolder.REPORT_FREQUENCY,
     ),
 ]
 

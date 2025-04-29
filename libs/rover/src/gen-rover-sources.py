@@ -137,9 +137,9 @@ def generate_header():
             f"#define {folder_prefix}_BATTERY_MONITOR_{folder.name} {folder}\n"
         )
 
-    output.write(f"\n#define {folder_prefix}_BRAKE_COUNT {len(rover.BrakeFolder)}\n")
-    for folder in rover.BrakeFolder:
-        output.write(f"#define {folder_prefix}_BRAKE_{folder.name} {folder}\n")
+    output.write(f"\n#define {folder_prefix}_WHEEL_COUNT {len(rover.WheelFolder)}\n")
+    for folder in rover.WheelFolder:
+        output.write(f"#define {folder_prefix}_WHEEL_{folder.name} {folder}\n")
 
     output.write(
         f"\n#define {folder_prefix}_OBSTACLE_DETECTOR_COUNT {len(rover.ObstacleDetectorFolder)}\n"

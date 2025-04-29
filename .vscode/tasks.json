@@ -112,22 +112,6 @@
             "problemMatcher": []
         },
         {
-            "label": "Flash brake",
-            "type": "shell",
-            "command": "bash",
-            "args": [
-                "-c",
-                "source .venv/bin/activate; meson compile -C build swd-flash-brake"
-            ],
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "problemMatcher": []
-        },
-        {
             "label": "Flash light-array",
             "type": "shell",
             "command": "bash",
@@ -190,6 +174,22 @@
                 "panel": "shared"
             },
             "problemMatcher": []
+        },
+        {
+            "label": "Flash wheel",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "source .venv/bin/activate; meson compile -C build swd-flash-wheel"
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
         }
-    ],
+    ]
 }
