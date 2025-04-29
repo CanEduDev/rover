@@ -80,24 +80,6 @@ uint16_t adc_to_servo_voltage(uint16_t adc_value) {
   return (uint16_t)roundf(servo_voltage);
 }
 
-/* DRV8801 datasheet specifies the max output current as 2.8A.
- * Specified relationship between VPROPI and Vsense: Vsense = VPROPI / 5
- * Thus, i_sense = Vsense / r_sense = VPROPI / (r_sense * 5)
- * VPROPI is measured by ADC, r_sense = R33 = 0.2 Ohm (from servo board rev. E
- * schematic) To simplify, i_sense = VPROPI / (0.2*5) = VPROPI
- */
-uint16_t adc_to_h_bridge_current(uint16_t adc_value) {
-  // Currents in mA
-  const uint16_t max_current = 2800;
-  const float i_sense = adc_value_to_voltage(adc_value);
-
-  uint16_t current = (uint16_t)roundf(i_sense);
-  if (current > max_current) {
-    current = max_current;
-  }
-  return current;
-}
-
 // Returns voltage in mV.
 static float adc_value_to_voltage(uint16_t adc_value) {
   return ADC_REF_VOLTAGE_MV * adc_value / (float)ADC_RESOLUTION_12BIT;

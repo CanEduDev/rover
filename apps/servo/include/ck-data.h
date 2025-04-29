@@ -7,8 +7,8 @@ extern "C" {
 
 #include "ck-types.h"
 
-#define CK_DATA_TX_PAGE_COUNT 5
-#define CK_DATA_TX_DOC_COUNT 5
+#define CK_DATA_TX_PAGE_COUNT 4
+#define CK_DATA_TX_DOC_COUNT CK_DATA_TX_PAGE_COUNT
 #define CK_DATA_LIST_COUNT 2
 #define CK_DATA_TX_FOLDER_COUNT 5
 #define CK_DATA_RX_FOLDER_COUNT 7
@@ -29,14 +29,12 @@ typedef struct {
   ck_page_t *servo_current_page;
   ck_page_t *battery_voltage_page;
   ck_page_t *servo_voltage_page;
-  ck_page_t *h_bridge_current_page;
 
   // Transmit
   ck_folder_t *servo_position_folder;
   ck_folder_t *servo_current_folder;
   ck_folder_t *battery_voltage_folder;
   ck_folder_t *servo_voltage_folder;
-  ck_folder_t *h_bridge_current_folder;
 
   // Receive
   ck_folder_t *set_servo_voltage_folder;

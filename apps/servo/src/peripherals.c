@@ -306,49 +306,15 @@ void gpio_init(void) {
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(DEBUG_LED_GPIO_PORT,
-                    DEBUG_LED_PIN | H_BRIDGE_ENABLE_PIN | H_BRIDGE_MODE1_PIN,
-                    GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(DEBUG_LED_GPIO_PORT, DEBUG_LED_PIN, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(H_BRIDGE_MODE2_GPIO_PORT,
-                    H_BRIDGE_MODE2_PIN | H_BRIDGE_PHASE_PIN, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(H_BRIDGE_nSLEEP_GPIO_PORT, H_BRIDGE_nSLEEP_PIN,
-                    GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(SPI3_NSS_GPIO_PORT, SPI3_NSS_PIN, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : DEBUG_LED_PIN H_BRIDGE_ENABLE_PIN H_BRIDGE_MODE1_PIN
-   */
-  gpio_init.Pin = DEBUG_LED_PIN | H_BRIDGE_ENABLE_PIN | H_BRIDGE_MODE1_PIN;
+  gpio_init.Pin = DEBUG_LED_PIN;
   gpio_init.Mode = GPIO_MODE_OUTPUT_PP;
   gpio_init.Pull = GPIO_NOPULL;
   gpio_init.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(DEBUG_LED_GPIO_PORT, &gpio_init);
-
-  /*Configure GPIO pins : H_BRIDGE_MODE2_PIN H_BRIDGE_PHASE_PIN */
-  gpio_init.Pin = H_BRIDGE_MODE2_PIN | H_BRIDGE_PHASE_PIN;
-  gpio_init.Mode = GPIO_MODE_OUTPUT_PP;
-  gpio_init.Pull = GPIO_NOPULL;
-  gpio_init.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(H_BRIDGE_MODE2_GPIO_PORT, &gpio_init);
-
-  /*Configure GPIO pin : H_BRIDGE_nSLEEP_PIN */
-  gpio_init.Pin = H_BRIDGE_nSLEEP_PIN;
-  gpio_init.Mode = GPIO_MODE_OUTPUT_PP;
-  gpio_init.Pull = GPIO_NOPULL;
-  gpio_init.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(H_BRIDGE_nSLEEP_GPIO_PORT, &gpio_init);
-
-  /*Configure GPIO pin : H_BRIDGE_nFAULT_PIN */
-  gpio_init.Pin = H_BRIDGE_nFAULT_PIN;
-  gpio_init.Mode = GPIO_MODE_INPUT;
-  gpio_init.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(H_BRIDGE_nFAULT_GPIO_PORT, &gpio_init);
 
   /*Configure GPIO pin : SPI3_NSS_PIN */
   gpio_init.Pin = SPI3_NSS_PIN;
@@ -430,9 +396,8 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc) {
     __HAL_RCC_GPIOA_CLK_ENABLE();
     /**ADC2 GPIO Configuration
     PA4     ------> ADC2_IN1
-    PA5     ------> ADC2_IN2
     */
-    gpio_init.Pin = VCC_SERVO_VOLTAGE_PIN | H_BRIDGE_VPROP_PIN;
+    gpio_init.Pin = VCC_SERVO_VOLTAGE_PIN;
     gpio_init.Mode = GPIO_MODE_ANALOG;
     gpio_init.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(VCC_SERVO_VOLTAGE_GPIO_PORT, &gpio_init);
@@ -476,8 +441,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc) {
     PA4     ------> ADC2_IN1
     PA5     ------> ADC2_IN2
     */
-    HAL_GPIO_DeInit(VCC_SERVO_VOLTAGE_GPIO_PORT,
-                    VCC_SERVO_VOLTAGE_PIN | H_BRIDGE_VPROP_PIN);
+    HAL_GPIO_DeInit(VCC_SERVO_VOLTAGE_GPIO_PORT, VCC_SERVO_VOLTAGE_PIN);
 
     /* ADC2 DMA DeInit */
     HAL_DMA_DeInit(hadc->DMA_Handle);

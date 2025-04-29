@@ -8,7 +8,7 @@ extern "C" {
 #include <stdint.h>
 
 #define ADC1_NUM_CHANNELS 3
-#define ADC2_NUM_CHANNELS 2
+#define ADC2_NUM_CHANNELS 1
 #define ADC_NUM_SAMPLES 100
 
 typedef struct {
@@ -28,7 +28,6 @@ float adc_to_servo_position(uint16_t adc_value);
 uint16_t adc_to_servo_current(uint16_t adc_value);
 uint16_t adc_to_battery_voltage(uint16_t adc_value);
 uint16_t adc_to_servo_voltage(uint16_t adc_value);
-uint16_t adc_to_h_bridge_current(uint16_t adc_value);
 
 #ifdef __cplusplus
 }

@@ -85,7 +85,6 @@ void measure(void *unused) {
   adc_reading_t adc_average;
 
   uint16_t battery_voltage = 0;
-  uint16_t h_bridge_current = 0;
 
   servo_state_t *servo = get_servo_state();
 
@@ -97,7 +96,6 @@ void measure(void *unused) {
     sample_adc(&adc_samples);
     adc_average_samples(&adc_average, &adc_samples);
     battery_voltage = adc_to_battery_voltage(adc_average.adc1_buf[2]);
-    h_bridge_current = adc_to_h_bridge_current(adc_average.adc2_buf[1]);
 
     memcpy(ck_data->servo_position_page->lines, &servo->position,
            sizeof(servo->position));
@@ -107,8 +105,6 @@ void measure(void *unused) {
            sizeof(battery_voltage));
     memcpy(ck_data->servo_voltage_page->lines, &servo->voltage,
            sizeof(servo->voltage));
-    memcpy(ck_data->h_bridge_current_page->lines, &h_bridge_current,
-           sizeof(h_bridge_current));
 
     if (ck_get_action_mode() != CK_ACTION_MODE_FREEZE) {
       update_servo_state(&adc_average);
@@ -173,11 +169,6 @@ void send_docs(void) {
   ret = ck_send_document(ck_data->servo_voltage_folder->folder_no);
   if (ret != CK_OK && ret != CK_ERR_TIMEOUT) {
     printf("error: failed to send servo voltage doc\r\n");
-  }
-
-  ret = ck_send_document(ck_data->h_bridge_current_folder->folder_no);
-  if (ret != CK_OK && ret != CK_ERR_TIMEOUT) {
-    printf("error: failed to send H-bridge current doc\r\n");
   }
 }
 

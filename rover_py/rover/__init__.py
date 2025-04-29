@@ -128,14 +128,13 @@ class ServoFolder(enum.IntEnum):
     CURRENT = 3
     BATTERY_VOLTAGE = 4
     VOLTAGE = 5
-    H_BRIDGE_CURRENT = 6
-    SET_VOLTAGE = 7
-    PWM_CONFIG = 8
-    CONTROL = 9
-    SET_SUBTRIM = 10
-    REPORT_FREQUENCY = 11
-    REVERSE_DIRECTION = 12
-    FAILSAFE = 13
+    SET_VOLTAGE = 6
+    PWM_CONFIG = 7
+    CONTROL = 8
+    SET_SUBTRIM = 9
+    REPORT_FREQUENCY = 10
+    REVERSE_DIRECTION = 11
+    FAILSAFE = 12
 
     def prefix(self):
         return "SERVO"
@@ -235,11 +234,6 @@ SERVO_ASSIGNMENTS = [
         City.SERVO,
         Envelope.SERVO_VOLTAGE,
         ServoFolder.VOLTAGE,
-    ),
-    Assignment(
-        City.SERVO,
-        Envelope.SERVO_CURRENT,
-        ServoFolder.CURRENT,
     ),
     Assignment(
         City.SERVO,

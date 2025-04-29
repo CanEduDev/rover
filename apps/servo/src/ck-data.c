@@ -36,7 +36,6 @@ void page_init(void) {
   ck_data.servo_current_page = &ck_data.pages[1];
   ck_data.battery_voltage_page = &ck_data.pages[2];
   ck_data.servo_voltage_page = &ck_data.pages[3];
-  ck_data.h_bridge_current_page = &ck_data.pages[4];
 
   // Set up the pages
   for (uint8_t i = 0; i < CK_DATA_TX_PAGE_COUNT; i++) {
@@ -81,14 +80,13 @@ void folder_init(void) {
   ck_data.servo_current_folder = &ck_data.folders[3];
   ck_data.battery_voltage_folder = &ck_data.folders[4];
   ck_data.servo_voltage_folder = &ck_data.folders[5];
-  ck_data.h_bridge_current_folder = &ck_data.folders[6];
-  ck_data.set_servo_voltage_folder = &ck_data.folders[7];
-  ck_data.pwm_conf_folder = &ck_data.folders[8];
-  ck_data.steering_folder = &ck_data.folders[9];
-  ck_data.subtrim_folder = &ck_data.folders[10];
-  ck_data.report_freq_folder = &ck_data.folders[11];
-  ck_data.reverse_folder = &ck_data.folders[12];
-  ck_data.failsafe_folder = &ck_data.folders[13];
+  ck_data.set_servo_voltage_folder = &ck_data.folders[6];
+  ck_data.pwm_conf_folder = &ck_data.folders[7];
+  ck_data.steering_folder = &ck_data.folders[8];
+  ck_data.subtrim_folder = &ck_data.folders[9];
+  ck_data.report_freq_folder = &ck_data.folders[10];
+  ck_data.reverse_folder = &ck_data.folders[11];
+  ck_data.failsafe_folder = &ck_data.folders[12];
   // NOLINTEND(*-magic-numbers)
 
   // Set up the transmit folders
