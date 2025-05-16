@@ -75,6 +75,7 @@
                 "obstacle-detector",
                 "sbus-receiver",
                 "servo",
+                "vesc-control",
                 "wheel"
             ],
             "default": "battery-monitor"

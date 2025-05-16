@@ -1,9 +1,10 @@
 subdir('battery-monitor')
-subdir('wheel')
 subdir('light-array')
 subdir('obstacle-detector')
 subdir('sbus-receiver')
 subdir('servo')
+subdir('vesc-control')
+subdir('wheel')
 
 # Build binaries with bootloader. Loops through the app_binaries dictionary and
 # creates binaries with both the bootloader and the app, using cat.
@@ -13,6 +14,7 @@ app_binaries = {
     'obstacle-detector': [obstacle_detector_bin],
     'sbus-receiver': [sbus_receiver_bin],
     'servo': [servo_bin],
+    'vesc-control': [vesc_control_bin],
     'wheel': [wheel_bin],
 }
 
@@ -34,5 +36,6 @@ apps_tidy_files = [
     obstacle_detector_tidy_files,
     sbus_receiver_tidy_files,
     servo_tidy_files,
+    vesc_control_tidy_files,
     wheel_tidy_files,
 ]
