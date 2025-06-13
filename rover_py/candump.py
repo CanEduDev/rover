@@ -20,9 +20,14 @@ def main():
     )
     add_can_args(parser)
     parser.add_argument(
-        "--dbc", metavar="DBC_FILE", default=None, help="CAN DBC file for decoding messages"
+        "--dbc",
+        metavar="DBC_FILE",
+        default=None,
+        help="CAN DBC file for decoding messages",
     )
-    parser.add_argument("--log", metavar="FILE", default=None, help="log output to file")
+    parser.add_argument(
+        "--log", metavar="FILE", default=None, help="log output to file"
+    )
 
     args = parser.parse_args()
     if args.list:
@@ -34,8 +39,11 @@ def main():
 
     try:
         bus = create_bus_from_args(args)
-    except Exception as e:
-        print("note: use --list to see available interfaces, then specify interface with -i", file=sys.stderr)
+    except Exception:
+        print(
+            "note: use --list to see available interfaces, then specify interface with -i",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     Dumper(bus, args.dbc, args.log).start()
@@ -52,6 +60,7 @@ class Dumper:
                 self.db = cantools.db.load_file(dbc)
             except Exception as e:
                 print(f"error: failed to load DBC file: {e}", file=sys.stderr)
+                self.bus.shutdown()
                 sys.exit(1)
 
         if log is not None:
@@ -61,6 +70,7 @@ class Dumper:
                 self.logger = can.Logger(log)
             except Exception as e:
                 print(f"error: failed to create log file: {e}", file=sys.stderr)
+                self.bus.shutdown()
                 sys.exit(1)
 
     def start(self):
@@ -68,8 +78,11 @@ class Dumper:
         if self.logger:
             notifier.add_listener(self.logger)
 
-        while True:
-            time.sleep(1)
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.bus.shutdown()
 
 
 class CanPrinter(can.Listener):

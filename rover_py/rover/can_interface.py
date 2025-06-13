@@ -1,6 +1,9 @@
 """CAN interface configuration module."""
+
 import argparse
+
 import can
+from can.typechecking import AutoDetectedConfig
 
 
 def add_can_args(parser: argparse.ArgumentParser) -> None:
@@ -61,10 +64,10 @@ def create_bus_from_args(args: argparse.Namespace) -> can.ThreadSafeBus:
     )
 
 
-def detect_available_interfaces() -> list[dict]:
+def detect_available_interfaces() -> list[AutoDetectedConfig]:
     """Detect available CAN interfaces.
 
     Returns:
-        list[dict]: List of available interface configurations.
+        list[AutoDetectedConfig]: List of available interface configurations.
     """
     return can.detect_available_configs(interfaces=["socketcan", "kvaser"])

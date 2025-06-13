@@ -20,7 +20,7 @@ def set_wheel_parameters_frame(
         struct.pack("f", wheel_diameter_m)
     )
 
-    return can.Message(arbitration_id=envelope, dlc=8, data=data)
+    return can.Message(arbitration_id=envelope, dlc=8, data=data, is_extended_id=False)
 
 
 def set_report_period_frame(time_ms, wheel_id=City.WHEEL_FRONT_LEFT):
@@ -34,4 +34,4 @@ def set_report_period_frame(time_ms, wheel_id=City.WHEEL_FRONT_LEFT):
 
     data = list(time_ms.to_bytes(2, "little"))
 
-    return can.Message(arbitration_id=envelope, dlc=2, data=data)
+    return can.Message(arbitration_id=envelope, dlc=2, data=data, is_extended_id=False)

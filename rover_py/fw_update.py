@@ -4,7 +4,7 @@ import argparse
 import sys
 import time
 
-from can import can
+import can
 from flasher import flasher
 from rover import rover
 

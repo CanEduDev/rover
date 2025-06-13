@@ -1,47 +1,61 @@
-import time
+import argparse
 
-import can
-from rover import Envelope, rover, wheel
+from rover import City, Envelope, wheel
+from rover.can_interface import add_can_args, create_bus_from_args
 
-bus = can.ThreadSafeBus(
-    interface="socketcan",  # or "kvaser" for Kvaser interface
-    channel="can0",  # or 0 for first Kvaser channel
-    bitrate=125000,
-)
 
-rover.start(bus)
+def main():
+    parser = argparse.ArgumentParser(description="Test wheel configuration")
+    add_can_args(parser)
+    args = parser.parse_args()
 
-print("Testing report period...")
-# Set report period to 1s
-bus.send(wheel.set_report_period_frame(1000))
+    with create_bus_from_args(args) as bus:
+        bus.set_filters(
+            [{"can_id": Envelope.WHEEL_FRONT_LEFT_SPEED, "can_mask": (1 << 11) - 1}]
+        )
 
-# Measure time between two reports
-t_before = time.time()
+        print("Testing report period...")
+        # Set report period to 1s
+        bus.send(wheel.set_report_period_frame(1000, wheel_id=City.WHEEL_FRONT_LEFT))
 
-# Wait for two consecutive speed reports
-msg = bus.recv(timeout=2.0)
-while msg and msg.arbitration_id != Envelope.WHEEL_FRONT_LEFT_SPEED:
-    msg = bus.recv(timeout=2.0)
+        # Clear receive buffer
+        while bus.recv(timeout=0.1) is not None:
+            pass
 
-msg = bus.recv(timeout=2.0)
-while msg and msg.arbitration_id != Envelope.WHEEL_FRONT_LEFT_SPEED:
-    msg = bus.recv(timeout=2.0)
+        # Measure time between two reports
 
-t_after = time.time()
+        # Wait for first report
+        first = bus.recv(timeout=2.0)
+        assert first is not None, "No message received"
 
-assert t_after - t_before > 1
+        # Wait for second report
+        second = bus.recv(timeout=2.0)
+        assert second is not None, "No message received"
 
-# Restore report period
-bus.send(wheel.set_report_period_frame(200))
+        time_diff = second.timestamp - first.timestamp
+        allowed_error = 0.02
+        assert time_diff > 1 - allowed_error, (
+            f"Time between reports was less than 1s: {time_diff} (allowed error: {allowed_error})"
+        )
 
-print(
-    "Testing setting incorrect wheel parameters. Data should be abnormally high. Check using logger."
-)
-bus.send(wheel.set_wheel_parameters_frame(5, 1))
+        # Reset filters
+        bus.set_filters(None)
 
-input("Press Enter to continue...")
+        # Restore report period
+        bus.send(wheel.set_report_period_frame(200, wheel_id=City.WHEEL_FRONT_LEFT))
 
-# Restore defaults
-bus.send(wheel.set_wheel_parameters_frame(45, 0.16))
+        print(
+            "Testing setting incorrect wheel parameters. Data should be abnormally high. Check using logger."
+        )
+        bus.send(wheel.set_wheel_parameters_frame(5, 1, wheel_id=City.WHEEL_FRONT_LEFT))
 
-bus.shutdown()
+        input("Press Enter to continue...")
+
+        # Restore defaults
+        bus.send(
+            wheel.set_wheel_parameters_frame(45, 0.16, wheel_id=City.WHEEL_FRONT_LEFT)
+        )
+
+
+if __name__ == "__main__":
+    main()

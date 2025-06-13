@@ -1,48 +1,55 @@
+import argparse
 from time import sleep
 
-from canlib import canlib
 from rover import City, rover, servo
+from rover.can_interface import add_can_args, create_bus_from_args
 
-with canlib.openChannel(
-    channel=0,
-    flags=canlib.Open.REQUIRE_INIT_ACCESS,
-    bitrate=canlib.Bitrate.BITRATE_125K,
-) as ch:
-    ch.setBusOutputControl(canlib.Driver.NORMAL)
-    ch.busOn()
 
-    rover.start(ch)
+def main():
+    parser = argparse.ArgumentParser()
+    add_can_args(parser)
+    args = parser.parse_args()
 
-    # Disable SBUS receiver city's communication
-    ch.writeWait(
-        rover.set_comm_mode(city=City.SBUS_RECEIVER, mode=rover.CommMode.SILENT),
-        -1,
-    )
-    sleep(3)
+    with create_bus_from_args(args) as bus:
+        # Disable SBUS receiver city's communication
+        bus.send(
+            rover.set_comm_mode(city=City.SBUS_RECEIVER, mode=rover.CommMode.SILENT)
+        )
+        sleep(1)
 
-    # Disable failsafe
-    ch.writeWait(servo.set_failsafe(servo.FAILSAFE_OFF, city=City.MOTOR), -1)
+        # Disable failsafe
+        bus.send(servo.set_failsafe(servo.FAILSAFE_OFF, city=City.MOTOR))
 
-    # Accelerate
-    ch.writeWait(servo.set_throttle_pulse_frame(1600), -1)
-    sleep(1)
+        # Accelerate
+        bus.send(servo.set_throttle_pulse_frame(1600))
+        sleep(1)
 
-    # Brake
-    ch.writeWait(servo.set_throttle_pulse_frame(1000), -1)
-    sleep(1)
+        # Brake
+        bus.send(servo.set_throttle_pulse_frame(1000))
+        sleep(1)
 
-    # Go back to neutral in order to start reversing
-    ch.writeWait(servo.set_throttle_pulse_frame(1500), -1)
-    sleep(1)
+        # Go back to neutral in order to start reversing
+        bus.send(servo.set_throttle_pulse_frame(1500))
+        sleep(1)
 
-    # Reverse
-    ch.writeWait(servo.set_throttle_pulse_frame(1400), -1)
-    sleep(1)
+        # Reverse
+        bus.send(servo.set_throttle_pulse_frame(1400))
+        sleep(1)
 
-    # Back to neutral. There is no braking in reverse mode.
-    ch.writeWait(servo.set_throttle_pulse_frame(1500), -1)
+        # Back to neutral. There is no braking in reverse mode.
+        bus.send(servo.set_throttle_pulse_frame(1500))
 
-    # Re-enable failsafe
-    ch.writeWait(servo.set_failsafe(servo.FAILSAFE_ON, city=City.MOTOR), -1)
+        # Re-enable failsafe
+        bus.send(servo.set_failsafe(servo.FAILSAFE_ON, city=City.MOTOR))
 
-    ch.busOff()
+        # Re-enable SBUS receiver city's communication
+        bus.send(
+            rover.set_comm_mode(
+                city=City.SBUS_RECEIVER, mode=rover.CommMode.COMMUNICATE
+            )
+        )
+        sleep(1)
+
+
+if __name__ == "__main__":
+    main()
