@@ -1,75 +1,90 @@
+import argparse
 import time
 
-from canlib import canlib
-from rover import Envelope, battery, rover
+from rover import Envelope, battery
+from rover.can_interface import add_can_args, create_bus_from_args
 
-with canlib.openChannel(
-    channel=0,
-    flags=canlib.Open.REQUIRE_INIT_ACCESS,
-    bitrate=canlib.Bitrate.BITRATE_125K,
-) as ch:
-    ch.setBusOutputControl(canlib.Driver.NORMAL)
-    ch.busOn()
 
-    rover.start(ch)
+def main():
+    parser = argparse.ArgumentParser()
+    add_can_args(parser)
+    args = parser.parse_args()
 
-    # Setup defaults
-    ch.writeWait(battery.set_reg_out_voltage_frame(5000), -1)
-    ch.writeWait(battery.set_jumper_conf_frame(battery.JumperConfig.X11_ON_X12_ON), -1)
-    time.sleep(2)
+    with create_bus_from_args(args) as bus:
+        # Setup defaults
+        bus.send(battery.set_reg_out_voltage_frame(5000))
+        bus.send(battery.set_jumper_conf_frame(battery.JumperConfig.X11_ON_X12_ON))
+        time.sleep(2)
 
-    # Set report period to 1s
-    ch.writeWait(battery.set_report_period_frame(1000), -1)
+        bus.set_filters(
+            [{"can_id": Envelope.BATTERY_OUTPUT, "can_mask": (1 << 11) - 1}]
+        )
+        # Set report period to 1s
+        bus.send(battery.set_report_period_frame(1000))
 
-    # Measure time between two reports
-    t_before = time.time()
+        # Clear receive buffer
+        while bus.recv(timeout=0.1) is not None:
+            pass
 
-    ch.iocontrol.flush_rx_buffer()  # pyright: ignore [reportCallIssue]
-    ch.readSyncSpecific(Envelope.BATTERY_OUTPUT, timeout=2000)
+        # Measure time between two reports
 
-    ch.iocontrol.flush_rx_buffer()  # pyright: ignore [reportCallIssue]
-    ch.readSyncSpecific(Envelope.BATTERY_OUTPUT, timeout=2000)
+        # Wait for first report
+        first = bus.recv(timeout=2.0)
+        assert first is not None, "No message received"
 
-    t_after = time.time()
+        # Wait for second report
+        second = bus.recv(timeout=2.0)
+        assert second is not None, "No message received"
 
-    assert t_after - t_before > 1
+        time_diff = second.timestamp - first.timestamp
+        allowed_error = 0.02
+        assert time_diff > 1 - allowed_error, (
+            f"Time between reports was less than 1s: {time_diff} (allowed error: {allowed_error})"
+        )
 
-    # Restore report period
-    ch.writeWait(battery.set_report_period_frame(200), -1)
+        # Reset filters
+        bus.set_filters(None)
 
-    # Toggle regulated output power on / off
-    ch.writeWait(battery.set_reg_pwr_off_frame, -1)
-    time.sleep(2)
-    ch.writeWait(battery.set_reg_pwr_on_frame, -1)
-    time.sleep(2)
+        # Restore report period
+        bus.send(battery.set_report_period_frame(200))
 
-    # Toggle main power on / off
-    ch.writeWait(battery.set_pwr_off_frame, -1)
-    time.sleep(2)
-    ch.writeWait(battery.set_pwr_on_frame, -1)
-    time.sleep(2)
+        # Toggle regulated output power on / off
+        bus.send(battery.set_reg_pwr_off_frame)
+        time.sleep(2)
+        bus.send(battery.set_reg_pwr_on_frame)
+        time.sleep(2)
 
-    # This should cause reg output to turn off due to over current protection
-    # NOTE: load must be connected to reg out to see this.
-    ch.writeWait(battery.set_reg_out_overcurrent_threshold_frame(0), -1)
-    time.sleep(2)
-    ch.writeWait(battery.set_reg_out_overcurrent_threshold_frame(8000), -1)
-    ch.writeWait(battery.set_reg_pwr_on_frame, -1)
-    time.sleep(2)
+        # Toggle main power on / off
+        bus.send(battery.set_pwr_off_frame)
+        time.sleep(2)
+        bus.send(battery.set_pwr_on_frame)
+        time.sleep(2)
 
-    # This should cause vbat out to turn off due to over current protection
-    # NOTE: load must be connected to vbat out to see this.
-    ch.writeWait(battery.set_vbat_out_overcurrent_threshold_frame(0), -1)
-    time.sleep(2)
-    ch.writeWait(battery.set_vbat_out_overcurrent_threshold_frame(49500), -1)
-    ch.writeWait(battery.set_pwr_on_frame, -1)
-    time.sleep(2)
+        # This should cause reg output to turn off due to over current protection
+        # NOTE: load must be connected to reg out to see this.
+        bus.send(battery.set_reg_out_overcurrent_threshold_frame(0))
+        time.sleep(2)
+        bus.send(battery.set_reg_out_overcurrent_threshold_frame(8000))
+        bus.send(battery.set_reg_pwr_on_frame)
+        time.sleep(2)
 
-    # This should cause power to turn off due to low-voltage cutoff
-    # NOTE: cells must be connected for this to work.
-    ch.writeWait(battery.set_low_voltage_cutoff_frame(4200), -1)
-    time.sleep(2)
+        # This should cause vbat out to turn off due to over current protection
+        # NOTE: load must be connected to vbat out to see this.
+        bus.send(battery.set_vbat_out_overcurrent_threshold_frame(0))
+        time.sleep(2)
+        bus.send(battery.set_vbat_out_overcurrent_threshold_frame(49500))
+        bus.send(battery.set_pwr_on_frame)
+        time.sleep(2)
 
-    # Restore defaults
-    ch.writeWait(battery.set_low_voltage_cutoff_frame(3000), -1)
-    ch.writeWait(battery.set_pwr_on_frame, -1)
+        # This should cause power to turn off due to low-voltage cutoff
+        # NOTE: cells must be connected for this to work.
+        bus.send(battery.set_low_voltage_cutoff_frame(4200))
+        time.sleep(2)
+
+        # Restore defaults
+        bus.send(battery.set_low_voltage_cutoff_frame(3000))
+        bus.send(battery.set_pwr_on_frame)
+
+
+if __name__ == "__main__":
+    main()

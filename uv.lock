@@ -3289,11 +3289,17 @@ name = "rover-py"
 version = "0.0.1"
 source = { editable = "rover_py" }
 dependencies = [
-    { name = "canlib" },
+    { name = "cantools" },
+    { name = "keyboard" },
+    { name = "python-can" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "canlib", specifier = ">=1.27.606" }]
+requires-dist = [
+    { name = "cantools", specifier = ">=39.3.0" },
+    { name = "keyboard", specifier = ">=0.13.5" },
+    { name = "python-can", specifier = ">=4.2.2" },
+]
 
 [[package]]
 name = "ruff"

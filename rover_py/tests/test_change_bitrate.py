@@ -1,74 +1,83 @@
+import argparse
 import sys
 from time import sleep
 
-from canlib import canlib
+import can
 from rover import rover
+from rover.can_interface import add_can_args, create_bus_from_args
 
-try:
-    # Start with 125 kbit/s
-    with canlib.openChannel(
-        channel=0,
-        flags=canlib.Open.REQUIRE_INIT_ACCESS,
-        bitrate=canlib.Bitrate.BITRATE_125K,
-    ) as ch:
-        ch.setBusOutputControl(canlib.Driver.NORMAL)
-        ch.busOn()
 
-        timeout = 1000
+def main():
+    parser = argparse.ArgumentParser(description="Test changing CAN bitrate")
+    add_can_args(parser)
+    args = parser.parse_args()
 
-        # Send multiple default letters to make sure every node receives one at startup
-        for _ in range(5):
-            ch.writeWait(rover.default_letter(), timeout)
-            sleep(0.05)
+    try:
+        # Start with 125 kbit/s
+        args.bitrate = 125000
+        with create_bus_from_args(args) as bus:
+            # Switch to 500 kbit/s
+            print("Switching to 500 kbit/s")
+            bus.send(rover.change_bitrate_500kbit())
+            bus.send(
+                rover.restart_communication(
+                    skip_startup=True, comm_mode=rover.CommMode.COMMUNICATE
+                )
+            )
 
-        ch.writeWait(rover.give_base_number(), timeout)
-        frame = ch.read(timeout=timeout)
-        sleep(0.5)  # Wait for responses
-
-        # Switch to 500 kbit/s
-        print("Switching to 500 kbit/s")
-        ch.writeWait(rover.change_bitrate_500kbit(), timeout)
-        ch.writeWait(
-            rover.restart_communication(
-                skip_startup=True, comm_mode=rover.CommMode.COMMUNICATE
-            ),
-            -1,
-        )
-
-        ch.busOff()
-        ch.setBusParams(canlib.Bitrate.BITRATE_500K)
         sleep(0.1)  # give time for changing bitrate
-        ch.busOn()
 
-        ch.writeWait(rover.default_letter(), timeout)
-        ch.writeWait(rover.give_base_number(), timeout)
-        frame = ch.read(timeout=timeout)
-        sleep(0.5)  # Wait for responses
+        # Create new bus with 500 kbit/s
+        args.bitrate = 500000
+        with create_bus_from_args(args) as bus:
+            try:
+                # Send and receive messages, listen for error frames
+                for _ in range(20):
+                    bus.send(rover.default_letter())
+                    sleep(0.05)
+                    msg = bus.recv(timeout=0.1)
+                    if msg.is_error_frame:
+                        print("Error: Received error frame on CAN bus", file=sys.stderr)
+                        sys.exit(1)
+            except can.CanOperationError:
+                print("Error: Failed to send default letter", file=sys.stderr)
+                sys.exit(1)
 
-        print("Switching to 125 kbit/s")
-        ch.writeWait(rover.change_bitrate_125kbit(), timeout)
-        ch.writeWait(
-            rover.restart_communication(
-                skip_startup=True, comm_mode=rover.CommMode.COMMUNICATE
-            ),
-            timeout,
-        )
+            # Switch back to 125 kbit/s
+            print("Switching to 125 kbit/s")
+            bus.send(rover.change_bitrate_125kbit())
+            bus.send(
+                rover.restart_communication(
+                    skip_startup=True, comm_mode=rover.CommMode.COMMUNICATE
+                )
+            )
 
-        ch.busOff()
-        ch.setBusParams(canlib.Bitrate.BITRATE_125K)
-        ch.busOn()
+        sleep(0.1)  # give time for changing bitrate
 
-        ch.writeWait(rover.default_letter(), timeout)
-        ch.writeWait(rover.give_base_number(), timeout)
-        frame = ch.read(timeout=timeout)
-        sleep(0.5)  # Wait for responses
+        # Create new bus with 125 kbit/s
+        args.bitrate = 125000
+        with create_bus_from_args(args) as bus:
+            try:
+                # Send and receive messages, listen for error frames
+                for _ in range(20):
+                    bus.send(rover.default_letter())
+                    msg = bus.recv(timeout=1.0)
+                    if msg.is_error_frame:
+                        print("Error: Received error frame on CAN bus", file=sys.stderr)
+                        sys.exit(1)
+            except can.CanOperationError:
+                print("Error: Failed to send default letter", file=sys.stderr)
+                sys.exit(1)
 
         print("Done")
 
-except canlib.exceptions.CanTimeout:
-    print(
-        "Test timed out. make sure node is on the CAN bus and has a starting bitrate of 125kbit/s",
-        file=sys.stderr,
-    )
+    except Exception as e:
+        print(
+            f"Test failed: {str(e)}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
-    sys.exit(1)
+
+if __name__ == "__main__":
+    main()

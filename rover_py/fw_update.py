@@ -4,7 +4,7 @@ import argparse
 import sys
 import time
 
-from canlib import canlib
+import can
 from flasher import flasher
 from rover import rover
 
@@ -100,23 +100,21 @@ def parse_args():
 
 def change_bitrate_125k(args):
     try:
-        with canlib.openChannel(
-            channel=args.channel,
-            flags=canlib.Open.REQUIRE_INIT_ACCESS,
+        bus = can.ThreadSafeBus(
+            interface=args.interface or "socketcan",
+            channel=args.channel or "can0",
             bitrate=parse_bitrate_arg(args.bitrate),
-        ) as ch:
-            ch.setBusOutputControl(canlib.Driver.NORMAL)
-            ch.busOn()
-            ch.write(rover.change_bitrate_125kbit())
-            ch.writeWait(
-                rover.restart_communication(
-                    skip_startup=True, comm_mode=rover.CommMode.COMMUNICATE
-                ),
-                100,
-            )
-            ch.busOff()
+        )
 
-    except canlib.exceptions.CanTimeout as e:
+        bus.send(rover.change_bitrate_125kbit())
+        bus.send(
+            rover.restart_communication(
+                skip_startup=True, comm_mode=rover.CommMode.COMMUNICATE
+            )
+        )
+        bus.shutdown()
+
+    except Exception as e:
         print(
             f"error: couldn't change bitrate from {args.bitrate} to 125k: {e}",
             file=sys.stderr,
@@ -127,16 +125,16 @@ def change_bitrate_125k(args):
 
 
 def run_flasher(args):
-    with canlib.openChannel(
-        channel=args.channel,
-        flags=canlib.Open.REQUIRE_INIT_ACCESS,
-        bitrate=canlib.Bitrate.BITRATE_125K,
-    ) as ch:
+    with can.ThreadSafeBus(
+        interface=args.interface or "socketcan",
+        channel=args.channel or "can0",
+        bitrate=parse_bitrate_arg(args.bitrate),
+    ) as bus:
         try:
             print("Running flasher...")
 
             if args.subcommand == "list":
-                f = flasher.Flasher(ch)
+                f = flasher.Flasher(bus)
                 node_ids = f.detect_online_nodes()
                 print("Found nodes:")
                 for id in node_ids:
@@ -145,36 +143,24 @@ def run_flasher(args):
                 sys.exit(0)
 
             elif args.subcommand == "system":
-                run_system(ch, args)
+                run_system(bus, args)
 
             elif args.subcommand == "single":
-                run_single(ch, args)
+                run_single(bus, args)
 
             elif args.subcommand == "recover":
                 print("Try to enter recovery mode...")
-                flasher.Flasher(ch).enter_recovery_mode(args.binary, args.config)
+                flasher.Flasher(bus).enter_recovery_mode(args.binary, args.config)
                 sys.exit(0)
-
-        except canlib.exceptions.CanNotFound:
-            print(f"error: CAN channel {args.channel} not found.", file=sys.stderr)
-            sys.exit(1)
-
-        except canlib.exceptions.CanTimeout:
-            print(
-                f"error: CAN channel {args.channel} timed out.",
-                "Check that device is connected to the Rover CAN bus and that the Rover is on.",
-                file=sys.stderr,
-            )
-            sys.exit(1)
 
         except Exception as e:
             # restart all nodes
-            ch.writeWait(rover.set_action_mode(mode=rover.ActionMode.RESET), 100)
+            bus.send(rover.set_action_mode(mode=rover.ActionMode.RESET))
             print(f"error: flashing failed: {e}", file=sys.stderr)
             sys.exit(1)
 
 
-def run_single(ch, args):
+def run_single(bus, args):
     if args.id == 0:
         print("id 0 is reserved by the flasher.", file=sys.stderr)
         sys.exit(1)
@@ -186,14 +172,14 @@ def run_single(ch, args):
         )
         sys.exit(1)
 
-    f = flasher.Flasher(ch)
+    f = flasher.Flasher(bus)
     if args.format_fs:
         f.format_fs(args.id)
     else:
         f.run_single(args.id, binary_file=args.binary, config_file=args.config)
 
 
-def run_system(ch, args):
+def run_system(bus, args):
     print("Verifying system configuration...")
     bindir_arg = default_bindir
     config_arg = default_config
@@ -212,18 +198,18 @@ def run_system(ch, args):
         print(f"error verifying {args.config}: {e}", file=sys.stderr)
         sys.exit(1)
 
-    flasher.Flasher(ch, config).run()
+    flasher.Flasher(bus, config).run()
 
 
 def parse_bitrate_arg(bitrate):
     if bitrate == "125k":
-        return canlib.Bitrate.BITRATE_125K
+        return 125000
     if bitrate == "250k":
-        return canlib.Bitrate.BITRATE_250K
+        return 250000
     if bitrate == "500k":
-        return canlib.Bitrate.BITRATE_500K
+        return 500000
     if bitrate == "1m":
-        return canlib.Bitrate.BITRATE_1M
+        return 1000000
 
 
 if __name__ == "__main__":
