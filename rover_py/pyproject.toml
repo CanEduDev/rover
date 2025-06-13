@@ -2,7 +2,9 @@
 name = "rover_py"
 version = "0.0.1"
 dependencies = [
-    "canlib>=1.27.606",
+    "python-can>=4.2.2",
+    "keyboard>=0.13.5",
+    "cantools>=39.3.0",
 ]
 authors = [
   { name="CanEduDev", email="support@canedudev.com" },

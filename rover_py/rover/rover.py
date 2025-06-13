@@ -1,20 +1,20 @@
 from time import sleep
 
-from canlib import Frame
+import can
 
 from . import APP_ASSIGNMENTS, BASE_NUMBER, ActionMode, City, CommMode
 
 
 def default_letter():
-    return Frame(id_=2031, data=[0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA])
+    return can.Message(arbitration_id=2031, data=[0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA])
 
 
 def set_comm_mode(city=City.ALL_CITIES, mode=CommMode.KEEP_CURRENT):
-    return Frame(id_=0, dlc=8, data=[city, 0, 0, mode, 0, 0, 0, 0])
+    return can.Message(arbitration_id=0, dlc=8, data=[city, 0, 0, mode, 0, 0, 0, 0])
 
 
 def set_action_mode(city=City.ALL_CITIES, mode=ActionMode.KEEP_CURRENT):
-    return Frame(id_=0, dlc=8, data=[city, 0, mode, 0, 0, 0, 0, 0])
+    return can.Message(arbitration_id=0, dlc=8, data=[city, 0, mode, 0, 0, 0, 0, 0])
 
 
 # Give base number and ask for response page
@@ -23,17 +23,17 @@ def set_action_mode(city=City.ALL_CITIES, mode=ActionMode.KEEP_CURRENT):
 def give_base_number(city=City.ALL_CITIES, base_no=BASE_NUMBER, response_page=0):
     base_no_data = list(base_no.to_bytes(4, "little"))
     data = [city, 1, response_page, 0] + base_no_data
-    return Frame(id_=0, dlc=8, data=data)
+    return can.Message(arbitration_id=0, dlc=8, data=data)
 
 
 def assign_envelope(city, envelope, folder):
     envelope_data = list(envelope.to_bytes(4, "little"))
     data = [city, 2] + envelope_data + [folder, 0x3]
-    return Frame(id_=0, dlc=8, data=data)
+    return can.Message(arbitration_id=0, dlc=8, data=data)
 
 
 def change_bit_timing(prescaler, tq, phase_seg2, sjw, city=City.ALL_CITIES):
-    return Frame(id_=0, dlc=8, data=[city, 8, 0, 0, prescaler, tq, phase_seg2, sjw])
+    return can.Message(arbitration_id=0, dlc=8, data=[city, 8, 0, 0, prescaler, tq, phase_seg2, sjw])
 
 
 def change_bitrate_125kbit(city=City.ALL_CITIES):
@@ -68,23 +68,3 @@ def restart_communication(
     frame.data[3] |= skip_wait_flag
 
     return frame
-
-
-# Start the kingdom
-def start(channel):
-    if channel is None:
-        return
-
-    # Send several default letters to make sure every node has had time to start up and receives at least one
-    for _ in range(5):
-        channel.writeWait(default_letter(), -1)
-        sleep(0.1)
-
-    channel.writeWait(give_base_number(response_page=1), -1)
-    sleep(0.1)  # Allow time to respond
-
-    # Assign envelopes
-    for assignment in APP_ASSIGNMENTS:
-        channel.writeWait(assign_envelope(*assignment), -1)
-
-    channel.writeWait(set_comm_mode(mode=CommMode.COMMUNICATE), -1)
