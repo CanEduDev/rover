@@ -1,342 +1,240 @@
-import collections
-import sys
+import argparse
 import threading
-import time
 import tkinter as tk
-from pathlib import Path
-from tkinter import font
 
-import keyboard
+import matplotlib
+import numpy as np
+
+matplotlib.use("TkAgg")
+import cantools
 import matplotlib.pyplot as plt
-from canlib import canlib, kvadblib
 from matplotlib.animation import FuncAnimation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from rover import ActionMode, City, Envelope, rover, servo
+from rover.can_interface import add_can_args, create_bus_from_args
 
-sent_messages = {}
-received_messages = {}
-lock = threading.Lock()
-
-restart_rover = False
-
-# Graphs
-max_items_sent = 400
-max_items_received = 100
-servo_current_timestamps = collections.deque(maxlen=max_items_received)
-servo_current_values = collections.deque(maxlen=max_items_received)
-steering_timestamps = collections.deque(maxlen=max_items_sent)
-steering_values = collections.deque(maxlen=max_items_sent)
-throttle_timestamps = collections.deque(maxlen=max_items_sent)
-throttle_values = collections.deque(maxlen=max_items_sent)
+# --- Configurable parameters ---
+MAX_POINTS = 500
 
 
-def receive_can_messages():
-    # If packaged as one binary using pyinstaller,
-    # we need to look for the file in sys._MEIPASS, which is set by pyinstaller.
-    # Otherwise, just look in the current dir.
-    try:
-        base_path = sys._MEIPASS  # pyright: ignore [reportAttributeAccessIssue]
-    except Exception:
-        base_path = Path().resolve()
+# --- Data storage using numpy arrays ---
+class CircularBuffer:
+    def __init__(self, maxlen, dtype=float):
+        self.maxlen = maxlen
+        self.buffer = np.zeros(maxlen, dtype=dtype)
+        self.timestamps = np.zeros(maxlen, dtype=float)
+        self.index = 0
+        self.is_full = False
 
-    db = kvadblib.Dbc(filename=Path(base_path / "rover.dbc"))
+    def append(self, value, timestamp=None):
+        self.buffer[self.index] = value
+        if timestamp is not None:
+            self.timestamps[self.index] = timestamp
+        self.index = (self.index + 1) % self.maxlen
+        if self.index == 0:
+            self.is_full = True
 
-    with canlib.openChannel(
-        channel=0,
-        flags=canlib.Open.NO_INIT_ACCESS,
-    ) as ch:
-        ch.busOn()
-
-        while True:
-            try:
-                frame = ch.read(timeout=1000)
-                if not frame:
-                    continue
-
-                with lock:
-                    if frame.id == Envelope.THROTTLE:
-                        sent_messages[str(frame.id)] = parse_frame(db, frame)
-                        throttle_timestamps.append(frame.timestamp)
-                        throttle_values.append(
-                            int.from_bytes(frame.data[1:], byteorder="little")
-                        )
-
-                    elif frame.id == Envelope.STEERING:
-                        sent_messages[str(frame.id)] = parse_frame(db, frame)
-                        steering_timestamps.append(frame.timestamp)
-                        steering_values.append(
-                            int.from_bytes(frame.data[1:], byteorder="little")
-                        )
-
-                    elif frame.id == Envelope.SERVO_CURRENT:
-                        received_messages[str(frame.id)] = parse_frame(db, frame)
-                        servo_current_timestamps.append(frame.timestamp)
-                        servo_current_values.append(
-                            int.from_bytes(frame.data, byteorder="little")
-                        )
-
-                    else:
-                        received_messages[str(frame.id)] = parse_frame(db, frame)
-
-            except canlib.exceptions.CanNoMsg:
-                continue
+    def get_data(self):
+        if self.is_full:
+            return np.roll(self.buffer, -self.index), np.roll(
+                self.timestamps, -self.index
+            )
+        # Only return data up to the current index
+        return self.buffer[: self.index], self.timestamps[: self.index]
 
 
-def update_ui():
-    sent_messages_text.config(state=tk.NORMAL)
-    received_messages_text.config(state=tk.NORMAL)
+class MultiCircularBuffer:
+    def __init__(self, maxlen, num_buffers, dtype=float):
+        self.buffers = [CircularBuffer(maxlen, dtype) for _ in range(num_buffers)]
 
-    # Clear existing text
-    sent_messages_text.delete("1.0", tk.END)
-    received_messages_text.delete("1.0", tk.END)
+    def append(self, index, value, timestamp=None):
+        self.buffers[index].append(value, timestamp)
 
-    with lock:
-        for msg in sent_messages.values():
-            sent_messages_text.insert(tk.END, msg)
-
-        for msg in received_messages.values():
-            received_messages_text.insert(tk.END, msg)
-
-    sent_messages_text.config(state=tk.DISABLED)
-    received_messages_text.config(state=tk.DISABLED)
-
-    root.after(100, update_ui)
+    def get_data(self, index):
+        return self.buffers[index].get_data()
 
 
-def send_can_messages():
-    throttle = 1500
-    steering = 1500
+# Initialize data storage
+data = {
+    "battery_cell_voltages": MultiCircularBuffer(MAX_POINTS, 6),
+    "servo_current": CircularBuffer(MAX_POINTS),
+    "throttle": CircularBuffer(MAX_POINTS),
+    "steering_angle": CircularBuffer(MAX_POINTS),
+    "wheel_speeds": MultiCircularBuffer(MAX_POINTS, 4),
+    "battery_output_current": CircularBuffer(MAX_POINTS),
+}
 
-    throttle_max = 2000
-    throttle_min = 1000
-
-    steering_max = 2000
-    steering_min = 1000
-
-    step = 10
-
-    global restart_rover
-
-    # Initialize CAN channel
-    with canlib.openChannel(
-        channel=0,
-        flags=canlib.Open.REQUIRE_INIT_ACCESS,
-        bitrate=canlib.Bitrate.BITRATE_125K,
-    ) as ch:
-        ch.setBusOutputControl(canlib.Driver.NORMAL)
-        ch.busOn()
-
-        ch.write(servo.set_failsafe(servo.FAILSAFE_OFF, city=City.SERVO))
-        ch.write(servo.set_failsafe(servo.FAILSAFE_OFF, city=City.MOTOR))
-        ch.write(rover.set_action_mode(city=City.SBUS_RECEIVER, mode=ActionMode.FREEZE))
-
-        while True:
-            if restart_rover:
-                ch.write(servo.set_failsafe(servo.FAILSAFE_OFF, city=City.SERVO))
-                ch.write(servo.set_failsafe(servo.FAILSAFE_OFF, city=City.MOTOR))
-                ch.write(
-                    rover.set_action_mode(
-                        city=City.SBUS_RECEIVER, mode=ActionMode.FREEZE
-                    )
-                )
-                restart_rover = False
-
-            if keyboard.is_pressed("up"):
-                if throttle < throttle_max:
-                    throttle += step
-
-            elif keyboard.is_pressed("down"):
-                if throttle > throttle_min:
-                    throttle -= step
-
-            elif keyboard.is_pressed("left"):
-                if steering > steering_min:
-                    steering -= step
-
-            elif keyboard.is_pressed("right"):
-                if steering < steering_max:
-                    steering += step
-
-            ch.write(servo.set_throttle_pulse_frame(throttle))
-            ch.write(servo.set_steering_pulse_frame(steering))
-            time.sleep(0.01)
+# --- Message and signal names as in DBC ---
+MSG_NAMES = {
+    "BATTERY_CELL_VOLTAGES": "BATTERY_CELL_VOLTAGES",
+    "SERVO_CURRENT": "SERVO_CURRENT",
+    "THROTTLE": "THROTTLE",
+    "STEERING": "STEERING",
+    "WHEEL_FRONT_LEFT_SPEED": "WHEEL_FRONT_LEFT_SPEED",
+    "WHEEL_FRONT_RIGHT_SPEED": "WHEEL_FRONT_RIGHT_SPEED",
+    "WHEEL_REAR_LEFT_SPEED": "WHEEL_REAR_LEFT_SPEED",
+    "WHEEL_REAR_RIGHT_SPEED": "WHEEL_REAR_RIGHT_SPEED",
+    "BATTERY_OUTPUT": "BATTERY_OUTPUT",
+}
 
 
-def parse_frame(db, frame):
-    output = ""
-    try:
-        bmsg = db.interpret(frame)
-    except kvadblib.KvdNoMessage:
-        return ""
+def can_receiver(bus, db):
+    start_time = None
+    frame_id_to_msg = {msg.frame_id: msg for msg in db.messages}
+    wheel_names = [
+        MSG_NAMES["WHEEL_FRONT_LEFT_SPEED"],
+        MSG_NAMES["WHEEL_FRONT_RIGHT_SPEED"],
+        MSG_NAMES["WHEEL_REAR_LEFT_SPEED"],
+        MSG_NAMES["WHEEL_REAR_RIGHT_SPEED"],
+    ]
 
-    if not bmsg._message.dlc == bmsg._frame.dlc:
-        return ""
-
-    msg = bmsg._message
-
-    output = output + f"┏ Timestamp: {str(frame.timestamp / 1000.0)}\n"
-    output = output + f"┃ ID: {frame.id}, {msg.name}\n"
-
-    # The steering and throttle messages have a signal which indicates how to
-    # parse another signal. In that case, we should not output both
-    # interpretations of the signal, hence we choose one signal and skip the
-    # other in those messages.
-    mux_signal = False
-    chosen_signal = 0
-
-    for n, bsig in enumerate(bmsg):
-        if mux_signal and n != chosen_signal:
+    while True:
+        msg = bus.recv(timeout=1.0)
+        if msg is None:
+            continue
+        if msg.arbitration_id not in frame_id_to_msg:
+            continue
+        dbc_msg = frame_id_to_msg[msg.arbitration_id]
+        try:
+            decoded = dbc_msg.decode(msg.data)
+        except Exception:
             continue
 
-        output = output + f"┃ --> {bsig.name}: {str(bsig.value)} {bsig.unit}\n"
+        t = msg.timestamp
+        if start_time is None:
+            start_time = t
+        t = t - start_time  # Convert to seconds since start
 
-        if bsig.is_enum:
-            mux_signal = True
-            chosen_signal = bsig.raw + 1
+        if dbc_msg.name == MSG_NAMES["BATTERY_CELL_VOLTAGES"]:
+            if decoded["CELLS"] == "CELLS_1_TO_3":
+                data["battery_cell_voltages"].append(0, decoded["CELL_1_VOLTAGE"], t)
+                data["battery_cell_voltages"].append(1, decoded["CELL_2_VOLTAGE"], t)
+                data["battery_cell_voltages"].append(2, decoded["CELL_3_VOLTAGE"], t)
+            elif decoded["CELLS"] == "CELLS_4_TO_6":
+                data["battery_cell_voltages"].append(3, decoded["CELL_4_VOLTAGE"], t)
+                data["battery_cell_voltages"].append(4, decoded["CELL_5_VOLTAGE"], t)
+                data["battery_cell_voltages"].append(5, decoded["CELL_6_VOLTAGE"], t)
 
-    return output + "┗\n"
-
-
-def animate(_):
-    ax1, ax2, ax3 = fig.get_axes()
-
-    # Clear current data
-    ax1.cla()
-    ax2.cla()
-    ax3.cla()
-
-    ax1.set_title("Servo Current Draw (mA)")
-    ax1.set_ylim(0, 250)
-
-    ax2.set_title("Throttle Pulse Width (µs)")
-    ax2.set_ylim(950, 2050)
-
-    ax3.set_title("Steering Pulse Width (µs)")
-    ax3.set_ylim(950, 2050)
-
-    # Plot new data
-    with lock:
-        ax1.plot(servo_current_timestamps, servo_current_values)
-        ax2.plot(throttle_timestamps, throttle_values)
-        ax3.plot(steering_timestamps, steering_values)
+        elif dbc_msg.name == MSG_NAMES["SERVO_CURRENT"]:
+            data["servo_current"].append(decoded.get("SERVO_CURRENT", 0), t)
+        elif dbc_msg.name == MSG_NAMES["THROTTLE"]:
+            data["throttle"].append(decoded.get("THROTTLE_PULSE_WIDTH", 0) * 1000, t)
+        elif dbc_msg.name == MSG_NAMES["STEERING"]:
+            data["steering_angle"].append(decoded.get("STEERING_ANGLE", 0), t)
+        elif dbc_msg.name in wheel_names:
+            idx = wheel_names.index(dbc_msg.name)
+            data["wheel_speeds"].append(idx, decoded.get("SPEED", 0), t)
+        elif dbc_msg.name == MSG_NAMES["BATTERY_OUTPUT"]:
+            data["battery_output_current"].append(
+                decoded.get("BATTERY_OUTPUT_CURRENT", 0), t
+            )
 
 
-def on_closing():
-    root.destroy()
-    sys.exit(0)
+def main():
+    parser = argparse.ArgumentParser(description="Live CAN signal plot demo")
+    add_can_args(parser)
+    parser.add_argument(
+        "--dbc", default="rover.dbc", help="DBC file path (default: rover.dbc)"
+    )
+    args = parser.parse_args()
+
+    db = cantools.db.load_file(args.dbc)
+    bus = create_bus_from_args(args)
+
+    threading.Thread(target=can_receiver, args=(bus, db), daemon=True).start()
+
+    root = tk.Tk()
+    root.title("Live CAN Signal Plot Demo")
+
+    fig, axs = plt.subplots(3, 2, figsize=(10, 8))
+    fig.tight_layout(pad=3.0, h_pad=6.0)
+    canvas = FigureCanvasTkAgg(fig, master=root)
+    canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+    def animate(_):
+        artists = []
+
+        # Throttle
+        axs[0, 0].cla()
+        x, t = data["throttle"].get_data()
+        if len(x) > 0:
+            (line,) = axs[0, 0].plot(t, x, label="Throttle")
+            artists.append(line)
+        axs[0, 0].set_title("Throttle Pulse Width (µs)")
+        axs[0, 0].set_ylabel("µs")
+        axs[0, 0].set_xlabel("Time (s)")
+        axs[0, 0].legend(loc="upper right")
+
+        # Steering angle
+        axs[0, 1].cla()
+        x, t = data["steering_angle"].get_data()
+        if len(x) > 0:
+            (line,) = axs[0, 1].plot(t, x, label="Steering Angle")
+            artists.append(line)
+        axs[0, 1].set_title("Steering Angle (deg)")
+        axs[0, 1].set_ylabel("deg")
+        axs[0, 1].set_xlabel("Time (s)")
+        axs[0, 1].legend(loc="upper right")
+
+        # Battery cell voltages
+        axs[1, 0].cla()
+        for i in range(6):
+            y, t = data["battery_cell_voltages"].get_data(i)
+            if len(y) > 0:
+                (line,) = axs[1, 0].plot(t, y, label=f"Cell {i + 1}")
+                artists.append(line)
+        axs[1, 0].set_title("Battery Cell Voltages (mV)")
+        axs[1, 0].set_ylabel("mV")
+        axs[1, 0].set_xlabel("Time (s)")
+        axs[1, 0].legend(loc="upper right")
+
+        # Wheel speeds
+        axs[1, 1].cla()
+        wheel_labels = ["FL", "FR", "RL", "RR"]
+        for i in range(4):
+            y, t = data["wheel_speeds"].get_data(i)
+            if len(y) > 0:
+                (line,) = axs[1, 1].plot(t, y, label=wheel_labels[i])
+                artists.append(line)
+        axs[1, 1].set_title("Wheel Speeds (km/h)")
+        axs[1, 1].set_ylabel("km/h")
+        axs[1, 1].set_xlabel("Time (s)")
+        axs[1, 1].legend(loc="upper right")
+
+        # Battery Output Current
+        axs[2, 0].cla()
+        x, t = data["battery_output_current"].get_data()
+        if len(x) > 0:
+            (line,) = axs[2, 0].plot(t, x, label="Battery Output Current")
+            artists.append(line)
+        axs[2, 0].set_title("Battery Output Current (mA)")
+        axs[2, 0].set_ylabel("mA")
+        axs[2, 0].set_xlabel("Time (s)")
+        axs[2, 0].legend(loc="upper right")
+
+        # Servo current
+        axs[2, 1].cla()
+        x, t = data["servo_current"].get_data()
+        if len(x) > 0:
+            (line,) = axs[2, 1].plot(t, x, label="Servo Current")
+            artists.append(line)
+        axs[2, 1].set_title("Servo Current (mA)")
+        axs[2, 1].set_ylabel("mA")
+        axs[2, 1].set_xlabel("Time (s)")
+        axs[2, 1].legend(loc="upper right")
+
+        return artists
+
+    _ani = FuncAnimation(
+        fig, animate, interval=(1000 / 60), cache_frame_data=False
+    )  # 60 fps
+
+    def on_close():
+        root.quit()
+        root.destroy()
+
+    root.protocol("WM_DELETE_WINDOW", on_close)
+    root.mainloop()
 
 
-def restart_button_click():
-    global restart_rover
-    restart_rover = True
-
-
-def zoom_in():
-    global font_size
-    font_size += 2
-    set_font_size(font_size)
-
-
-def zoom_out():
-    global font_size
-    font_size -= 2
-    set_font_size(font_size)
-
-
-def set_font_size(size):
-    font_obj = font.Font(size=size)
-
-    sent_messages_text.configure(font=font_obj)
-    sent_messages_label.configure(font=font_obj)
-    received_messages_text.configure(font=font_obj)
-    received_messages_label.configure(font=font_obj)
-    restart_button.configure(font=font_obj)
-    zoom_in_button.configure(font=font_obj)
-    zoom_out_button.configure(font=font_obj)
-    plt.rcParams.update({"font.size": font_size})
-
-
-def get_screen_dpi():
-    width_pixels = root.winfo_fpixels("1i")
-    height_pixels = root.winfo_fpixels("1i")
-    screen_width_pixels = root.winfo_screenwidth()
-    screen_height_pixels = root.winfo_screenheight()
-
-    dpi_width = screen_width_pixels / width_pixels
-    dpi_height = screen_height_pixels / height_pixels
-
-    return dpi_width, dpi_height
-
-
-# Create and configure GUI
-root = tk.Tk()
-root.title("CAN Message Viewer")
-root.protocol("WM_DELETE_WINDOW", on_closing)
-root.state("normal")
-
-dpi_width, dpi_height = get_screen_dpi()
-
-can_messages_frame = tk.Frame(root)
-can_messages_frame.pack(side="top", fill="both", expand=True, padx=10, pady=5)
-sent_messages_frame = tk.Frame(can_messages_frame)
-received_messages_frame = tk.Frame(can_messages_frame)
-sent_messages_frame.pack(side="left", fill="x", expand=True, padx=5)
-received_messages_frame.pack(side="left", fill="x", expand=True, padx=5)
-
-sent_messages_label = tk.Label(sent_messages_frame, text="Sent messages")
-sent_messages_text = tk.Text(sent_messages_frame, height=12, width=10)
-sent_messages_label.pack(side="top", expand=True, anchor="w")
-sent_messages_text.pack(side="top", fill="both", expand=True)
-
-received_messages_label = tk.Label(received_messages_frame, text="Received messages")
-received_messages_text = tk.Text(received_messages_frame, height=12, width=10)
-received_messages_label.pack(side="top", expand=True, anchor="w")
-received_messages_text.pack(side="top", fill="both", expand=True)
-
-# Plotting
-fig = plt.figure()
-subplots = fig.subplots(1, 3)
-fig.subplots_adjust(left=0.05, right=0.95, wspace=0.2)
-
-ani = FuncAnimation(
-    fig,
-    animate,  # pyright: ignore [reportArgumentType]
-    interval=100,
-    blit=False,
-    save_count=3000,
-)
-
-canvas = FigureCanvasTkAgg(fig, master=root)
-canvas.get_tk_widget().pack(
-    side="top", padx=20, expand=True, fill="both", anchor="center"
-)
-
-button_frame = tk.Frame(root)
-button_frame.pack(side="top", fill="both", expand=True)
-
-restart_button = tk.Button(button_frame, text="Restart", command=restart_button_click)
-restart_button.pack(side="right", pady=10, padx=40, anchor="e")
-
-zoom_in_button = tk.Button(button_frame, text="Zoom in", command=zoom_in)
-zoom_in_button.pack(side="right", pady=10, padx=10, anchor="e")
-
-zoom_out_button = tk.Button(button_frame, text="Zoom out", command=zoom_out)
-zoom_out_button.pack(side="right", pady=10, padx=10, anchor="e")
-
-# Set font size
-# font_size = int(round(max(dpi_width, dpi_height) * 1))
-font_size = 10
-print(dpi_width, dpi_height)
-print(font_size)
-set_font_size(font_size)
-
-# Create threads for sending and receiving messages
-receive_thread = threading.Thread(target=receive_can_messages, daemon=True)
-update_thread = threading.Thread(target=update_ui, daemon=True)
-send_thread = threading.Thread(target=send_can_messages, daemon=True)
-
-receive_thread.start()
-update_thread.start()
-send_thread.start()
-
-root.mainloop()
+if __name__ == "__main__":
+    main()
