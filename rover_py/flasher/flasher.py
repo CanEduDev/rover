@@ -2,64 +2,80 @@ import json
 import time
 from pathlib import Path
 
-from canlib import Frame, canlib
+import can
 from rover import Envelope, bootloader, rover
+from rover.can_interface import create_bus
 
 
 class Flasher:
-    def __init__(self, ch, config=None):
-        self.ch = ch
-        self.config = config
+    def __init__(self, interface, channel, bitrate=125000, config=None):
+        self._config = config
         self.online_node_ids = set()
-        self.default_timeout_ms = 100
-        self.ch.setBusOutputControl(canlib.Driver.NORMAL)
-        self.ch.busOn()
+        self.default_timeout_s = 0.1
+
+        # Use intermediate bus variable to avoid linting issues for self.bus.
+        self._bus = None
+        try:
+            self._bus = create_bus(interface, channel, bitrate)
+        except Exception as e:
+            raise ValueError(f"cannot connect to CAN interface: {e}") from e
+
+        self.bus = self._bus
+
+    def __del__(self):
+        if self._bus is not None:
+            self._bus.shutdown()
+
+    @property
+    def config(self):
+        return self._config
+
+    @config.setter
+    def config(self, config):
+        self._config = config
 
     def detect_online_nodes(self, restore_comm=True):
-        self.ch.writeWait(
-            rover.set_action_mode(mode=rover.ActionMode.FREEZE), self.default_timeout_ms
-        )
-
-        time.sleep(0.1)  # Wait for nodes to apply freeze
-
-        self.ch.write(rover.give_base_number(response_page=1))
-        self.ch.iocontrol.flush_rx_buffer()
+        self.bus.send(rover.set_action_mode(mode=rover.ActionMode.FREEZE))
+        self.bus.send(rover.give_base_number(response_page=1))
 
         # Check responses
         while True:
-            try:
-                frame = self.ch.read(timeout=self.default_timeout_ms)
-                if frame and canlib.MessageFlag.ERROR_FRAME not in frame.flags:
-                    self.online_node_ids.add(frame.id - rover.BASE_NUMBER)
-
-            except (canlib.exceptions.CanTimeout, canlib.exceptions.CanNoMsg):
+            msg = self.bus.recv(timeout=self.default_timeout_s)
+            if not msg:
                 break
+            if msg.is_error_frame:
+                continue
+
+            if msg.arbitration_id > rover.BASE_NUMBER:
+                self.online_node_ids.add(msg.arbitration_id - rover.BASE_NUMBER)
 
         if restore_comm:
-            self.ch.writeWait(
+            self.bus.send(
                 rover.set_action_mode(mode=rover.ActionMode.RUN),
-                self.default_timeout_ms,
+                timeout=self.default_timeout_s,
             )
 
         return self.online_node_ids
 
     def run(self):
-        if not self.config:
+        if self._config is None:
             raise ValueError("run method requires config parameter")
 
         self.detect_online_nodes(restore_comm=False)
+        if self.online_node_ids == set():
+            raise RuntimeError("No nodes found. Please check your CAN connection.")
 
         # Flash all online nodes
-        for node in self.config.get_nodes():
-            id = self.config.get_id(node)
+        for node in self._config.nodes:
+            id = self._config.get_id(node)
 
             binary = None
-            if not self.config.skip_binaries:
-                binary = self.config.get_binary(node)
+            if not self._config.skip_binaries:
+                binary = self._config.get_binary(node)
 
             config = None
-            if not self.config.skip_config:
-                config = self.config.get_config(node)
+            if not self._config.skip_config:
+                config = self._config.get_config(node)
 
             if id in self.online_node_ids:
                 self.__flash_node(id, node=node, binary=binary, config=config)
@@ -105,13 +121,31 @@ class Flasher:
         self.__format_fs()
 
         print(f"{prefix}: Exiting bootloader...")
-        self.__exit_bootloader()
-        time.sleep(0.5)
+        self.__exit_bootloader(id)
         self.__restart_all()
 
     def enter_recovery_mode(self, binary_file, config_file):
-        # Send default letter. Send should succeed only if node is on the bus again.
-        self.ch.writeWait(rover.default_letter(), 30_000)  # 30 second delay
+        printed_message = False
+
+        # Wait for response, ignore error frames.
+        try:
+            self.bus.send(rover.default_letter())
+            self.bus.send(rover.give_base_number(response_page=1))
+        except can.CanError:
+            if not printed_message:
+                print("If stuck, please power cycle target board.")
+                printed_message = True
+            pass
+
+        try:
+            while True:
+                msg = self.bus.recv()
+                if not msg.is_error_frame and msg.arbitration_id > rover.BASE_NUMBER:
+                    break
+
+        except KeyboardInterrupt:
+            raise
+
         self.__enter_bootloader(0)
         self.detect_online_nodes(restore_comm=False)
         id = self.online_node_ids.pop()
@@ -133,26 +167,12 @@ class Flasher:
         print(f"{prefix}: Entering bootloader...")
         self.__enter_bootloader(id)
 
-        # Switch to 1 Mbit/s for flashing and restart communication to apply bitrate
-        self.ch.write(rover.change_bitrate_1mbit())
-        self.ch.writeWait(
-            rover.restart_communication(
-                city=id, skip_startup=True, comm_mode=rover.CommMode.COMMUNICATE
-            ),
-            self.default_timeout_ms,
-        )
-
-        self.ch.busOff()
-        self.ch.setBusParams(canlib.Bitrate.BITRATE_1M)
-        time.sleep(0.1)  # Give time for bitrate change
-        self.ch.busOn()
-
         if binary:
             # Erase as many pages as required to fit the application
             print(f"{prefix}: Erasing target flash...")
             self.__flash_erase(len(binary))
 
-            print(f"{prefix}: Flashing new binary...")
+            print(f"{prefix}: Flashing binary...")
             self.__flash_program(binary)
 
         if config:
@@ -160,36 +180,27 @@ class Flasher:
             self.__write_config(config)
 
         print(f"{prefix}: Exiting bootloader...")
-        self.__exit_bootloader()
-
-        # Go back to 125 kbit/s
-        self.ch.busOff()
-        self.ch.setBusParams(canlib.Bitrate.BITRATE_125K)
-        time.sleep(0.25)
-
-        # The power board powers the other boards, so need to sleep longer to compensate for that case.
-        if id == rover.City.BATTERY_MONITOR:
-            time.sleep(2)
-
-        self.ch.busOn()
+        self.__exit_bootloader(id)
 
     def __block_transfer(self, envelope, binary):
         # Init block transfer
         data = [1] + list(len(binary).to_bytes(4, "little")) + [0, 0, 0]
-        self.ch.write(Frame(id_=envelope, dlc=8, data=data))
-        self.ch.iocontrol.flush_rx_buffer()
+        self.bus.send(
+            can.Message(arbitration_id=envelope, dlc=8, data=data, is_extended_id=False)
+        )
 
         try:
-            self.ch.readSyncSpecific(envelope, timeout=1000)
-            received = self.ch.readSpecificSkip(envelope)
+            msg = self.bus.recv(timeout=1.0)
+            if msg.arbitration_id != envelope:
+                raise RuntimeError("wrong response during block transfer init")
 
-        except (canlib.exceptions.CanNoMsg, canlib.exceptions.CanTimeout) as e:
-            raise RuntimeError("no bundle request response (1)") from e
+        except can.CanError as e:
+            raise RuntimeError(f"no bundle request response (1): {e}") from e
 
-        if received.data[0] != 2:
+        if msg.data[0] != 2:
             raise RuntimeError("wrong response during block transfer init")
 
-        if int.from_bytes(received.data[1:3], byteorder="little") != 0xFFFF:
+        if int.from_bytes(msg.data[1:3], byteorder="little") != 0xFFFF:
             raise RuntimeError("got wrong bundle request, wanted 0xFFFF")
 
         # Chunk and send data
@@ -205,84 +216,103 @@ class Flasher:
 
         current_page_number = 3
 
-        batch_size = 128  # Set to avoid TX buffer overflow
+        block_transfer_listener = BlockTransferListener(envelope)
+        notifier = can.Notifier(self.bus, [block_transfer_listener])
 
-        try:
-            for chunk_no, chunk in enumerate(chunks):
-                data = [current_page_number] + chunk
-                self.ch.write(Frame(id_=envelope, dlc=8, data=data))
+        for chunk in chunks:
+            msg = can.Message(
+                arbitration_id=envelope,
+                dlc=8,
+                data=[current_page_number] + chunk,
+                is_extended_id=False,
+            )
 
-                if chunk_no % batch_size == 0:
-                    self.ch.writeSync(timeout=1000)
+            while not block_transfer_listener.should_abort:
+                try:
+                    self.bus.send(msg)
+                    break
+                except can.CanOperationError:
+                    continue
 
-                if current_page_number == 3:
-                    current_page_number = 4
-                else:
-                    current_page_number = 3
+            if current_page_number == 3:
+                current_page_number = 4
+            else:
+                current_page_number = 3
 
-            self.ch.writeSync(timeout=1000)
+        if block_transfer_listener.should_abort:
+            raise RuntimeError(
+                f"block transfer failed: {block_transfer_listener.abort_reason}"
+            )
 
-        except canlib.exceptions.CanTimeout as e:
-            raise RuntimeError("block transfer timed out") from e
+        t = time.monotonic()
+        while not block_transfer_listener.finished_ok and time.monotonic() - t < 10.0:
+            pass
 
-        self.ch.iocontrol.flush_rx_buffer()
+        notifier.stop()
 
-        try:
-            self.ch.readSyncSpecific(envelope, timeout=10000)
-            received = self.ch.readSpecificSkip(envelope)
-
-        except (canlib.exceptions.CanNoMsg, canlib.exceptions.CanTimeout) as e:
-            raise RuntimeError("no bundle request response (2)") from e
-
-        if received.data[0] != 2:
-            raise RuntimeError("wrong response after block transfer")
-
-        if int.from_bytes(received.data[1:3], byteorder="little") != 0x0000:
-            raise RuntimeError("got wrong bundle request, wanted 0x0000")
+        if not block_transfer_listener.finished_ok:
+            raise RuntimeError("block transfer timed out")
 
     def __enter_bootloader(self, id):
         try:
             # Restart target
-            self.ch.writeWait(
+            self.bus.send(
                 rover.set_action_mode(city=id, mode=rover.ActionMode.RESET),
-                self.default_timeout_ms,
+                timeout=self.default_timeout_s,
             )
 
-            time.sleep(0.02)  # Wait 20 ms for restart
+            time.sleep(0.05)  # Wait 50 ms for restart
 
-            # Send default letter. Send should succeed only if node is on the bus again.
-            self.ch.writeWait(rover.default_letter(), self.default_timeout_ms)
+            # Send default letter.
+            self.bus.send(rover.default_letter(), timeout=self.default_timeout_s)
 
             self.__assign_bootloader_envelopes(id)
 
             # Allow target to communicate
-            self.ch.writeWait(
+            self.bus.send(
                 rover.set_comm_mode(city=id, mode=rover.CommMode.COMMUNICATE),
-                self.default_timeout_ms,
+                timeout=self.default_timeout_s,
             )
 
-            f = Frame(id_=Envelope.BOOTLOADER_ENTER, dlc=0, data=[])
+            msg = can.Message(
+                arbitration_id=Envelope.BOOTLOADER_ENTER,
+                dlc=0,
+                data=[],
+                is_extended_id=False,
+            )
 
-            self.__send_bootloader_command(f)
-        except (Exception, canlib.exceptions.CanlibException) as e:
+            self.__send_bootloader_command(msg)
+        except can.CanError as e:
             raise RuntimeError(f"entering bootloader failed: {e}") from e
 
-    def __exit_bootloader(self):
-        f = Frame(id_=Envelope.BOOTLOADER_EXIT, dlc=0, data=[])
-        try:
-            self.__send_bootloader_command(f)
-        except (Exception, canlib.exceptions.CanlibException) as e:
-            raise RuntimeError(f"exiting bootloader failed: {e}") from e
-
-    def __flash_erase(self, bytes_to_erase):
-        f = Frame(
-            id_=Envelope.BOOTLOADER_FLASH_ERASE,
-            dlc=4,
-            data=list(bytes_to_erase.to_bytes(4, "little")),
+    def __exit_bootloader(self, id):
+        msg = can.Message(
+            arbitration_id=Envelope.BOOTLOADER_EXIT,
+            dlc=0,
+            data=[],
+            is_extended_id=False,
         )
         try:
-            self.__send_bootloader_command(f, timeout=10_000)
-        except (Exception, canlib.exceptions.CanlibException) as e:
+            self.__send_bootloader_command(msg)
+        except can.CanError as e:
+            raise RuntimeError(f"exiting bootloader failed: {e}") from e
+
+        # The power board powers the other boards, so need to sleep longer to compensate for that case.
+        if id == rover.City.BATTERY_MONITOR:
+            time.sleep(2)
+        else:
+            time.sleep(0.5)
+
+    def __flash_erase(self, bytes_to_erase):
+        msg = can.Message(
+            arbitration_id=Envelope.BOOTLOADER_FLASH_ERASE,
+            dlc=4,
+            data=list(bytes_to_erase.to_bytes(4, "little")),
+            is_extended_id=False,
+        )
+        try:
+            self.__send_bootloader_command(msg, timeout=30.0)
+        except can.CanError as e:
             raise RuntimeError(f"erasing flash failed: {e}") from e
 
     def __flash_program(self, binary_data):
@@ -290,14 +320,19 @@ class Flasher:
             self.__block_transfer(Envelope.BOOTLOADER_FLASH_PROGRAM, binary_data)
         except RuntimeError as e:
             raise RuntimeError(f"flashing binary failed: {e}") from e
-        except (Exception, canlib.exceptions.CanlibException):
-            raise
+        except can.CanError as e:
+            raise RuntimeError(f"flashing binary failed: {e}") from e
 
     def __format_fs(self):
-        f = Frame(id_=Envelope.BOOTLOADER_FORMAT_FS, dlc=0, data=[])
+        msg = can.Message(
+            arbitration_id=Envelope.BOOTLOADER_FORMAT_FS,
+            dlc=0,
+            data=[],
+            is_extended_id=False,
+        )
         try:
-            self.__send_bootloader_command(f, timeout=10_000)
-        except (Exception, canlib.exceptions.CanlibException) as e:
+            self.__send_bootloader_command(msg, timeout=10.0)
+        except can.CanError as e:
             raise RuntimeError(f"formatting FS failed: {e}") from e
 
     def __write_config(self, config):
@@ -306,56 +341,65 @@ class Flasher:
             self.__block_transfer(Envelope.BOOTLOADER_FLASH_CONFIG, binary)
         except RuntimeError as e:
             raise RuntimeError(f"writing config failed: {e}") from e
-        except (Exception, canlib.exceptions.CanlibException):
-            raise
+        except can.CanError as e:
+            raise RuntimeError(f"writing config failed: {e}") from e
 
-    # Set all nodes except target to silent
     def __single_comm_mode(self, id):
-        self.ch.write(
+        self.bus.send(
             rover.set_comm_mode(city=rover.City.ALL_CITIES, mode=rover.CommMode.SILENT)
         )
-        self.ch.writeWait(
+        self.bus.send(
             rover.set_comm_mode(city=id, mode=rover.CommMode.COMMUNICATE),
-            self.default_timeout_ms,
+            timeout=self.default_timeout_s,
         )
 
     def __restart_all(self):
-        self.ch.writeWait(
+        # Critical wait to avoid spamming error frames which prevents boards from restarting
+        time.sleep(0.05)
+        self.bus.send(
             rover.set_action_mode(mode=rover.ActionMode.RESET),
-            self.default_timeout_ms,
+            timeout=self.default_timeout_s,
         )
-        time.sleep(1)  # Wait for restart
+        time.sleep(0.05)  # Wait for restart
 
     def __assign_bootloader_envelopes(self, node_id):
         bootloader_assignments = bootloader.generate_assignments(node_id)
         for assignment in bootloader_assignments:
-            self.ch.writeWait(
+            self.bus.send(
                 rover.assign_envelope(node_id, assignment.envelope, assignment.folder),
-                self.default_timeout_ms,
+                timeout=self.default_timeout_s,
             )
 
-    def __send_bootloader_command(self, frame, timeout=None):
+    def __send_bootloader_command(self, msg, timeout=None):
         if not timeout:
-            timeout = self.default_timeout_ms
+            timeout = self.default_timeout_s
 
-        self.ch.write(frame)
-        self.ch.iocontrol.flush_rx_buffer()
+        self.bus.send(msg)
 
-        try:
-            self.ch.readSyncSpecific(Envelope.BOOTLOADER_COMMAND_ACK, timeout=timeout)
-            received = self.ch.readSpecificSkip(Envelope.BOOTLOADER_COMMAND_ACK)
+        t = time.monotonic()
 
-        except (canlib.exceptions.CanNoMsg, canlib.exceptions.CanTimeout) as e:
-            raise RuntimeError("no ACK received") from e
+        response = None
 
-        command_id = int.from_bytes(received.data[1:5], byteorder="little")
+        while time.monotonic() - t < timeout:
+            response = self.bus.recv(timeout=0.01)
 
-        if received.data[0] == 1:  # NACK value
+            if response and response.arbitration_id == Envelope.BOOTLOADER_COMMAND_ACK:
+                break
+
+        if response is None:
+            raise RuntimeError(f"no ACK received after {timeout} seconds")
+
+        if response.arbitration_id != Envelope.BOOTLOADER_COMMAND_ACK:
+            raise RuntimeError(f"wrong ACK received, got frame: {response}")
+
+        command_id = int.from_bytes(response.data[1:5], byteorder="little")
+
+        if response.data[0] == 1:  # NACK value
             raise RuntimeError(f"NACK received for command {hex(command_id)}")
 
-        if command_id != frame.id:
+        if command_id != msg.arbitration_id:
             raise RuntimeError(
-                f"wrong ACK for command, expected: {hex(frame.id)}, got {hex(command_id)}"
+                f"wrong ACK for command, expected: {hex(msg.arbitration_id)}, got {hex(command_id)}"
             )
 
 
@@ -399,7 +443,8 @@ class FlasherConfig:
         except Exception:
             raise
 
-    def get_nodes(self):
+    @property
+    def nodes(self):
         return self.json.keys()
 
     def get_id(self, node):
@@ -429,3 +474,24 @@ def _read_json(file):
             return json.load(f)
     except Exception as e:
         raise ValueError(f"couldn't read {file}: {e}") from e
+
+
+class BlockTransferListener(can.Listener):
+    def __init__(self, envelope):
+        self.envelope = envelope
+        self.should_abort = False
+        self.abort_reason = None
+        self.finished_ok = False
+
+    def on_message_received(self, msg):
+        if msg.arbitration_id == self.envelope:
+            if msg.data[0] == 5:
+                self.should_abort = True
+                self.abort_reason = "received abort page"
+                return
+
+            if (
+                msg.data[0] == 2
+                and int.from_bytes(msg.data[1:3], byteorder="little") == 0
+            ):
+                self.finished_ok = True
