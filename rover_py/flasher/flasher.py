@@ -35,6 +35,7 @@ class Flasher:
         self._config = config
 
     def detect_online_nodes(self, restore_comm=True):
+        print("Detecting online nodes...")
         self.bus.send(rover.set_action_mode(mode=rover.ActionMode.FREEZE))
         self.bus.send(rover.give_base_number(response_page=1))
 
@@ -61,9 +62,11 @@ class Flasher:
         if self._config is None:
             raise ValueError("run method requires config parameter")
 
-        self.detect_online_nodes(restore_comm=False)
+        self.detect_online_nodes()
         if self.online_node_ids == set():
-            raise RuntimeError("No nodes found. Please check your CAN connection.")
+            raise RuntimeError("no nodes found. Please check your CAN connection.")
+
+        self.__check_bus_health()
 
         # Flash all online nodes
         for node in self._config.nodes:
@@ -80,10 +83,11 @@ class Flasher:
             if id in self.online_node_ids:
                 self.__flash_node(id, node=node, binary=binary, config=config)
 
+        print("Flashing successful. Restarting all nodes...")
         self.__restart_all()
 
     def run_single(self, id, binary_file=None, config_file=None):
-        self.detect_online_nodes(restore_comm=False)
+        self.detect_online_nodes()
 
         if id not in self.online_node_ids:
             raise ValueError(
@@ -99,17 +103,21 @@ class Flasher:
         if config_file:
             config = _read_json(config_file)
 
+        self.__check_bus_health()
+
         self.__flash_node(id, binary=binary, config=config)
         self.__restart_all()
 
     def format_fs(self, id):
         prefix = f"node {id}"
-        self.detect_online_nodes(restore_comm=False)
+        self.detect_online_nodes()
 
         if id not in self.online_node_ids:
             raise ValueError(
                 f"{prefix}: node is offline. Found: {self.online_node_ids}"
             )
+
+        self.__check_bus_health()
 
         print(f"{prefix}: Starting FS format procedure.")
         self.__single_comm_mode(id)
@@ -153,13 +161,39 @@ class Flasher:
         config = _read_json(config_file)
         self.__flash_node(id, binary=binary, config=config)
 
+    def __check_bus_health(self):
+        print("Checking bus health...")
+        start_time = time.monotonic()
+        while time.monotonic() - start_time <= 5:
+            try:
+                self.bus.send(rover.default_letter(), timeout=self.default_timeout_s)
+            except can.CanOperationError:
+                time.sleep(0.01)
+
+            while (msg := self.bus.recv(timeout=0)) is not None:
+                if msg.is_error_frame:
+                    raise RuntimeError(
+                        "CAN bus is unhealthy. Make sure the bus is terminated with 120 ohm on each end. Flashing on an unhealthy bus may brick your devices."
+                    )
+                msg = self.bus.recv(timeout=0)
+
+        time.sleep(0.1)  # Give time for TX buffer to clear
+
+        # Flush rx buffer and check for error frames
+        while (msg := self.bus.recv(timeout=0)) is not None:
+            if msg.is_error_frame:
+                raise RuntimeError(
+                    "CAN bus is unhealthy. Make sure the bus is terminated with 120 ohm on each end. Flashing on an unhealthy bus may brick your devices."
+                )
+            msg = self.bus.recv(timeout=0)
+
     def __flash_node(self, id, node=None, binary=None, config=None):
         if not binary and not config:
             raise ValueError("at least one of binary and config params must be set")
 
         prefix = f"node {id}"
         if node:
-            prefix = node
+            prefix = f"{node} ({id})"
 
         print(f"{prefix}: Starting flash procedure.")
         self.__single_comm_mode(id)
@@ -261,10 +295,35 @@ class Flasher:
                 timeout=self.default_timeout_s,
             )
 
-            time.sleep(0.05)  # Wait 50 ms for restart
+            time.sleep(0.05)  # Give time for restart
 
-            # Send default letter.
-            self.bus.send(rover.default_letter(), timeout=self.default_timeout_s)
+            # Flush rx buffer
+            while self.bus.recv(timeout=0) is not None:
+                pass
+
+            if id != rover.City.ALL_CITIES:
+                # Send default letter, give base number and check for response
+                # This way we verify the target is online and ready to receive commands
+                restart_timeout = 0.1
+                t = time.monotonic()
+                while time.monotonic() - t < restart_timeout:
+                    try:
+                        self.bus.send(rover.default_letter(), timeout=0.01)
+                        self.bus.send(rover.give_base_number(city=id), timeout=0.01)
+                        msg = self.bus.recv(timeout=0.01)
+                    except can.CanError:
+                        continue
+
+                    if msg is None:
+                        continue
+
+                    if msg.is_error_frame:
+                        continue
+
+                    if msg.arbitration_id != rover.BASE_NUMBER + id:
+                        raise RuntimeError(
+                            f"wrong response during bootloader enter, got {msg.arbitration_id}"
+                        )
 
             self.__assign_bootloader_envelopes(id)
 
@@ -346,8 +405,17 @@ class Flasher:
 
     def __single_comm_mode(self, id):
         self.bus.send(
-            rover.set_comm_mode(city=rover.City.ALL_CITIES, mode=rover.CommMode.SILENT)
+            rover.set_action_mode(
+                city=rover.City.ALL_CITIES, mode=rover.ActionMode.FREEZE
+            ),
+            timeout=self.default_timeout_s,
         )
+
+        self.bus.send(
+            rover.set_comm_mode(city=rover.City.ALL_CITIES, mode=rover.CommMode.SILENT),
+            timeout=self.default_timeout_s,
+        )
+
         self.bus.send(
             rover.set_comm_mode(city=id, mode=rover.CommMode.COMMUNICATE),
             timeout=self.default_timeout_s,
@@ -381,7 +449,7 @@ class Flasher:
         response = None
 
         while time.monotonic() - t < timeout:
-            response = self.bus.recv(timeout=0.01)
+            response = self.bus.recv(timeout=timeout)
 
             if response and response.arbitration_id == Envelope.BOOTLOADER_COMMAND_ACK:
                 break
