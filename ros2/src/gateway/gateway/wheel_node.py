@@ -8,6 +8,7 @@ import rover
 import std_msgs.msg as msgtype
 from rclpy.node import Node
 from rclpy.qos import ReliabilityPolicy
+from std_msgs.msg import Bool
 
 
 @enum.unique
@@ -59,24 +60,31 @@ class WheelNode(Node):
         self.can_bus = can.ThreadSafeBus(
             interface="socketcan", channel="can0", bitrate=125_000
         )
-        self.can_reader_thread = threading.Thread(target=self.can_reader_task)
-        # Daemon thread will exit when the main program ends
-        self.can_reader_thread.daemon = True
-        self.can_reader_thread.start()
 
+        # Add CAN enabled state
+        self.can_enabled = True
+        self.can_enabled_lock = threading.Lock()
+        self.can_enabled_sub = self.create_subscription(
+            Bool, "can_enabled", self.can_enabled_callback, 10
+        )
+
+        threading.Thread(target=self.can_reader_task, daemon=True).start()
         self.get_logger().info("finished intialization")
 
     def destroy_node(self):
-        self.can_reader_thread.join()
-        self.can_bus.shutdown()
         super().destroy_node()
+        self.can_bus.shutdown()
+
+    def can_enabled_callback(self, msg):
+        with self.can_enabled_lock:
+            self.can_enabled = msg.data
 
     def can_reader_task(self):
         for msg in self.can_bus:
-            self.publish(msg)
-
             if not rclpy.ok():
                 break
+
+            self.publish(msg)
 
     def publish_rpm(self, msg):
         rpm_msg = msgtype.Float32()
@@ -134,6 +142,13 @@ class WheelNode(Node):
             report_freq_hz = max_freq
 
         self.report_freq_hz = report_freq_hz
+
+        with self.can_enabled_lock:
+            if not self.can_enabled:
+                self.get_logger().info(
+                    "CAN communication is disabled, not sending config command."
+                )
+                return
 
         try:
             self.can_bus.send(self.set_report_period_message())

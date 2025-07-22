@@ -25,6 +25,7 @@ setup(
         "console_scripts": [
             "battery_node = gateway.battery_node:main",
             "controller_node = gateway.controller_node:main",
+            "mayor_node = gateway.mayor_node:main",
             "obstacle_detector_node = gateway.obstacle_detector_node:main",
             "radio_node = gateway.radio_node:main",
             "wheel_node = gateway.wheel_node:main",

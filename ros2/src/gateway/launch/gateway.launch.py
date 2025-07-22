@@ -19,6 +19,14 @@ def generate_launch_description():
     return LaunchDescription(
         [
             logger_arg,
+            # Mayor node
+            Node(
+                package=package,
+                namespace=namespace,
+                executable="mayor_node",
+                name="mayor",
+                arguments=default_logger_arg,
+            ),
             # Radio node
             Node(
                 package=package,

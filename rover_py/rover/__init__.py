@@ -22,6 +22,7 @@ class City(enum.IntEnum):
 
     # For AD systems
     AD_BATTERY_MONITOR = 100
+    AD_ROS_GATEWAY = 101
 
 
 # CAN Message IDs

@@ -4,10 +4,12 @@ import time
 
 import can
 import rclpy
+import rclpy.parameter
 import rover
 import std_msgs.msg as msgtype
 from rclpy.node import Node
 from rclpy.qos import ReliabilityPolicy
+from std_msgs.msg import Bool
 
 
 class ControllerNode(Node):
@@ -31,6 +33,7 @@ class ControllerNode(Node):
         )
 
         self.radio_override_logged = False
+        self.radio_override_lock = threading.Lock()
         self.last_radio_timestamp = 0
         self.throttle = 1500
         self.steering_angle = 0
@@ -42,31 +45,51 @@ class ControllerNode(Node):
         self.can_bus = can.ThreadSafeBus(
             interface="socketcan", channel="can0", bitrate=125_000
         )
-        self.can_reader_thread = threading.Thread(target=self.can_reader_task)
-        # Daemon thread will exit when the main program ends
-        self.can_reader_thread.daemon = True
-        self.can_reader_thread.start()
 
+        # Add CAN enabled state
+        self.can_enabled = True
+        self.can_enabled_lock = threading.Lock()
+        self.can_enabled_sub = self.create_subscription(
+            Bool,
+            "can_enabled",
+            self.can_enabled_callback,
+            ReliabilityPolicy.RELIABLE,
+        )
+
+        # Start CAN reader thread
+        threading.Thread(target=self.can_reader_task, daemon=True).start()
         self.get_logger().info("finished initialization")
 
     def destroy_node(self):
-        self.can_reader_thread.join()
-        self.can_bus.shutdown()
         super().destroy_node()
+        self.can_bus.shutdown()
+
+    def can_enabled_callback(self, msg):
+        with self.can_enabled_lock:
+            self.can_enabled = msg.data
+
+        # reset override state to avoid potential race condition with radio node on comm mode or action mode change
+        self.refresh_radio_timestamp()
+        self.radio_override_logged = True
 
     def can_reader_task(self):
         for msg in self.can_bus:
+            if not rclpy.ok():
+                break
+
             if (
                 msg.arbitration_id == rover.Envelope.STEERING
                 or msg.arbitration_id == rover.Envelope.THROTTLE
             ):
-                self.refresh_radio_timestamp(msg.timestamp)
+                self.refresh_radio_timestamp()
 
-            if not rclpy.ok():
-                break
+    def refresh_radio_timestamp(self):
+        with self.radio_override_lock:
+            self.last_radio_timestamp = time.monotonic()
 
-    def refresh_radio_timestamp(self, timestamp):
-        self.last_radio_timestamp = timestamp
+    def get_radio_timestamp(self):
+        with self.radio_override_lock:
+            return self.last_radio_timestamp
 
     def stop_timer(self):
         self.control_timer.destroy()
@@ -93,10 +116,15 @@ class ControllerNode(Node):
         )
 
     def send_control_command(self):
-        if (
-            self.last_radio_timestamp == 0
-            or time.time() - self.last_radio_timestamp <= 0.1
-        ):
+        with self.can_enabled_lock:
+            if not self.can_enabled:
+                self.get_logger().debug(
+                    "CAN communication is disabled, not sending control command."
+                )
+                return
+
+        last_radio_timestamp = self.get_radio_timestamp()
+        if last_radio_timestamp == 0 or time.monotonic() - last_radio_timestamp <= 0.1:
             if not self.radio_override_logged:
                 self.radio_override_logged = True
                 self.get_logger().info(

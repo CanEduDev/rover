@@ -8,6 +8,7 @@
 .tools/
 .venv/
 build/
+__pycache__/
 compile_commands.json
 subprojects/*
 !subprojects/packagefiles/

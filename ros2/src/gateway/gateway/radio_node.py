@@ -31,24 +31,20 @@ class RadioNode(Node):
         self.can_bus = can.ThreadSafeBus(
             interface="socketcan", channel="can0", bitrate=125_000
         )
-        self.can_reader_thread = threading.Thread(target=self.can_reader_task)
-        # Daemon thread will exit when the main program ends
-        self.can_reader_thread.daemon = True
-        self.can_reader_thread.start()
 
+        threading.Thread(target=self.can_reader_task, daemon=True).start()
         self.get_logger().info("finished intialization")
 
     def destroy_node(self):
-        self.can_reader_thread.join()
-        self.can_bus.shutdown()
         super().destroy_node()
+        self.can_bus.shutdown()
 
     def can_reader_task(self):
         for msg in self.can_bus:
-            self.publish(msg)
-
             if not rclpy.ok():
                 break
+
+            self.publish(msg)
 
     def publish_throttle(self, msg):
         throttle_msg = msgtype.Float32()
