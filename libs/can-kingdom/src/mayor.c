@@ -586,7 +586,9 @@ static ck_err_t process_kp0(const ck_page_t *page) {
   if (ret != CK_OK) {
     return ret;
   }
-  mayor.action_mode = action_mode;
+  if (action_mode != CK_ACTION_MODE_KEEP_CURRENT) {
+    mayor.action_mode = action_mode;
+  }
 
   ck_comm_mode_t comm_mode = page->lines[3] & 0x3;
   ret = ck_check_comm_mode(comm_mode);
