@@ -1,3 +1,5 @@
+import argparse
+import sys
 import threading
 
 import can
@@ -12,7 +14,7 @@ from std_msgs.msg import Bool
 
 
 class MayorNode(Node):
-    def __init__(self):
+    def __init__(self, interface, channel, bitrate):
         super().__init__("can_toggle_node")
         self.can_enabled = True
         self.can_enabled_lock = threading.Lock()
@@ -24,7 +26,7 @@ class MayorNode(Node):
         self.publish_can_enabled()
 
         self.can_bus = can.ThreadSafeBus(
-            interface="socketcan", channel="can0", bitrate=125_000
+            interface=interface, channel=channel, bitrate=bitrate
         )
 
         self.kp_id = 0
@@ -92,8 +94,18 @@ class MayorNode(Node):
 
 
 def main(args=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--interface", default="socketcan")
+    parser.add_argument("--channel", default="can0")
+    parser.add_argument("--bitrate", type=int, default=125000)
+    parsed_args, _ = parser.parse_known_args(args if args is not None else sys.argv[1:])
+
     rclpy.init(args=args)
-    node = MayorNode()
+    node = MayorNode(
+        interface=parsed_args.interface,
+        channel=parsed_args.channel,
+        bitrate=parsed_args.bitrate,
+    )
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

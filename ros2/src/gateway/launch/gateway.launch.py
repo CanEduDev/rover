@@ -12,20 +12,41 @@ def generate_launch_description():
     package = "gateway"
     namespace = "rover"
 
-    logger_arg = DeclareLaunchArgument("log_level", default_value="info")
+    can_interface_arg = DeclareLaunchArgument(
+        "can_interface", default_value="socketcan"
+    )
+    can_channel_arg = DeclareLaunchArgument("can_channel", default_value="can0")
+    can_bitrate_arg = DeclareLaunchArgument("can_bitrate", default_value="125000")
 
-    default_logger_arg = ["--ros-args", "--log-level", LaunchConfiguration("log_level")]
+    log_level_arg = DeclareLaunchArgument("log_level", default_value="info")
+
+    default_args = [
+        # Node args
+        "--interface",
+        LaunchConfiguration("can_interface"),
+        "--channel",
+        LaunchConfiguration("can_channel"),
+        "--bitrate",
+        LaunchConfiguration("can_bitrate"),
+        # ROS args
+        "--ros-args",
+        "--log-level",
+        LaunchConfiguration("log_level"),
+    ]
 
     return LaunchDescription(
         [
-            logger_arg,
+            log_level_arg,
+            can_interface_arg,
+            can_channel_arg,
+            can_bitrate_arg,
             # Mayor node
             Node(
                 package=package,
                 namespace=namespace,
                 executable="mayor_node",
                 name="mayor",
-                arguments=default_logger_arg,
+                arguments=default_args,
             ),
             # Radio node
             Node(
@@ -33,7 +54,7 @@ def generate_launch_description():
                 namespace=namespace,
                 executable="radio_node",
                 name="radio",
-                arguments=default_logger_arg,
+                arguments=default_args,
             ),
             # Controller node
             Node(
@@ -41,7 +62,7 @@ def generate_launch_description():
                 namespace=namespace,
                 executable="controller_node",
                 name="controller",
-                arguments=default_logger_arg,
+                arguments=default_args,
             ),
             # Battery Monitor nodes
             Node(
@@ -50,7 +71,7 @@ def generate_launch_description():
                 executable="battery_node",
                 name="battery_monitor_control_system",
                 parameters=[{"position": "control_system"}],
-                arguments=default_logger_arg,
+                arguments=default_args,
             ),
             Node(
                 package=package,
@@ -58,7 +79,7 @@ def generate_launch_description():
                 executable="battery_node",
                 name="battery_monitor_ad_system",
                 parameters=[{"position": "ad_system"}],
-                arguments=default_logger_arg,
+                arguments=default_args,
             ),
             # Wheel nodes
             Node(
@@ -67,7 +88,7 @@ def generate_launch_description():
                 executable="wheel_node",
                 name="wheel_front_left",
                 parameters=[{"position": "front_left"}],
-                arguments=default_logger_arg,
+                arguments=default_args,
             ),
             Node(
                 package=package,
@@ -75,7 +96,7 @@ def generate_launch_description():
                 executable="wheel_node",
                 name="wheel_front_right",
                 parameters=[{"position": "front_right"}],
-                arguments=default_logger_arg,
+                arguments=default_args,
             ),
             Node(
                 package=package,
@@ -83,7 +104,7 @@ def generate_launch_description():
                 executable="wheel_node",
                 name="wheel_rear_left",
                 parameters=[{"position": "rear_left"}],
-                arguments=default_logger_arg,
+                arguments=default_args,
             ),
             Node(
                 package=package,
@@ -91,7 +112,7 @@ def generate_launch_description():
                 executable="wheel_node",
                 name="wheel_rear_right",
                 parameters=[{"position": "rear_right"}],
-                arguments=default_logger_arg,
+                arguments=default_args,
             ),
             # Obstacle Detector nodes
             Node(
@@ -100,7 +121,7 @@ def generate_launch_description():
                 executable="obstacle_detector_node",
                 name="obstacle_detector_front",
                 parameters=[{"position": "front"}],
-                arguments=default_logger_arg,
+                arguments=default_args,
             ),
             Node(
                 package=package,
@@ -108,7 +129,7 @@ def generate_launch_description():
                 executable="obstacle_detector_node",
                 name="obstacle_detector_rear",
                 parameters=[{"position": "rear"}],
-                arguments=default_logger_arg,
+                arguments=default_args,
             ),
         ]
     )

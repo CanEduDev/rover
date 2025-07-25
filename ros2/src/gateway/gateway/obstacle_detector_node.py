@@ -1,5 +1,7 @@
+import argparse
 import enum
 import struct
+import sys
 import threading
 
 import can
@@ -17,7 +19,7 @@ class ObstacleDetectorPosition(enum.Enum):
 
 
 class ObstacleDetectorNode(Node):
-    def __init__(self):
+    def __init__(self, interface, channel, bitrate):
         super().__init__("obstacle_detector_node")
 
         self.declare_parameter("position", "front")
@@ -42,7 +44,7 @@ class ObstacleDetectorNode(Node):
         )
 
         self.can_bus = can.ThreadSafeBus(
-            interface="socketcan", channel="can0", bitrate=125_000
+            interface=interface, channel=channel, bitrate=bitrate
         )
 
         threading.Thread(target=self.can_reader_task, daemon=True).start()
@@ -80,9 +82,19 @@ class ObstacleDetectorNode(Node):
 
 
 def main(args=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--interface", default="socketcan")
+    parser.add_argument("--channel", default="can0")
+    parser.add_argument("--bitrate", type=int, default=125000)
+    parsed_args, _ = parser.parse_known_args(args if args is not None else sys.argv[1:])
+
     rclpy.init(args=args)
 
-    node = ObstacleDetectorNode()
+    node = ObstacleDetectorNode(
+        interface=parsed_args.interface,
+        channel=parsed_args.channel,
+        bitrate=parsed_args.bitrate,
+    )
 
     try:
         rclpy.spin(node)
