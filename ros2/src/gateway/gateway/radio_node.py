@@ -1,4 +1,5 @@
 import argparse
+import math
 import struct
 import sys
 import threading
@@ -7,6 +8,7 @@ import can
 import rclpy
 import rover
 import std_msgs.msg as msgtype
+from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from rclpy.qos import ReliabilityPolicy
 
@@ -29,6 +31,13 @@ class RadioNode(Node):
             self.steering_topic,
             ReliabilityPolicy.BEST_EFFORT,
         )
+        self.cmd_vel_publisher = self.create_publisher(
+            Twist,
+            "/cmd_vel",
+            ReliabilityPolicy.BEST_EFFORT,
+        )
+        self._last_throttle = 0.0
+        self._last_steering = 0.0
 
         self.can_bus = can.ThreadSafeBus(
             interface=interface, channel=channel, bitrate=bitrate
@@ -64,13 +73,22 @@ class RadioNode(Node):
         )
         self.throttle_publisher.publish(throttle_msg)
 
+        # Normalize throttle to [-1, 1]
+        normalized_throttle = throttle / 100.0
+        self._last_throttle = normalized_throttle
+        self.publish_cmd_vel()
+
     def publish_steering(self, msg):
         steering_msg = msgtype.Float32()
-        steering_msg.data = struct.unpack("f", msg.data[1:5])[0]
+        steering_data = float(struct.unpack("f", msg.data[1:5])[0])
+        steering_msg.data = steering_data
         self.get_logger().debug(
             f'Publishing {self.steering_topic}: "{steering_msg.data}"'
         )
         self.steering_publisher.publish(steering_msg)
+
+        self._last_steering = steering_data
+        self.publish_cmd_vel()
 
     def publish(self, msg):
         id = msg.arbitration_id
@@ -78,6 +96,14 @@ class RadioNode(Node):
             self.publish_throttle(msg)
         elif id == rover.Envelope.STEERING:
             self.publish_steering(msg)
+
+    def publish_cmd_vel(self):
+        twist = Twist()
+        twist.linear.x = self._last_throttle  # normalized [-1, 1]
+        twist.angular.z = math.radians(
+            self._last_steering
+        )  # convert degrees to radians
+        self.cmd_vel_publisher.publish(twist)
 
 
 def main(args=None):
