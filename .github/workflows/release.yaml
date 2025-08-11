@@ -6,6 +6,12 @@ on:
       - v[0-9]+.[0-9]+.[0-9]+
 
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.0.0)'
+        required: true
+        type: string
+        pattern: '^v[0-9]+\.[0-9]+\.[0-9]+$'
 
 permissions:
   contents: write
@@ -31,10 +37,13 @@ jobs:
     strategy:
       matrix:
         ros_distro: [humble, jazzy]
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
 
-    runs-on: ubuntu-24.04
+    # Build natively on each architecture
+    runs-on: ${{ matrix.runner }}
 
     permissions:
+      contents: read
       packages: write
       attestations: write
       id-token: write
@@ -42,11 +51,54 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Generate tag
+        id: tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG="${{ github.event.inputs.tag }}"
+          fi
+          TAG+=-"$(uname -m)"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
       - name: Build ROS gateway
         uses: ./.github/actions/build-gateway
         with:
           push: true
           ros_distro: ${{ matrix.ros_distro }}
-          tags: ${{ github.ref_name }}
+          tags: ${{ steps.tag.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ros-gateway-release:
+    needs: ros-gateway
+
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate tag
+        id: tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          fi
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release ROS gateway
+        run: ./scripts/release-ros-gateway.sh --version ${{ steps.tag.outputs.tag }}

@@ -13,6 +13,7 @@ inputs:
 
   tags:
     description: docker container tags, space separated
+    required: false
     default: ''
 
 runs:
@@ -27,19 +28,21 @@ runs:
     # Set up builder outside of script to use this action's built-in caching
     - uses: docker/setup-buildx-action@v3
       id: builder
-      with:
-        platforms: linux/amd64,linux/arm64
-
-    - run: |
-        echo "PUSH=${{ inputs.push }}" >> "$GITHUB_ENV"
-      shell: bash
-      if: ${{ inputs.push }}
 
     - name: Build docker image
-      run: ./scripts/build-ros-gateway.sh
+      run: |
+        args=()
+        if [[ "${{ inputs.push }}" == "true" ]]; then
+          args+=(--push)
+        fi
+        if [[ -n "${{ inputs.ros_distro }}" ]]; then
+          args+=(--ros-distro "${{ inputs.ros_distro }}")
+        fi
+        if [[ -n "${{ inputs.tags }}" ]]; then
+          args+=(--version-tags "${{ inputs.tags }}")
+        fi
+        if [[ -n "${{ steps.builder.outputs.name }}" ]]; then
+          args+=(--builder "${{ steps.builder.outputs.name }}")
+        fi
+        ./scripts/build-ros-gateway.sh "${args[@]}"
       shell: bash
-      env:
-        ROS_DISTRO: ${{ inputs.ros_distro }}
-        PLATFORMS: ${{ steps.builder.outputs.platforms }}
-        BUILDER: ${{ steps.builder.outputs.name }}
-        VERSION_TAGS: ${{ inputs.tags }}
