@@ -7,7 +7,6 @@ import threading
 import can
 import rclpy
 import rover
-import std_msgs.msg as msgtype
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from rclpy.qos import ReliabilityPolicy
@@ -19,18 +18,6 @@ class RadioNode(Node):
 
         self.get_logger().info(f"initializing {self.get_name()}")
 
-        self.throttle_topic = f"{self.get_name()}/throttle"
-        self.steering_topic = f"{self.get_name()}/steering"
-        self.throttle_publisher = self.create_publisher(
-            msgtype.Float32,
-            self.throttle_topic,
-            ReliabilityPolicy.BEST_EFFORT,
-        )
-        self.steering_publisher = self.create_publisher(
-            msgtype.Float32,
-            self.steering_topic,
-            ReliabilityPolicy.BEST_EFFORT,
-        )
         self.cmd_vel_publisher = self.create_publisher(
             Twist,
             "/cmd_vel",
@@ -58,8 +45,7 @@ class RadioNode(Node):
             self.publish(msg)
 
     def publish_throttle(self, msg):
-        throttle_msg = msgtype.Float32()
-
+        # Process throttle from CAN message
         throttle_pulse = struct.unpack("H", msg.data[1:3])[0]
         throttle = round((throttle_pulse - 1500) / 5)
         if throttle > 100:
@@ -67,26 +53,12 @@ class RadioNode(Node):
         if throttle < -100:
             throttle = -100
 
-        throttle_msg.data = float(throttle)
-        self.get_logger().debug(
-            f'Publishing {self.throttle_topic}: "{throttle_msg.data}"'
-        )
-        self.throttle_publisher.publish(throttle_msg)
-
-        # Normalize throttle to [-1, 1]
-        normalized_throttle = throttle / 100.0
-        self._last_throttle = normalized_throttle
+        self._last_throttle = throttle / 100.0  # Normalize to [-1, 1] for cmd_vel
         self.publish_cmd_vel()
 
     def publish_steering(self, msg):
-        steering_msg = msgtype.Float32()
+        # Process steering from CAN message
         steering_data = float(struct.unpack("f", msg.data[1:5])[0])
-        steering_msg.data = steering_data
-        self.get_logger().debug(
-            f'Publishing {self.steering_topic}: "{steering_msg.data}"'
-        )
-        self.steering_publisher.publish(steering_msg)
-
         self._last_steering = steering_data
         self.publish_cmd_vel()
 

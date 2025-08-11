@@ -1,13 +1,14 @@
 import argparse
 import sys
 import threading
+import time
 
 import can
 import rclpy
 import rover
+from gateway_msgs.msg import CANStatus  # type: ignore
 from rclpy.node import Node
 from rclpy.qos import ReliabilityPolicy
-from std_msgs.msg import Bool
 
 # TODO: add timer to publish can_enabled regularly for boot up and node restart purposes.
 # Nodes should default to disabled until this node is started.
@@ -21,7 +22,7 @@ class MayorNode(Node):
 
         # Publisher for CAN enabled state
         self.can_enabled_pub = self.create_publisher(
-            Bool, "can_enabled", ReliabilityPolicy.RELIABLE
+            CANStatus, "can_status", ReliabilityPolicy.RELIABLE
         )
         self.publish_can_enabled()
 
@@ -54,10 +55,13 @@ class MayorNode(Node):
         self.get_logger().info("Enabled CAN due to king's page command.")
 
     def publish_can_enabled(self):
-        msg = Bool()
-        msg.data = self.can_enabled
+        msg = CANStatus()
+        msg.can_enabled = self.can_enabled
+        msg.timestamp = int(time.time() * 1000000)  # Convert to microseconds
         self.can_enabled_pub.publish(msg)
-        self.get_logger().debug(f"Published can_enabled: {msg.data}")
+        self.get_logger().debug(
+            f"Published can_status: enabled={msg.can_enabled}, timestamp={msg.timestamp}"
+        )
 
     def can_reader_task(self):
         for msg in self.can_bus:

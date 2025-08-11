@@ -1,4 +1,5 @@
 import argparse
+import math
 import struct
 import sys
 import threading
@@ -8,10 +9,10 @@ import can
 import rclpy
 import rclpy.parameter
 import rover
-import std_msgs.msg as msgtype
+from gateway_msgs.msg import CANStatus  # type: ignore
+from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from rclpy.qos import ReliabilityPolicy
-from std_msgs.msg import Bool
 
 
 class ControllerNode(Node):
@@ -20,24 +21,17 @@ class ControllerNode(Node):
 
         self.get_logger().info("initializing controller")
 
-        self.throttle_sub = self.create_subscription(
-            msgtype.Float32,
-            "throttle",
-            self.throttle_callback,
-            ReliabilityPolicy.RELIABLE,
-        )
-
-        self.steering_sub = self.create_subscription(
-            msgtype.Float32,
-            "steering",
-            self.steering_callback,
+        self.cmd_vel_sub = self.create_subscription(
+            Twist,
+            "/cmd_vel",
+            self.cmd_vel_callback,
             ReliabilityPolicy.RELIABLE,
         )
 
         self.radio_override_logged = False
         self.radio_override_lock = threading.Lock()
         self.last_radio_timestamp = 0
-        self.throttle = 1500
+        self.throttle = 0
         self.steering_angle = 0
         self.control_freq_hz = 100
         self.control_timer = self.create_timer(
@@ -52,8 +46,8 @@ class ControllerNode(Node):
         self.can_enabled = True
         self.can_enabled_lock = threading.Lock()
         self.can_enabled_sub = self.create_subscription(
-            Bool,
-            "can_enabled",
+            CANStatus,
+            "can_status",
             self.can_enabled_callback,
             ReliabilityPolicy.RELIABLE,
         )
@@ -68,7 +62,7 @@ class ControllerNode(Node):
 
     def can_enabled_callback(self, msg):
         with self.can_enabled_lock:
-            self.can_enabled = msg.data
+            self.can_enabled = msg.can_enabled
 
         # reset override state to avoid potential race condition with radio node on comm mode or action mode change
         self.refresh_radio_timestamp()
@@ -103,7 +97,7 @@ class ControllerNode(Node):
 
     # 1000-2000µs pulse width, 1500 is neutral
     def throttle_message(self):
-        throttle_pulse = round(1500 + 5 * self.throttle)
+        throttle_pulse = round(1500 + 500 * self.throttle)
         return can.Message(
             arbitration_id=rover.Envelope.THROTTLE,
             data=[0] + list(struct.pack("I", throttle_pulse)),
@@ -161,76 +155,69 @@ class ControllerNode(Node):
         self.throttle = throttle
 
         t = time.time()
-        while time.time() - t < 1:
+        while time.time() - t < 2:
             time.sleep(0.01)
             self.send_control_command()
 
-    def throttle_callback(self, msg):
-        # Negative values are reverse, positive are forward
-        throttle = msg.data
-        self.get_logger().debug(f"Received throttle: {throttle}")
+    def cmd_vel_callback(self, msg):
+        # Twist linear.x is throttle (-1 to 1 range)
+        throttle = msg.linear.x
+        # Twist angular.z is steering angle, but convert radians to degrees
+        steering_angle = math.degrees(msg.angular.z)
 
-        switch_reverse = False
-        switch_forward = False
+        self.get_logger().debug(
+            f"Received cmd_vel: linear.x={msg.linear.x}, angular.z={msg.angular.z} -> throttle={throttle}, steering={steering_angle}"
+        )
+
+        switch_direction = False
 
         if self.throttle > 0 and throttle < 0:
-            switch_reverse = True
+            switch_direction = True
         if self.throttle < 0 and throttle > 0:
-            switch_forward = True
+            switch_direction = True
 
-        max_throttle = 100
-        min_throttle = -100
+        max_throttle = 1
+        min_throttle = -1
 
         if throttle > max_throttle:
             self.get_logger().warn(
-                f"Received invalid throttle value: {msg.data}, limiting to {max_throttle}"
+                f"Received invalid throttle value: {throttle}, limiting to {max_throttle}"
             )
             throttle = max_throttle
 
         if throttle < min_throttle:
             self.get_logger().warn(
-                f"Received invalid throttle value: {msg.data}, limiting to {min_throttle}"
+                f"Received invalid throttle value: {throttle}, limiting to {min_throttle}"
             )
             throttle = min_throttle
 
-        # Reversing directions needs special treatment
-        if switch_reverse or switch_forward:
-            self.get_logger().info("Reversing direction")
-
-            self.stop_timer()
-
-            # Braking required when switching from forward to reverse
-            if switch_reverse:
-                self.manual_throttle_command(-50)
-
-            # Add extra neutral command so timing is equal when switching from reverse to forward
-            if switch_forward:
-                self.manual_throttle_command(0)
-
-            self.manual_throttle_command(0)
-
-            self.start_timer()
-
-        self.throttle = throttle
-
-    def steering_callback(self, msg):
         max_angle = 45
         min_angle = -45
-        steering_angle = msg.data
-        self.get_logger().debug(f"Received steering angle: {steering_angle} degrees")
 
         if steering_angle > max_angle:
             self.get_logger().warn(
-                f"Received invalid steering angle: {msg.data}, limiting to {max_angle} degrees"
+                f"Received invalid steering angle: {steering_angle}, limiting to {max_angle} degrees"
             )
             steering_angle = max_angle
 
         if steering_angle < min_angle:
             self.get_logger().warn(
-                f"Received invalid steering angle: {msg.data}, limiting to {min_angle} degrees"
+                f"Received invalid steering angle: {steering_angle}, limiting to {min_angle} degrees"
             )
             steering_angle = min_angle
 
+        # Reversing directions needs special treatment
+        if switch_direction:
+            self.get_logger().info("Reversing direction")
+
+            self.stop_timer()
+
+            # Go to neutral
+            self.manual_throttle_command(0)
+
+            self.start_timer()
+
+        self.throttle = throttle
         self.steering_angle = steering_angle
 
 

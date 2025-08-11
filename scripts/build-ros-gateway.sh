@@ -20,7 +20,7 @@ default env vars:
     PLATFORMS=linux/amd64,linux/arm64                       Target platforms
     PACKAGE_BASENAME=ghcr.io/canedudev/rover/ros-gateway    Docker container base name
     BUILDER=ced-rover-builder                               Docker buildx builder
-    DOCKERFILE=ros2/src/gateway/Dockerfile                  Path to dockerfile
+    DOCKERFILE=ros2/Dockerfile                              Path to dockerfile
     VERSION_TAGS=                                           Space separated tags
 EOF
 
@@ -63,7 +63,7 @@ PACKAGE_BASENAME="${PACKAGE_BASENAME:-ghcr.io/canedudev/rover/ros-gateway}"
 ROS_DISTRO="${ROS_DISTRO:-jazzy}"
 BUILDER="${BUILDER:-ced-rover-builder}"
 BUILD_CONTEXT="${BUILD_CONTEXT:-${ROOT_DIR}}"
-DOCKERFILE="${DOCKERFILE:-${ROOT_DIR}/ros2/src/gateway/Dockerfile}"
+DOCKERFILE="${DOCKERFILE:-${ROOT_DIR}/ros2/Dockerfile}"
 PACKAGE="${PACKAGE_BASENAME}-${ROS_DISTRO}"
 VERSION_TAGS="${VERSION_TAGS:-}"
 
