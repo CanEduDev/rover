@@ -6,6 +6,7 @@ CAN_INTERFACE="socketcan"
 CAN_CHANNEL="can0"
 CAN_BITRATE="125000"
 ROS_LOG_LEVEL="info"
+ROS_DISTRO="jazzy" # Default ROS distribution
 INTERACTIVE=true
 DAEMON=false
 TIMEOUT=30              # 30 seconds default timeout for non-interactive mode
@@ -13,13 +14,14 @@ HEALTH_CHECK_INTERVAL=5 # Check container health every 5 seconds
 
 # Function to display help message
 show_help() {
-    echo "Usage: $0 [--interface <can_interface>] [--channel <can_channel>] [--bitrate <can_bitrate>] [--log-level <log_level>] [--non-interactive] [--timeout <seconds>] [--daemon]"
+    echo "Usage: $0 [--interface <can_interface>] [--channel <can_channel>] [--bitrate <can_bitrate>] [--log-level <log_level>] [--ros-distro <ros_distro>] [--non-interactive] [--timeout <seconds>] [--daemon]"
     echo
     echo "Options:"
     echo "  -i, --interface <can_interface>   CAN interface to use (default: socketcan)"
     echo "  -c, --channel <can_channel>       CAN channel to use (default: can0)"
     echo "  -b, --bitrate <can_bitrate>       CAN bitrate to use (default: 125000)"
     echo "  -l, --log-level <log_level>       ROS2 log level (default: info)"
+    echo "  -r, --ros-distro <ros_distro>     ROS distribution to use (default: jazzy)"
     echo "  --non-interactive                 Run in non-interactive mode (for automated execution)"
     echo "  --timeout <seconds>               Timeout in seconds for non-interactive mode (default: 30)"
     echo "  --daemon                          Run container as daemon in background"
@@ -30,9 +32,9 @@ show_help() {
     echo
     echo "Examples:"
     echo "  $0 --interface socketcan --channel can0 --bitrate 125000 --log-level info"
-    echo "  $0 --log-level warn"
-    echo "  $0 --non-interactive --log-level debug --timeout 60"
-    echo "  $0 --daemon --log-level info"
+    echo "  $0 --log-level warn --ros-distro humble"
+    echo "  $0 --non-interactive --log-level debug --timeout 60 --ros-distro jazzy"
+    echo "  $0 --daemon --log-level info --ros-distro humble"
 }
 
 # Function to parse command line arguments
@@ -55,6 +57,10 @@ parse_arguments() {
             ROS_LOG_LEVEL="$2"
             shift 2
             ;;
+        -r | --ros-distro)
+            ROS_DISTRO="$2"
+            shift 2
+            ;;
         --non-interactive)
             INTERACTIVE=false
             shift
@@ -74,7 +80,7 @@ parse_arguments() {
             ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: $0 [--interface <can_interface>] [--channel <can_channel>] [--bitrate <can_bitrate>] [--log-level <log_level>] [--non-interactive] [--timeout <seconds>] [--daemon]"
+            echo "Usage: $0 [--interface <can_interface>] [--channel <can_channel>] [--bitrate <can_bitrate>] [--log-level <log_level>] [--ros-distro <ros_distro>] [--non-interactive] [--timeout <seconds>] [--daemon]"
             echo "Try '$0 --help' for more information."
             exit 1
             ;;
@@ -135,14 +141,14 @@ build_docker_command() {
 
 # Function to run container in interactive mode
 run_interactive_container() {
-    echo "Starting rover-ros-gateway container in interactive mode..."
+    echo "Starting rover-ros-gateway container in interactive mode (ROS ${ROS_DISTRO})..."
     ${DOCKER_CMD} \
         --name rover-ros-gateway \
         --network host \
         --ipc host \
         --pid host \
         --cap-add=NET_ADMIN \
-        rover-ros-gateway \
+        rover-ros-gateway:"${ROS_DISTRO}" \
         --interface "${CAN_INTERFACE}" \
         --channel "${CAN_CHANNEL}" \
         --bitrate "${CAN_BITRATE}" \
@@ -151,7 +157,7 @@ run_interactive_container() {
 
 # Function to run container in non-interactive mode with monitoring
 run_noninteractive_container() {
-    echo "Starting rover-ros-gateway container in non-interactive mode (timeout: ${TIMEOUT}s)..."
+    echo "Starting rover-ros-gateway container in non-interactive mode (ROS ${ROS_DISTRO}, timeout: ${TIMEOUT}s)..."
 
     # Start container in background
     ${DOCKER_CMD} \
@@ -160,7 +166,7 @@ run_noninteractive_container() {
         --ipc host \
         --pid host \
         --cap-add=NET_ADMIN \
-        rover-ros-gateway \
+        rover-ros-gateway:"${ROS_DISTRO}" \
         --interface "${CAN_INTERFACE}" \
         --channel "${CAN_CHANNEL}" \
         --bitrate "${CAN_BITRATE}" \
@@ -210,7 +216,7 @@ run_noninteractive_container() {
 
 # Function to run container as daemon
 run_daemon_container() {
-    echo "Starting rover-ros-gateway container as daemon..."
+    echo "Starting rover-ros-gateway container as daemon (ROS ${ROS_DISTRO})..."
 
     # Check if container is already running
     if docker ps --format "table {{.Names}}" | grep -q "^rover-ros-gateway$"; then
@@ -232,7 +238,7 @@ run_daemon_container() {
         --ipc host \
         --pid host \
         --cap-add=NET_ADMIN \
-        rover-ros-gateway \
+        rover-ros-gateway:"${ROS_DISTRO}" \
         --interface "${CAN_INTERFACE}" \
         --channel "${CAN_CHANNEL}" \
         --bitrate "${CAN_BITRATE}" \
