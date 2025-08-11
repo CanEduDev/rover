@@ -7,7 +7,7 @@ import threading
 import can
 import rclpy
 import rover
-import std_msgs.msg as msgtype
+from gateway_msgs.msg import BatteryStatus  # type: ignore
 from rclpy.node import Node
 from rclpy.qos import ReliabilityPolicy
 
@@ -36,37 +36,28 @@ class BatteryNode(Node):
 
         self.get_logger().info(f"initializing {self.get_name()}")
 
-        self.cell_voltages_topic = f"{self.get_name()}/cell_voltage_mV"
+        # Cell voltages topic
+        self.cell_voltages_topic = f"{self.get_name()}/cell_voltages"
         self.cell_voltages_publisher = self.create_publisher(
-            msgtype.UInt16MultiArray,
+            BatteryStatus,
             self.cell_voltages_topic,
             ReliabilityPolicy.BEST_EFFORT,
         )
         self.cell_voltages = []
 
-        self.voltage_topic = f"{self.get_name()}/battery_output/voltage_mV"
-        self.current_topic = f"{self.get_name()}/battery_output/current_mA"
-        self.voltage_publisher = self.create_publisher(
-            msgtype.UInt32,
-            self.voltage_topic,
-            ReliabilityPolicy.BEST_EFFORT,
-        )
-        self.current_publisher = self.create_publisher(
-            msgtype.UInt32,
-            self.current_topic,
+        # Output voltage/current topic
+        self.output_topic = f"{self.get_name()}/output"
+        self.output_publisher = self.create_publisher(
+            BatteryStatus,
+            self.output_topic,
             ReliabilityPolicy.BEST_EFFORT,
         )
 
-        self.reg_output_voltage_topic = f"{self.get_name()}/regulated_output/voltage_mV"
-        self.reg_output_current_topic = f"{self.get_name()}/regulated_output/current_mA"
-        self.reg_output_voltage_publisher = self.create_publisher(
-            msgtype.UInt32,
-            self.reg_output_voltage_topic,
-            ReliabilityPolicy.BEST_EFFORT,
-        )
-        self.reg_output_current_publisher = self.create_publisher(
-            msgtype.UInt32,
-            self.reg_output_current_topic,
+        # Regulated output voltage/current topic
+        self.regulated_topic = f"{self.get_name()}/regulated"
+        self.regulated_publisher = self.create_publisher(
+            BatteryStatus,
+            self.regulated_topic,
             ReliabilityPolicy.BEST_EFFORT,
         )
 
@@ -121,45 +112,33 @@ class BatteryNode(Node):
         self.cell_voltages.append(struct.unpack("H", msg.data[5:7])[0])
 
         if len(self.cell_voltages) >= 6:
-            cell_voltage_msg = msgtype.UInt16MultiArray()
-            cell_voltage_msg.data = self.cell_voltages
-            self.cell_voltages_publisher.publish(cell_voltage_msg)
+            battery_status = BatteryStatus()
+            # Store cell voltages in millivolts as received
+            battery_status.cell_voltages_mv = self.cell_voltages.copy()
+            self.cell_voltages_publisher.publish(battery_status)
             self.get_logger().debug(
-                f'Publishing {self.cell_voltages_topic}: "{cell_voltage_msg.data}"'
+                f"Publishing {self.cell_voltages_topic}: cell_voltages_mv={battery_status.cell_voltages_mv}mV"
             )
-
             self.cell_voltages.clear()
 
     def publish_output(self, msg):
-        voltage_msg = msgtype.UInt32()
-        current_msg = msgtype.UInt32()
-
-        voltage_msg.data = struct.unpack("I", msg.data[0:4])[0]
-        current_msg.data = struct.unpack("I", msg.data[4:8])[0]
-
-        self.voltage_publisher.publish(voltage_msg)
-        self.current_publisher.publish(current_msg)
+        battery_status = BatteryStatus()
+        # Store voltage and current in millivolts/milliamps as received
+        battery_status.output_voltage_mv = struct.unpack("I", msg.data[0:4])[0]
+        battery_status.output_current_ma = struct.unpack("I", msg.data[4:8])[0]
+        self.output_publisher.publish(battery_status)
         self.get_logger().debug(
-            f'Publishing {self.voltage_topic}: "{voltage_msg.data}"'
-        )
-        self.get_logger().debug(
-            f'Publishing {self.current_topic}: "{current_msg.data}"'
+            f"Publishing {self.output_topic}: output_voltage_mv={battery_status.output_voltage_mv}mV, output_current_ma={battery_status.output_current_ma}mA"
         )
 
     def publish_reg_output(self, msg):
-        voltage_msg = msgtype.UInt32()
-        current_msg = msgtype.UInt32()
-
-        voltage_msg.data = struct.unpack("I", msg.data[0:4])[0]
-        current_msg.data = struct.unpack("I", msg.data[4:8])[0]
-
-        self.reg_output_voltage_publisher.publish(voltage_msg)
-        self.reg_output_current_publisher.publish(current_msg)
+        battery_status = BatteryStatus()
+        # Store voltage and current in millivolts/milliamps as received
+        battery_status.regulated_voltage_mv = struct.unpack("I", msg.data[0:4])[0]
+        battery_status.regulated_current_ma = struct.unpack("I", msg.data[4:8])[0]
+        self.regulated_publisher.publish(battery_status)
         self.get_logger().debug(
-            f'Publishing {self.reg_output_voltage_topic}: "{voltage_msg.data}"'
-        )
-        self.get_logger().debug(
-            f'Publishing {self.reg_output_current_topic}: "{current_msg.data}"'
+            f"Publishing {self.regulated_topic}: regulated_voltage_mv={battery_status.regulated_voltage_mv}mV, regulated_current_ma={battery_status.regulated_current_ma}mA"
         )
 
 

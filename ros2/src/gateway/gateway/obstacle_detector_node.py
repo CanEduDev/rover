@@ -7,7 +7,7 @@ import threading
 import can
 import rclpy
 import rover
-import std_msgs.msg as msgtype
+from gateway_msgs.msg import ObstacleDistance  # type: ignore
 from rclpy.node import Node
 from rclpy.qos import ReliabilityPolicy
 
@@ -36,9 +36,9 @@ class ObstacleDetectorNode(Node):
 
         self.get_logger().info(f"initializing {self.get_name()}")
 
-        self.topic = f"{self.get_name()}/distance_mm"
+        self.topic = f"{self.get_name()}/obstacle_distance"
         self.publisher = self.create_publisher(
-            msgtype.UInt16MultiArray,
+            ObstacleDistance,
             self.topic,
             ReliabilityPolicy.BEST_EFFORT,
         )
@@ -70,15 +70,17 @@ class ObstacleDetectorNode(Node):
             self.position == ObstacleDetectorPosition.REAR
             and id == rover.Envelope.OBSTACLE_DETECTOR_REAR_DISTANCE
         ):
-            distance_msg = msgtype.UInt16MultiArray()
-            distance_msg.data = [
+            distance_msg = ObstacleDistance()
+            distance_msg.distances_mm = [
                 struct.unpack("H", msg.data[0:2])[0],
                 struct.unpack("H", msg.data[2:4])[0],
                 struct.unpack("H", msg.data[4:6])[0],
                 struct.unpack("H", msg.data[6:8])[0],
             ]
             self.publisher.publish(distance_msg)
-            self.get_logger().debug(f'Publishing {self.topic}: "{distance_msg.data}"')
+            self.get_logger().debug(
+                f"Publishing {self.topic}: distances={distance_msg.distances_mm}mm"
+            )
 
 
 def main(args=None):

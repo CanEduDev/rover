@@ -7,10 +7,9 @@ import threading
 import can
 import rclpy
 import rover
-import std_msgs.msg as msgtype
+from gateway_msgs.msg import CANStatus, ReportFrequency, WheelStatus  # type: ignore
 from rclpy.node import Node
 from rclpy.qos import ReliabilityPolicy
-from std_msgs.msg import Bool
 
 
 @enum.unique
@@ -39,21 +38,14 @@ class WheelNode(Node):
 
         self.get_logger().info(f"initializing {self.get_name()}")
 
-        self.rpm_topic = f"{self.get_name()}/rpm"
-        self.speed_topic = f"{self.get_name()}/speed_kph"
-
-        self.rpm_publisher = self.create_publisher(
-            msgtype.Float32, self.rpm_topic, ReliabilityPolicy.BEST_EFFORT
-        )
-        self.speed_publisher = self.create_publisher(
-            msgtype.Float32,
-            self.speed_topic,
-            ReliabilityPolicy.BEST_EFFORT,
+        self.wheel_status_topic = f"{self.get_name()}/wheel_status"
+        self.wheel_status_publisher = self.create_publisher(
+            WheelStatus, self.wheel_status_topic, ReliabilityPolicy.BEST_EFFORT
         )
 
         self.report_freq_topic = f"{self.get_name()}/report_frequency_hz"
         self.report_freq_subscriber = self.create_subscription(
-            msgtype.UInt32,
+            ReportFrequency,
             self.report_freq_topic,
             self.report_freq_callback,
             ReliabilityPolicy.RELIABLE,
@@ -67,7 +59,7 @@ class WheelNode(Node):
         self.can_enabled = True
         self.can_enabled_lock = threading.Lock()
         self.can_enabled_sub = self.create_subscription(
-            Bool, "can_enabled", self.can_enabled_callback, 10
+            CANStatus, "can_status", self.can_enabled_callback, 10
         )
 
         threading.Thread(target=self.can_reader_task, daemon=True).start()
@@ -79,7 +71,7 @@ class WheelNode(Node):
 
     def can_enabled_callback(self, msg):
         with self.can_enabled_lock:
-            self.can_enabled = msg.data
+            self.can_enabled = msg.can_enabled
 
     def can_reader_task(self):
         for msg in self.can_bus:
@@ -88,17 +80,14 @@ class WheelNode(Node):
 
             self.publish(msg)
 
-    def publish_rpm(self, msg):
-        rpm_msg = msgtype.Float32()
-        rpm_msg.data = struct.unpack("f", msg.data[0:4])[0]
-        self.rpm_publisher.publish(rpm_msg)
-        self.get_logger().debug(f'Publishing {self.rpm_topic}: "{rpm_msg.data}"')
-
-    def publish_speed(self, msg):
-        speed_msg = msgtype.Float32()
-        speed_msg.data = struct.unpack("f", msg.data[4:8])[0]
-        self.get_logger().debug(f'Publishing {self.speed_topic}: "{speed_msg.data}"')
-        self.speed_publisher.publish(speed_msg)
+    def publish_wheel_status(self, msg):
+        wheel_status = WheelStatus()
+        wheel_status.rpm = struct.unpack("f", msg.data[0:4])[0]
+        wheel_status.speed_kph = struct.unpack("f", msg.data[4:8])[0]
+        self.wheel_status_publisher.publish(wheel_status)
+        self.get_logger().debug(
+            f"Publishing {self.wheel_status_topic}: rpm={wheel_status.rpm}, speed={wheel_status.speed_kph}kph"
+        )
 
     def publish(self, msg):
         id = msg.arbitration_id
@@ -121,25 +110,24 @@ class WheelNode(Node):
                 and id == rover.Envelope.WHEEL_REAR_RIGHT_SPEED
             )
         ):
-            self.publish_rpm(msg)
-            self.publish_speed(msg)
+            self.publish_wheel_status(msg)
 
     def report_freq_callback(self, msg):
         max_freq = 100
         min_freq = 1
 
-        report_freq_hz = msg.data
+        report_freq_hz = msg.frequency_hz
         self.get_logger().info("Received report frequency change request")
 
         if report_freq_hz > max_freq:
             self.get_logger().warn(
-                f"Received invalid frequency value: {msg.data}, limiting to {max_freq}"
+                f"Received invalid frequency value: {msg.frequency_hz}, limiting to {max_freq}"
             )
             report_freq_hz = max_freq
 
         if report_freq_hz < min_freq:
             self.get_logger().warn(
-                f"Received invalid frequency value: {msg.data}, limiting to {min_freq}"
+                f"Received invalid frequency value: {msg.frequency_hz}, limiting to {min_freq}"
             )
             report_freq_hz = max_freq
 

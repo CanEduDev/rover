@@ -7,12 +7,13 @@ CAN_CHANNEL="can0"
 CAN_BITRATE="125000"
 ROS_LOG_LEVEL="info"
 INTERACTIVE=true
+DAEMON=false
 TIMEOUT=30              # 30 seconds default timeout for non-interactive mode
 HEALTH_CHECK_INTERVAL=5 # Check container health every 5 seconds
 
 # Function to display help message
 show_help() {
-    echo "Usage: $0 [--interface <can_interface>] [--channel <can_channel>] [--bitrate <can_bitrate>] [--log-level <log_level>] [--non-interactive] [--timeout <seconds>]"
+    echo "Usage: $0 [--interface <can_interface>] [--channel <can_channel>] [--bitrate <can_bitrate>] [--log-level <log_level>] [--non-interactive] [--timeout <seconds>] [--daemon]"
     echo
     echo "Options:"
     echo "  -i, --interface <can_interface>   CAN interface to use (default: socketcan)"
@@ -21,7 +22,8 @@ show_help() {
     echo "  -l, --log-level <log_level>       ROS2 log level (default: info)"
     echo "  --non-interactive                 Run in non-interactive mode (for automated execution)"
     echo "  --timeout <seconds>               Timeout in seconds for non-interactive mode (default: 30)"
-    echo "  -h, --help                    Show this help message and exit"
+    echo "  --daemon                          Run container as daemon in background"
+    echo "  -h, --help                        Show this help message and exit"
     echo
     echo "Supported ROS2 log levels:"
     echo "  UNSET, DEBUG, INFO, WARN, ERROR, FATAL"
@@ -30,6 +32,7 @@ show_help() {
     echo "  $0 --interface socketcan --channel can0 --bitrate 125000 --log-level info"
     echo "  $0 --log-level warn"
     echo "  $0 --non-interactive --log-level debug --timeout 60"
+    echo "  $0 --daemon --log-level info"
 }
 
 # Function to parse command line arguments
@@ -60,13 +63,18 @@ parse_arguments() {
             TIMEOUT="$2"
             shift 2
             ;;
+        --daemon)
+            DAEMON=true
+            INTERACTIVE=false
+            shift
+            ;;
         -h | --help)
             show_help
             exit 0
             ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: $0 [--interface <can_interface>] [--channel <can_channel>] [--bitrate <can_bitrate>] [--log-level <log_level>] [--non-interactive] [--timeout <seconds>]"
+            echo "Usage: $0 [--interface <can_interface>] [--channel <can_channel>] [--bitrate <can_bitrate>] [--log-level <log_level>] [--non-interactive] [--timeout <seconds>] [--daemon]"
             echo "Try '$0 --help' for more information."
             exit 1
             ;;
@@ -200,6 +208,43 @@ run_noninteractive_container() {
     return $?
 }
 
+# Function to run container as daemon
+run_daemon_container() {
+    echo "Starting rover-ros-gateway container as daemon..."
+
+    # Check if container is already running
+    if docker ps --format "table {{.Names}}" | grep -q "^rover-ros-gateway$"; then
+        echo "Container rover-ros-gateway is already running. Restarting..."
+        CONTAINER_ID=$(docker ps --filter name=rover-ros-gateway --format '{{.ID}}' 2>/dev/null || echo 'unknown')
+        echo "Container ID: ${CONTAINER_ID}"
+
+        # Stop and remove the existing container
+        stop_container "rover-ros-gateway"
+
+        # Wait a moment for cleanup
+        sleep 2
+    fi
+
+    # Start container in background with detached mode
+    CONTAINER_ID=$(${DOCKER_CMD} -d \
+        --name rover-ros-gateway \
+        --network host \
+        --ipc host \
+        --pid host \
+        --cap-add=NET_ADMIN \
+        rover-ros-gateway \
+        --interface "${CAN_INTERFACE}" \
+        --channel "${CAN_CHANNEL}" \
+        --bitrate "${CAN_BITRATE}" \
+        --log-level "${ROS_LOG_LEVEL}")
+
+    echo "Container started as daemon with ID: ${CONTAINER_ID}"
+    echo "Container name: rover-ros-gateway"
+    echo "To view logs: docker logs rover-ros-gateway"
+    echo "To stop container: docker stop rover-ros-gateway"
+    echo "To check status: docker ps --filter name=rover-ros-gateway"
+}
+
 # Main function
 main() {
     # Parse command line arguments
@@ -211,8 +256,11 @@ main() {
     # Build docker command
     build_docker_command
 
-    # Run container based on interactive mode
-    if [[ ${INTERACTIVE} == "false" ]]; then
+    # Run container based on mode
+    if [[ ${DAEMON} == "true" ]]; then
+        run_daemon_container
+        EXIT_CODE=$?
+    elif [[ ${INTERACTIVE} == "false" ]]; then
         run_noninteractive_container
         EXIT_CODE=$?
     else
@@ -220,7 +268,6 @@ main() {
         EXIT_CODE=$?
     fi
 
-    echo "Container exited with code: ${EXIT_CODE}"
     exit "${EXIT_CODE}"
 }
 

@@ -1,7 +1,7 @@
 ARG ROS_DISTRO=jazzy
 
 # Build stage
-FROM ros:$ROS_DISTRO-ros-base AS base
+FROM ros:$ROS_DISTRO AS base
 
 WORKDIR /ros2_ws
 
@@ -22,7 +22,7 @@ ENV PYTHONPATH=/opt/rover_py
 WORKDIR /ros2_ws
 COPY --from=base /ros2_ws .
 
-RUN chmod a+x ./src/gateway/entrypoint.sh
+RUN chmod a+x ./entrypoint.sh
 
 # Create user if it doesn't exist
 RUN bash -c 'id -u 1000 &>/dev/null || useradd -m -s /bin/bash ubuntu'
@@ -31,4 +31,4 @@ RUN chown -R 1000:1000 /ros2_ws
 
 USER 1000:1000
 
-ENTRYPOINT [ "./src/gateway/entrypoint.sh" ]
+ENTRYPOINT [ "./entrypoint.sh" ]
