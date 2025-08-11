@@ -20,7 +20,7 @@ class RadioNode(Node):
 
         self.cmd_vel_publisher = self.create_publisher(
             Twist,
-            "/cmd_vel",
+            "cmd_vel",
             ReliabilityPolicy.BEST_EFFORT,
         )
         self._last_throttle = 0.0

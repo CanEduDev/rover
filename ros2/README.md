@@ -19,7 +19,7 @@ ROS2 nodes that act as the gateway between CAN bus and ROS2 topics:
 - **battery_node**: Publishes battery status using `gateway_msgs/BatteryStatus`
 - **wheel_node**: Publishes wheel status information
 - **obstacle_detector_node**: Publishes obstacle distance readings
-- **controller_node**: Subscribes to `/cmd_vel` for control commands
+- **controller_node**: Subscribes to `/rover/cmd_vel` for control commands
 - **radio_node**: Monitors physical radio state for safety override
 - **mayor_node**: Publishes CAN bus status
 
@@ -28,16 +28,16 @@ ROS2 nodes that act as the gateway between CAN bus and ROS2 topics:
 The system implements a sophisticated safety mechanism with human override capability:
 
 ### Safety Override System
-- **Autonomous/Manual Control Priority**: Normal operation via `/cmd_vel` commands
+- **Autonomous/Manual Control Priority**: Normal operation via `/rover/cmd_vel` commands
 - **Physical Radio Safety Override**: When the physical radio is active on the CAN bus, it overrides all other control
 - **Safety Monitoring**: The controller monitors CAN bus activity to detect radio presence
 - **Override Prevention**: Autonomous/manual commands are ignored when physical radio is active
 
 ### Control Flow
 ```
-Autonomous/Manual Control → /cmd_vel → Controller Node → CAN Bus (normal operation)
+Autonomous/Manual Control → /rover/cmd_vel → Controller Node → CAN Bus (normal operation)
                                                       ↓
-Physical Radio → CAN Bus → Radio Node → /cmd_vel (monitoring radio override state)
+Physical Radio → CAN Bus → Radio Node → /rover/cmd_vel (monitoring radio override state)
 ```
 
 ## Containerization
@@ -108,7 +108,7 @@ colcon test
 ## Topic Structure
 
 ### Control Topics
-- **`/cmd_vel`** (`geometry_msgs/Twist`): Control commands for throttle and steering
+- **`/rover/cmd_vel`** (`geometry_msgs/Twist`): Control commands for throttle and steering
   - `linear.x`: Forward/backward velocity (-1 to 1, converted to throttle -100 to 100)
   - `angular.z`: Angular velocity in radians (converted to steering angle in degrees)
 

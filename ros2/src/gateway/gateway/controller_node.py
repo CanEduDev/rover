@@ -23,7 +23,7 @@ class ControllerNode(Node):
 
         self.cmd_vel_sub = self.create_subscription(
             Twist,
-            "/cmd_vel",
+            "cmd_vel",
             self.cmd_vel_callback,
             ReliabilityPolicy.RELIABLE,
         )
