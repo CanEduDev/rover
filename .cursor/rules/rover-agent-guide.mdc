@@ -1,0 +1,27 @@
+---
+alwaysApply: true
+---
+# Rover Project - Always Use AGENT.md
+
+This is the CanEduDev Rover project - a comprehensive embedded systems codebase featuring multiple STM32F302-based boards communicating over CAN bus.
+
+**ALWAYS refer to [AGENT.md](mdc:AGENT.md) for complete project understanding and guidance.**
+
+The AGENT.md file contains:
+- Complete project overview and architecture
+- Hardware components and software architecture
+- Key technologies (Meson build system, FreeRTOS, CAN Kingdom protocol)
+- Project structure and directory organization
+- Communication protocol details (CAN Kingdom, message types)
+- Development workflow and build instructions
+- Testing strategies and debugging tools
+- Common development tasks and best practices
+
+When working on this project:
+1. **Always start by reading [AGENT.md](mdc:AGENT.md)** to understand the context
+2. Use the information in AGENT.md to guide all development decisions
+3. Follow the established patterns and workflows described in AGENT.md
+4. Reference the specific file paths and build commands from AGENT.md
+5. Use the troubleshooting and debugging information from AGENT.md
+
+The AGENT.md file is the authoritative source for understanding this Rover project's structure, architecture, and development practices.

@@ -49,26 +49,12 @@ The workspace is containerized using Docker for easy deployment and consistency:
 - **Entrypoint**: Located at `ros2/entrypoint.sh` - launches the gateway system
 - **Build Context**: Uses the repository root to access both `ros2/` and `rover_py/`
 
-### Building the Container
+### Building and running
+From the project's root, run:
+
 ```bash
-# Using the project's build system
-meson compile -C build ros-gateway
-
-# Or directly with Docker
-docker build -f ros2/Dockerfile -t rover-ros-gateway .
-```
-
-### Running the Container
-```bash
-# Basic usage
-docker run --network host rover-ros-gateway
-
-# With custom CAN interface settings
-docker run --network host rover-ros-gateway \
-  --interface socketcan \
-  --channel can0 \
-  --bitrate 125000 \
-  --log-level info
+meson compile -C build ros-gateway # build
+./scripts/run-ros-gateway.sh # run
 ```
 
 ## Message Types
@@ -82,28 +68,6 @@ docker run --network host rover-ros-gateway \
 - **`ObstacleDistance.msg`**: Contains distance readings from obstacle detectors
 - **`ReportFrequency.msg`**: Contains report frequency configuration
 - **`CANStatus.msg`**: Contains CAN bus status information
-
-## Building and Testing
-
-### Building the Workspace
-```bash
-# Build entire workspace
-cd ros2
-colcon build
-
-# Build specific packages
-colcon build --packages-select gateway_msgs
-colcon build --packages-select gateway
-```
-
-### Testing
-```bash
-# Run tests for the gateway package
-colcon test --packages-select gateway
-
-# Run all tests
-colcon test
-```
 
 ## Topic Structure
 
