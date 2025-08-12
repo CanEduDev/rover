@@ -1,0 +1,29 @@
+---
+title: No Local Push
+---
+
+# Never Run Push Command Locally
+
+When working with the [build-ros-gateway.sh](mdc:scripts/build-ros-gateway.sh) script:
+
+- **NEVER** use the `--push` flag when running the script locally
+- The `--push` flag should only be used in CI environments (GitHub Actions)
+- Local development should only use `--load` (which is automatic) to load images into the local Docker daemon
+- Pushing to registries should only happen in controlled CI environments
+
+## Correct Usage:
+```bash
+# ✅ Local development - builds and loads locally
+./scripts/build-ros-gateway.sh --ros-distro humble
+
+# ✅ Local development with version tags - builds and loads locally
+./scripts/build-ros-gateway.sh --ros-distro humble --version-tags "v1.0.0"
+
+# ❌ NEVER do this locally
+./scripts/build-ros-gateway.sh --ros-distro humble --push
+```
+
+## CI Usage (GitHub Actions):
+- The `--push` flag is automatically added by the GitHub Actions workflow
+- CI environments handle authentication and registry pushing
+- Local development should focus on building and testing, not deployment
