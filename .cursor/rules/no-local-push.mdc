@@ -1,5 +1,6 @@
 ---
 title: No Local Push
+alwaysApply: true
 ---
 
 # Never Run Push Command Locally
