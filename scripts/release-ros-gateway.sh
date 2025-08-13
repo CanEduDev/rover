@@ -3,7 +3,7 @@
 set -eo pipefail
 
 usage() {
-    SCRIPT_NAME="$(basename "$0")"
+    SCRIPT_NAME=$(basename "$0")
     cat <<EOF
 
 ${SCRIPT_NAME} [-h | --help] [--version VERSION] [--package-name NAME]
@@ -12,9 +12,9 @@ Create multi-platform Docker manifests for the ros-gateway images.
 Requires docker to be installed and authenticated to the registry.
 
 args:
-    --help              show this help
-    --version VERSION   version tag to release
-    --package-name NAME Docker container base name (default: ghcr.io/canedudev/rover/ros-gateway)
+    --help                  show this help
+    --version VERSION       version tag to release
+    --package-name NAME     Docker container base name (default: ghcr.io/canedudev/rover/ros-gateway)
 
 Examples:
     # Create manifests for latest
@@ -26,7 +26,6 @@ Examples:
     # Create manifests for custom package name
     ${SCRIPT_NAME} --package-name "my-registry/my-project/ros-gateway"
 EOF
-
 }
 
 # Default values

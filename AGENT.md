@@ -141,9 +141,6 @@ python rover_py/tests/test_battery_conf.py
 # From the project root directory:
 ./scripts/run-ros-gateway.sh
 
-# Non-interactive mode with timeout (for reading logs):
-./scripts/run-ros-gateway.sh --non-interactive
-
 # Run as daemon in background:
 ./scripts/run-ros-gateway.sh --daemon
 

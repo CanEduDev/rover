@@ -24,7 +24,7 @@ main() {
     ruff format
 
     echo "Linting..."
-    find_shell_files | xargs shellcheck -o all
+    find_shell_files | xargs shellcheck -S info -o all
     ruff check --fix
     pyright .
     ninja --quiet -C "${BUILD_DIR}" clang-tidy

@@ -1,43 +1,50 @@
 #!/bin/bash
 set -eo pipefail
 
-# Global variables
+# Default values
 CAN_INTERFACE="socketcan"
 CAN_CHANNEL="can0"
 CAN_BITRATE="125000"
 ROS_LOG_LEVEL="info"
 ROS_DISTRO="jazzy" # Default ROS distribution
-INTERACTIVE=true
-DAEMON=false
-TIMEOUT=30              # 30 seconds default timeout for non-interactive mode
-HEALTH_CHECK_INTERVAL=5 # Check container health every 5 seconds
+DAEMON_ARG=""
 
-# Function to display help message
-show_help() {
+usage() {
     SCRIPT_NAME=$(basename "$0")
     cat <<EOF
 
-Usage: ${SCRIPT_NAME} [--interface <can_interface>] [--channel <can_channel>] [--bitrate <can_bitrate>] [--log-level <log_level>] [--ros-distro <ros_distro>] [--non-interactive] [--timeout <seconds>] [--daemon]
+${SCRIPT_NAME} [-h | --help] [--interface INTERFACE] [--channel CHANNEL] [--bitrate BITRATE] [--log-level LEVEL] [--ros-distro DISTRO] [--daemon]
 
-Options:
-  -i, --interface <can_interface>   CAN interface to use (default: socketcan)
-  -c, --channel <can_channel>       CAN channel to use (default: can0)
-  -b, --bitrate <can_bitrate>       CAN bitrate to use (default: 125000)
-  -l, --log-level <log_level>       ROS2 log level (default: info)
-  -r, --ros-distro <ros_distro>     ROS distribution to use (default: jazzy)
-  --non-interactive                 Run in non-interactive mode (for automated execution)
-  --timeout <seconds>               Timeout in seconds for non-interactive mode (default: 30)
-  -d, --daemon                      Run container as daemon in background
-  -h, --help                        Show this help message and exit
+Run the ros-gateway docker container. Requires docker to be installed
+and usable without sudo.
+
+The container connects to a CAN interface and provides ROS2 nodes
+for communicating with rover hardware.
+
+args:
+    -h, --help                  show this help
+    -i, --interface INTERFACE   CAN interface to use (default: socketcan)
+    -c, --channel CHANNEL       CAN channel to use (default: can0)
+    -b, --bitrate BITRATE       CAN bitrate to use (default: 125000)
+    -l, --log-level LEVEL       ROS2 log level (default: info)
+    -r, --ros-distro DISTRO     ROS distribution to use (default: jazzy)
+    -d, --daemon                run container as daemon in background
 
 Supported ROS2 log levels:
-  UNSET, DEBUG, INFO, WARN, ERROR, FATAL
+    UNSET, DEBUG, INFO, WARN, ERROR, FATAL
 
 Examples:
-  ${SCRIPT_NAME} --interface socketcan --channel can0 --bitrate 125000 --log-level info
-  ${SCRIPT_NAME} --log-level warn --ros-distro humble
-  ${SCRIPT_NAME} --non-interactive --log-level debug --timeout 60 --ros-distro jazzy
-  ${SCRIPT_NAME} --daemon --log-level info --ros-distro humble
+    # Run with default settings
+    ${SCRIPT_NAME}
+
+    # Run with custom log level and ROS distro
+    ${SCRIPT_NAME} --log-level warn --ros-distro humble
+
+    # Run as daemon in background
+    ${SCRIPT_NAME} --daemon
+
+    # Run with custom CAN settings
+    ${SCRIPT_NAME} --interface socketcan --channel can0 --bitrate 125000
 EOF
 }
 
@@ -65,26 +72,17 @@ parse_arguments() {
             ROS_DISTRO="$2"
             shift 2
             ;;
-        --non-interactive)
-            INTERACTIVE=false
-            shift
-            ;;
-        --timeout)
-            TIMEOUT="$2"
-            shift 2
-            ;;
         -d | --daemon)
-            DAEMON=true
-            INTERACTIVE=false
+            DAEMON_ARG="-d"
             shift
             ;;
         -h | --help)
-            show_help
+            usage
             exit 0
             ;;
         *)
             echo "Unknown argument: $1"
-            show_help
+            usage
             exit 1
             ;;
         esac
@@ -101,51 +99,15 @@ setup_can_interface() {
     fi
 }
 
-# Function to check if container is running and healthy
-check_container_health() {
-    local container_name="$1"
-    local logs
+# Function to run container
+run_container() {
+    echo "Stopping container rover-ros-gateway..."
+    docker stop "rover-ros-gateway" 2>/dev/null || true
+    docker rm "rover-ros-gateway" 2>/dev/null || true
 
-    # Check if container exists and is running
-    if ! docker ps --format "table {{.Names}}" | grep -q "^${container_name}$"; then
-        echo "Container ${container_name} is not running"
-        return 1
-    fi
+    echo "Starting rover-ros-gateway container (ROS ${ROS_DISTRO})..."
 
-    # Check container logs for error patterns
-    local error_patterns=("ERROR" "FATAL" "Exception" "Traceback" "failed to start" "connection refused")
-    logs=$(docker logs --tail 50 "${container_name}" 2>&1 || true)
-
-    for pattern in "${error_patterns[@]}"; do
-        if echo "${logs}" | grep -qi "${pattern}"; then
-            echo "Container ${container_name} shows error pattern: ${pattern}"
-            return 1
-        fi
-    done
-
-    return 0
-}
-
-# Function to gracefully stop container
-stop_container() {
-    local container_name="$1"
-    echo "Stopping container ${container_name}..."
-    docker stop "${container_name}" 2>/dev/null || true
-    docker rm "${container_name}" 2>/dev/null || true
-}
-
-# Function to build docker run command
-build_docker_command() {
-    DOCKER_CMD="docker run --rm"
-    if [[ ${INTERACTIVE} == "true" ]]; then
-        DOCKER_CMD="${DOCKER_CMD} -it"
-    fi
-}
-
-# Function to run container in interactive mode
-run_interactive_container() {
-    echo "Starting rover-ros-gateway container in interactive mode (ROS ${ROS_DISTRO})..."
-    ${DOCKER_CMD} \
+    docker run --rm -it ${DAEMON_ARG} \
         --name rover-ros-gateway \
         --network host \
         --ipc host \
@@ -156,129 +118,20 @@ run_interactive_container() {
         --channel "${CAN_CHANNEL}" \
         --bitrate "${CAN_BITRATE}" \
         --log-level "${ROS_LOG_LEVEL}"
-}
 
-# Function to run container in non-interactive mode with monitoring
-run_noninteractive_container() {
-    echo "Starting rover-ros-gateway container in non-interactive mode (ROS ${ROS_DISTRO}, timeout: ${TIMEOUT}s)..."
-
-    # Start container in background
-    ${DOCKER_CMD} \
-        --name rover-ros-gateway \
-        --network host \
-        --ipc host \
-        --pid host \
-        --cap-add=NET_ADMIN \
-        rover-ros-gateway:"${ROS_DISTRO}" \
-        --interface "${CAN_INTERFACE}" \
-        --channel "${CAN_CHANNEL}" \
-        --bitrate "${CAN_BITRATE}" \
-        --log-level "${ROS_LOG_LEVEL}" &
-
-    CONTAINER_PID=$!
-
-    # Wait for container to start
-    sleep 5
-
-    # Monitor container health with timeout
-    start_time=$(date +%s)
-    while true; do
-        current_time=$(date +%s)
-        elapsed=$((current_time - start_time))
-
-        # Check timeout
-        if [[ ${elapsed} -ge ${TIMEOUT} ]]; then
-            echo "Timeout reached (${TIMEOUT}s). Stopping container..."
-            stop_container "rover-ros-gateway"
-            kill "${CONTAINER_PID}" 2>/dev/null || true
-            exit 124 # Timeout exit code
-        fi
-
-        # Check container health
-        # shellcheck disable=SC2310
-        if ! check_container_health "rover-ros-gateway"; then
-            echo "Container health check failed. Stopping container..."
-            stop_container "rover-ros-gateway"
-            kill "${CONTAINER_PID}" 2>/dev/null || true
-            exit 1
-        fi
-
-        # Check if container process has exited
-        if ! kill -0 "${CONTAINER_PID}" 2>/dev/null; then
-            echo "Container process has exited"
-            break
-        fi
-
-        sleep "${HEALTH_CHECK_INTERVAL}"
-    done
-
-    # Wait for background process and get exit code
-    wait "${CONTAINER_PID}"
-    return $?
-}
-
-# Function to run container as daemon
-run_daemon_container() {
-    echo "Starting rover-ros-gateway container as daemon (ROS ${ROS_DISTRO})..."
-
-    # Check if container is already running
-    if docker ps --format "table {{.Names}}" | grep -q "^rover-ros-gateway$"; then
-        echo "Container rover-ros-gateway is already running. Restarting..."
-        CONTAINER_ID=$(docker ps --filter name=rover-ros-gateway --format '{{.ID}}' 2>/dev/null || echo 'unknown')
-        echo "Container ID: ${CONTAINER_ID}"
-
-        # Stop and remove the existing container
-        stop_container "rover-ros-gateway"
-
-        # Wait a moment for cleanup
-        sleep 2
+    if [[ -n ${DAEMON_ARG} ]]; then
+        echo ""
+        echo "Container name: rover-ros-gateway"
+        echo "To view logs: docker logs rover-ros-gateway"
+        echo "To stop container: docker stop rover-ros-gateway"
+        echo "To check status: docker ps --filter name=rover-ros-gateway"
     fi
-
-    # Start container in background with detached mode
-    CONTAINER_ID=$(${DOCKER_CMD} -d \
-        --name rover-ros-gateway \
-        --network host \
-        --ipc host \
-        --pid host \
-        --cap-add=NET_ADMIN \
-        rover-ros-gateway:"${ROS_DISTRO}" \
-        --interface "${CAN_INTERFACE}" \
-        --channel "${CAN_CHANNEL}" \
-        --bitrate "${CAN_BITRATE}" \
-        --log-level "${ROS_LOG_LEVEL}")
-
-    echo "Container started as daemon with ID: ${CONTAINER_ID}"
-    echo "Container name: rover-ros-gateway"
-    echo "To view logs: docker logs rover-ros-gateway"
-    echo "To stop container: docker stop rover-ros-gateway"
-    echo "To check status: docker ps --filter name=rover-ros-gateway"
 }
 
-# Main function
 main() {
-    # Parse command line arguments
     parse_arguments "$@"
-
-    # Set up CAN interface
     setup_can_interface
-
-    # Build docker command
-    build_docker_command
-
-    # Run container based on mode
-    if [[ ${DAEMON} == "true" ]]; then
-        run_daemon_container
-        EXIT_CODE=$?
-    elif [[ ${INTERACTIVE} == "false" ]]; then
-        run_noninteractive_container
-        EXIT_CODE=$?
-    else
-        run_interactive_container
-        EXIT_CODE=$?
-    fi
-
-    exit "${EXIT_CODE}"
+    run_container
 }
 
-# Call main function with all arguments
 main "$@"

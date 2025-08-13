@@ -3,7 +3,7 @@
 set -eo pipefail
 
 usage() {
-    SCRIPT_NAME="$(basename "$0")"
+    SCRIPT_NAME=$(basename "$0")
     cat <<EOF
 
 ${SCRIPT_NAME} [-h | --help] [--push] [--no-cache] [--ros-distro DISTRO] [--platform PLATFORM] [--version-tags TAGS] [--package-name NAME] [--builder BUILDER]
@@ -15,14 +15,14 @@ Images are always loaded into the local docker daemon.
 Use --push to also push to the registry.
 
 args:
-    --help              show this help
-    --push              push containers to registry
-    --no-cache          build without using docker cache
-    --ros-distro DISTRO ROS distro codename to build (default: jazzy)
-    --platform PLATFORM Target platform (default: native)
-    --version-tags TAGS Space separated version tags
-    --package-name NAME Docker container base name (default: ghcr.io/canedudev/rover/ros-gateway)
-    --builder BUILDER   Docker builder to use (default: default)
+    --help                  show this help
+    --push                  push containers to registry
+    --no-cache              build without using docker cache
+    --ros-distro DISTRO     ROS distro codename to build (default: jazzy)
+    --platform PLATFORM     Target platform (default: native)
+    --version-tags TAGS     Space separated version tags
+    --package-name NAME     Docker container base name (default: ghcr.io/canedudev/rover/ros-gateway)
+    --builder BUILDER       Docker builder to use (default: default)
 
 Examples:
     # Build for native architecture
@@ -50,12 +50,19 @@ fi
 
 # Default values
 ROS_DISTRO="jazzy"
-PLATFORM=""
-VERSION_TAGS=""
 PACKAGE_NAME="ghcr.io/canedudev/rover/ros-gateway"
-NO_CACHE=""
-PUSH=""
-BUILDER=""
+VERSION_TAGS=""
+
+ROOT_DIR=$(git rev-parse --show-toplevel)
+BUILD_CONTEXT="${BUILD_CONTEXT:-${ROOT_DIR}}"
+DOCKERFILE="${DOCKERFILE:-${ROOT_DIR}/ros2/Dockerfile}"
+
+# Set default build args
+# Provenance and SBOM are disabled to be able to generate manifest list when releasing
+BUILD_ARGS=(
+    "--provenance" "false"
+    "--sbom" "false"
+)
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -66,12 +73,12 @@ while [[ $# -gt 0 ]]; do
         ;;
 
     --push)
-        PUSH="true"
+        BUILD_ARGS+=("--push")
         shift 1
         ;;
 
     --no-cache)
-        NO_CACHE="true"
+        BUILD_ARGS+=("--no-cache")
         shift 1
         ;;
 
@@ -81,7 +88,7 @@ while [[ $# -gt 0 ]]; do
         ;;
 
     --platform)
-        PLATFORM="$2"
+        BUILD_ARGS+=("--platform" "$2")
         shift 2
         ;;
 
@@ -96,7 +103,7 @@ while [[ $# -gt 0 ]]; do
         ;;
 
     --builder)
-        BUILDER="$2"
+        BUILD_ARGS+=("--builder" "$2")
         shift 2
         ;;
 
@@ -108,63 +115,28 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-ROOT_DIR=$(git rev-parse --show-toplevel)
-BUILD_CONTEXT="${BUILD_CONTEXT:-${ROOT_DIR}}"
-DOCKERFILE="${DOCKERFILE:-${ROOT_DIR}/ros2/Dockerfile}"
+BUILD_ARGS+=("--build-arg" "ROS_DISTRO=${ROS_DISTRO}")
 
 PACKAGE="${PACKAGE_NAME}-${ROS_DISTRO}"
-
-# Set default build args
-BUILD_ARGS=(
-    "--build-arg" "ROS_DISTRO=${ROS_DISTRO}"
-    "--provenance" "false"
-    "--sbom" "false"
-)
-
-# If no version tags specified, use git describe
-if [[ -z ${VERSION_TAGS} ]]; then
-    VERSION_TAGS=$(git describe --tags --always)
-fi
-
 for tag in ${VERSION_TAGS}; do
     BUILD_ARGS+=("--tag" "${PACKAGE}:${tag}")
 done
 
-# CI caching
+# Local dev options
+if [[ -z ${CI} ]]; then
+    # Always load into local docker daemon
+    BUILD_ARGS+=("--load")
+    # Add development tag
+    BUILD_ARGS+=("--tag" "rover-ros-gateway:${ROS_DISTRO}")
+fi
+
+# CI options
 if [[ -n ${CI} ]]; then
     CACHE_ARCH="$(uname -m)"
     BUILD_ARGS+=(
         "--cache-from" "type=registry,ref=${PACKAGE}:buildcache-${CACHE_ARCH}"
         "--cache-to" "type=registry,ref=${PACKAGE}:buildcache-${CACHE_ARCH},mode=max"
     )
-fi
-
-# Build options
-if [[ -n ${NO_CACHE} ]]; then
-    BUILD_ARGS+=("--no-cache")
-fi
-
-if [[ -n ${PLATFORM} ]]; then
-    BUILD_ARGS+=("--platform" "${PLATFORM}")
-fi
-
-# Add push if requested
-if [[ -n ${PUSH} ]]; then
-    BUILD_ARGS+=("--push")
-elif [[ -z ${CI} ]]; then
-    # Only load locally if not in CI
-    BUILD_ARGS+=("--load")
-    # Also add development tag
-    BUILD_ARGS+=("--tag" "rover-ros-gateway:${ROS_DISTRO}")
-fi
-
-if [[ -n ${BUILDER} ]]; then
-    BUILD_ARGS+=("--builder" "${BUILDER}")
-fi
-
-echo "Building ROS gateway for ${ROS_DISTRO}..."
-if [[ -n ${PLATFORM} ]]; then
-    echo "Target platform: ${PLATFORM}"
 fi
 
 docker build \
