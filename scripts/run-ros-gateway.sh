@@ -14,27 +14,31 @@ HEALTH_CHECK_INTERVAL=5 # Check container health every 5 seconds
 
 # Function to display help message
 show_help() {
-    echo "Usage: $0 [--interface <can_interface>] [--channel <can_channel>] [--bitrate <can_bitrate>] [--log-level <log_level>] [--ros-distro <ros_distro>] [--non-interactive] [--timeout <seconds>] [--daemon]"
-    echo
-    echo "Options:"
-    echo "  -i, --interface <can_interface>   CAN interface to use (default: socketcan)"
-    echo "  -c, --channel <can_channel>       CAN channel to use (default: can0)"
-    echo "  -b, --bitrate <can_bitrate>       CAN bitrate to use (default: 125000)"
-    echo "  -l, --log-level <log_level>       ROS2 log level (default: info)"
-    echo "  -r, --ros-distro <ros_distro>     ROS distribution to use (default: jazzy)"
-    echo "  --non-interactive                 Run in non-interactive mode (for automated execution)"
-    echo "  --timeout <seconds>               Timeout in seconds for non-interactive mode (default: 30)"
-    echo "  --daemon                          Run container as daemon in background"
-    echo "  -h, --help                        Show this help message and exit"
-    echo
-    echo "Supported ROS2 log levels:"
-    echo "  UNSET, DEBUG, INFO, WARN, ERROR, FATAL"
-    echo
-    echo "Examples:"
-    echo "  $0 --interface socketcan --channel can0 --bitrate 125000 --log-level info"
-    echo "  $0 --log-level warn --ros-distro humble"
-    echo "  $0 --non-interactive --log-level debug --timeout 60 --ros-distro jazzy"
-    echo "  $0 --daemon --log-level info --ros-distro humble"
+    SCRIPT_NAME=$(basename "$0")
+    cat <<EOF
+
+Usage: ${SCRIPT_NAME} [--interface <can_interface>] [--channel <can_channel>] [--bitrate <can_bitrate>] [--log-level <log_level>] [--ros-distro <ros_distro>] [--non-interactive] [--timeout <seconds>] [--daemon]
+
+Options:
+  -i, --interface <can_interface>   CAN interface to use (default: socketcan)
+  -c, --channel <can_channel>       CAN channel to use (default: can0)
+  -b, --bitrate <can_bitrate>       CAN bitrate to use (default: 125000)
+  -l, --log-level <log_level>       ROS2 log level (default: info)
+  -r, --ros-distro <ros_distro>     ROS distribution to use (default: jazzy)
+  --non-interactive                 Run in non-interactive mode (for automated execution)
+  --timeout <seconds>               Timeout in seconds for non-interactive mode (default: 30)
+  -d, --daemon                      Run container as daemon in background
+  -h, --help                        Show this help message and exit
+
+Supported ROS2 log levels:
+  UNSET, DEBUG, INFO, WARN, ERROR, FATAL
+
+Examples:
+  ${SCRIPT_NAME} --interface socketcan --channel can0 --bitrate 125000 --log-level info
+  ${SCRIPT_NAME} --log-level warn --ros-distro humble
+  ${SCRIPT_NAME} --non-interactive --log-level debug --timeout 60 --ros-distro jazzy
+  ${SCRIPT_NAME} --daemon --log-level info --ros-distro humble
+EOF
 }
 
 # Function to parse command line arguments
@@ -69,7 +73,7 @@ parse_arguments() {
             TIMEOUT="$2"
             shift 2
             ;;
-        --daemon)
+        -d | --daemon)
             DAEMON=true
             INTERACTIVE=false
             shift
@@ -80,8 +84,7 @@ parse_arguments() {
             ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: $0 [--interface <can_interface>] [--channel <can_channel>] [--bitrate <can_bitrate>] [--log-level <log_level>] [--ros-distro <ros_distro>] [--non-interactive] [--timeout <seconds>] [--daemon]"
-            echo "Try '$0 --help' for more information."
+            show_help
             exit 1
             ;;
         esac
