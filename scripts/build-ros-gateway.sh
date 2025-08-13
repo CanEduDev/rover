@@ -3,25 +3,42 @@
 set -eo pipefail
 
 usage() {
+    SCRIPT_NAME="$(basename "$0")"
     cat <<EOF
 
-$(basename "$0") [-h | --help] [--local] [--push]
+${SCRIPT_NAME} [-h | --help] [--push] [--no-cache] [--ros-distro DISTRO] [--platform PLATFORM] [--version-tags TAGS] [--package-name NAME] [--builder BUILDER]
 
 Build the ros-gateway docker image. Requires docker to be installed
 and usable without sudo.
 
-args:
-    --help      show this help
-    --local     build local version with tag "rover-ros-gateway"
-    --push      push containers
+Images are always loaded into the local docker daemon.
+Use --push to also push to the registry.
 
-default env vars:
-    ROS_DISTRO=jazzy                                        ROS distro codename to build
-    PLATFORMS=linux/amd64,linux/arm64                       Target platforms
-    PACKAGE_BASENAME=ghcr.io/canedudev/rover/ros-gateway    Docker container base name
-    BUILDER=ced-rover-builder                               Docker buildx builder
-    DOCKERFILE=ros2/Dockerfile                              Path to dockerfile
-    VERSION_TAGS=                                           Space separated tags
+args:
+    --help              show this help
+    --push              push containers to registry
+    --no-cache          build without using docker cache
+    --ros-distro DISTRO ROS distro codename to build (default: jazzy)
+    --platform PLATFORM Target platform (default: native)
+    --version-tags TAGS Space separated version tags
+    --package-name NAME Docker container base name (default: ghcr.io/canedudev/rover/ros-gateway)
+    --builder BUILDER   Docker builder to use (default: default)
+
+Examples:
+    # Build for native architecture
+    ${SCRIPT_NAME} --ros-distro jazzy
+
+    # Cross-compile for specific platform
+    ${SCRIPT_NAME} --ros-distro jazzy --platform linux/arm64
+
+    # Build with version tags and push
+    ${SCRIPT_NAME} --ros-distro jazzy --version-tags "v1.0.0" --push
+
+    # Build without cache
+    ${SCRIPT_NAME} --ros-distro jazzy --no-cache
+
+    # Build using specific builder
+    ${SCRIPT_NAME} --ros-distro jazzy --builder my-builder
 EOF
 
 }
@@ -31,6 +48,15 @@ if ! command -v docker >/dev/null; then
     exit 1
 fi
 
+# Default values
+ROS_DISTRO="jazzy"
+PLATFORM=""
+VERSION_TAGS=""
+PACKAGE_NAME="ghcr.io/canedudev/rover/ros-gateway"
+NO_CACHE=""
+PUSH=""
+BUILDER=""
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
     -h) ;&
@@ -39,73 +65,107 @@ while [[ $# -gt 0 ]]; do
         exit 0
         ;;
 
-    --local)
-        LOCAL="true"
-        shift 1
-        ;;
-
     --push)
         PUSH="true"
         shift 1
         ;;
+
+    --no-cache)
+        NO_CACHE="true"
+        shift 1
+        ;;
+
+    --ros-distro)
+        ROS_DISTRO="$2"
+        shift 2
+        ;;
+
+    --platform)
+        PLATFORM="$2"
+        shift 2
+        ;;
+
+    --version-tags)
+        VERSION_TAGS="$2"
+        shift 2
+        ;;
+
+    --package-name)
+        PACKAGE_NAME="$2"
+        shift 2
+        ;;
+
+    --builder)
+        BUILDER="$2"
+        shift 2
+        ;;
+
     *)
+        echo "error: unknown argument $1"
         usage
         exit 1
         ;;
-
     esac
 done
 
 ROOT_DIR=$(git rev-parse --show-toplevel)
-
-PLATFORMS="${PLATFORMS:-linux/amd64,linux/arm64}"
-PACKAGE_BASENAME="${PACKAGE_BASENAME:-ghcr.io/canedudev/rover/ros-gateway}"
-ROS_DISTRO="${ROS_DISTRO:-jazzy}"
-BUILDER="${BUILDER:-ced-rover-builder}"
 BUILD_CONTEXT="${BUILD_CONTEXT:-${ROOT_DIR}}"
 DOCKERFILE="${DOCKERFILE:-${ROOT_DIR}/ros2/Dockerfile}"
-PACKAGE="${PACKAGE_BASENAME}-${ROS_DISTRO}"
-VERSION_TAGS="${VERSION_TAGS:-}"
 
-if [[ -n ${VERSION_TAGS} ]]; then
-    TAG_ARGS=("--tag" "${PACKAGE}:latest")
-    for tag in ${VERSION_TAGS}; do
-        TAG_ARGS+=("--tag" "${PACKAGE}:${tag}")
-    done
+PACKAGE="${PACKAGE_NAME}-${ROS_DISTRO}"
+
+# Set default build args
+BUILD_ARGS=(
+    "--build-arg" "ROS_DISTRO=${ROS_DISTRO}"
+    "--provenance" "false"
+    "--sbom" "false"
+)
+
+# If no version tags specified, use git describe
+if [[ -z ${VERSION_TAGS} ]]; then
+    VERSION_TAGS=$(git describe --tags --always)
 fi
 
-CI_ARGS=()
+for tag in ${VERSION_TAGS}; do
+    BUILD_ARGS+=("--tag" "${PACKAGE}:${tag}")
+done
+
+# CI caching
 if [[ -n ${CI} ]]; then
-    CI_ARGS=(
-        "--cache-from" "type=registry,ref=${PACKAGE}:buildcache"
-        "--cache-to" "type=registry,ref=${PACKAGE}:buildcache,mode=max"
+    CACHE_ARCH="$(uname -m)"
+    BUILD_ARGS+=(
+        "--cache-from" "type=registry,ref=${PACKAGE}:buildcache-${CACHE_ARCH}"
+        "--cache-to" "type=registry,ref=${PACKAGE}:buildcache-${CACHE_ARCH},mode=max"
     )
 fi
 
-OUTPUT_ARGS=("--output" "type=cacheonly")
+# Build options
+if [[ -n ${NO_CACHE} ]]; then
+    BUILD_ARGS+=("--no-cache")
+fi
+
+if [[ -n ${PLATFORM} ]]; then
+    BUILD_ARGS+=("--platform" "${PLATFORM}")
+fi
+
+# Add push if requested
 if [[ -n ${PUSH} ]]; then
-    OUTPUT_ARGS=("--output" "type=registry")
+    BUILD_ARGS+=("--push")
+elif [[ -z ${CI} ]]; then
+    # Only load locally if not in CI
+    BUILD_ARGS+=("--load")
 fi
 
-if ! docker buildx ls | grep "${BUILDER}" >/dev/null; then
-    docker buildx create \
-        --name "${BUILDER}" \
-        --platform "${PLATFORMS}" \
-        --driver docker-container \
-        --bootstrap
+if [[ -n ${BUILDER} ]]; then
+    BUILD_ARGS+=("--builder" "${BUILDER}")
 fi
 
-if [[ -z ${LOCAL} ]]; then
-    docker buildx --builder "${BUILDER}" build \
-        -f "${DOCKERFILE}" \
-        --platform "${PLATFORMS}" \
-        --build-arg ROS_DISTRO="${ROS_DISTRO}" \
-        "${TAG_ARGS[@]}" "${OUTPUT_ARGS[@]}" "${CI_ARGS[@]}" \
-        "${BUILD_CONTEXT}"
-else
-    docker build \
-        -f "${DOCKERFILE}" \
-        -t rover-ros-gateway \
-        --build-arg ROS_DISTRO="${ROS_DISTRO}" \
-        "${BUILD_CONTEXT}"
+echo "Building ROS gateway for ${ROS_DISTRO}..."
+if [[ -n ${PLATFORM} ]]; then
+    echo "Target platform: ${PLATFORM}"
 fi
+
+docker build \
+    -f "${DOCKERFILE}" \
+    "${BUILD_ARGS[@]}" \
+    "${BUILD_CONTEXT}"

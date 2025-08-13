@@ -18,8 +18,10 @@ jobs:
     strategy:
       matrix:
         ros_distro: [humble, jazzy]
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
 
-    runs-on: ubuntu-24.04
+    # Build natively on each architecture
+    runs-on: ${{ matrix.runner }}
 
     permissions:
       contents: read

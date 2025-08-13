@@ -137,7 +137,7 @@ release_tgt = custom_target(
 
 ros_gateway_build_script = files('scripts' / 'build-ros-gateway.sh')
 
-run_target('ros-gateway', command: [ros_gateway_build_script, '--local'])
+run_target('ros-gateway', command: [ros_gateway_build_script])
 
 # Try to find python3.exe first, in case we're running in WSL.
 python_flash = find_program('python3.exe', 'python3', required: false)
