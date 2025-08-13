@@ -154,6 +154,8 @@ if [[ -n ${PUSH} ]]; then
 elif [[ -z ${CI} ]]; then
     # Only load locally if not in CI
     BUILD_ARGS+=("--load")
+    # Also add development tag
+    BUILD_ARGS+=("--tag" "rover-ros-gateway:${ROS_DISTRO}")
 fi
 
 if [[ -n ${BUILDER} ]]; then
