@@ -19,8 +19,7 @@ ROS2 nodes that act as the gateway between CAN bus and ROS2 topics:
 - **battery_node**: Publishes battery status using `gateway_msgs/BatteryStatus`
 - **wheel_node**: Publishes wheel status information
 - **obstacle_detector_node**: Publishes obstacle distance readings
-- **controller_node**: Subscribes to `/rover/cmd_vel` for control commands
-- **radio_node**: Monitors physical radio state for safety override
+- **controller_node**: Handles both manual control and radio override functionality
 - **mayor_node**: Publishes CAN bus status
 
 ## Safety Architecture
@@ -30,14 +29,15 @@ The system implements a sophisticated safety mechanism with human override capab
 ### Safety Override System
 - **Autonomous/Manual Control Priority**: Normal operation via `/rover/cmd_vel` commands
 - **Physical Radio Safety Override**: When the physical radio is active on the CAN bus, it overrides all other control
-- **Safety Monitoring**: The controller monitors CAN bus activity to detect radio presence
+- **Safety Monitoring**: The controller node monitors CAN bus activity to detect radio presence
 - **Override Prevention**: Autonomous/manual commands are ignored when physical radio is active
+- **Radio Command Publishing**: Radio commands are published to `/radio/cmd_vel` for monitoring
 
 ### Control Flow
 ```
 Autonomous/Manual Control → /rover/cmd_vel → Controller Node → CAN Bus (normal operation)
                                                       ↓
-Physical Radio → CAN Bus → Radio Node → /rover/cmd_vel (monitoring radio override state)
+Physical Radio → CAN Bus → Controller Node → /radio/cmd_vel (radio override monitoring)
 ```
 
 ## Containerization
@@ -73,8 +73,11 @@ meson compile -C build ros-gateway # build
 
 ### Control Topics
 - **`/rover/cmd_vel`** (`geometry_msgs/Twist`): Control commands for throttle and steering
-  - `linear.x`: Forward/backward velocity (-1 to 1, converted to throttle -100 to 100)
-  - `angular.z`: Angular velocity in radians (converted to steering angle in degrees)
+  - `linear.x`: Forward/backward velocity (-1 to 1), where 1 is full throttle and -1 is full reverse.
+  - `angular.z`: Angular velocity in radians
+- **`/radio/cmd_vel`** (`geometry_msgs/Twist`): Radio control commands (published by controller node when radio is active)
+  - `linear.x`: Radio throttle input (-1 to 1)
+  - `angular.z`: Radio steering input in radians
 
 ### Sensor Topics
 - **`/rover/battery_monitor_*/output`** (`gateway_msgs/BatteryStatus`): Battery output voltage and current
@@ -84,7 +87,7 @@ meson compile -C build ros-gateway # build
 - **`/rover/obstacle_detector_*/obstacle_distance`** (`gateway_msgs/ObstacleDistance`): Distance readings
 
 ### Status Topics
-- **`/rover/mayor/can_status`** (`gateway_msgs/CANStatus`): CAN bus status information
+- **`/rover/can_status`** (`gateway_msgs/CANStatus`): CAN bus status information
 
 ## Dependencies
 

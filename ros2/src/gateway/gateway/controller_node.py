@@ -21,12 +21,24 @@ class ControllerNode(Node):
 
         self.get_logger().info("initializing controller")
 
+        # Controller cmd_vel subscription (for ROS control)
         self.cmd_vel_sub = self.create_subscription(
             Twist,
             "cmd_vel",
             self.cmd_vel_callback,
             ReliabilityPolicy.RELIABLE,
         )
+
+        # Radio cmd_vel publisher (for radio override)
+        self.radio_cmd_vel_publisher = self.create_publisher(
+            Twist,
+            "radio/cmd_vel",
+            ReliabilityPolicy.BEST_EFFORT,
+        )
+
+        # Radio state tracking
+        self._last_radio_throttle = 0.0
+        self._last_radio_steering = 0.0
 
         self.radio_override_logged = False
         self.radio_override_lock = threading.Lock()
@@ -73,11 +85,40 @@ class ControllerNode(Node):
             if not rclpy.ok():
                 break
 
-            if (
-                msg.arbitration_id == rover.Envelope.STEERING
-                or msg.arbitration_id == rover.Envelope.THROTTLE
-            ):
+            # Steering is always sent before throttle
+            if msg.arbitration_id == rover.Envelope.STEERING:
                 self.refresh_radio_timestamp()
+                self.process_radio_steering(msg)
+
+            elif msg.arbitration_id == rover.Envelope.THROTTLE:
+                self.refresh_radio_timestamp()
+                self.process_radio_throttle(msg)
+                # Safely publish here as both steering and throttle have been updated
+                self.publish_radio_cmd_vel()
+
+    def process_radio_throttle(self, msg):
+        # Process throttle from CAN message
+        throttle_pulse = struct.unpack("H", msg.data[1:3])[0]
+        # Normalize to [-1, 1] range
+        throttle = round((throttle_pulse - 1500) / 500)
+        if throttle > 1:
+            throttle = 1
+        if throttle < -1:
+            throttle = -1
+
+        self._last_radio_throttle = float(throttle)
+
+    def process_radio_steering(self, msg):
+        # Process steering from CAN message
+        steering_data = float(struct.unpack("f", msg.data[1:5])[0])
+        # Convert degrees to radians
+        self._last_radio_steering = math.radians(steering_data)
+
+    def publish_radio_cmd_vel(self):
+        twist = Twist()
+        twist.linear.x = self._last_radio_throttle
+        twist.angular.z = self._last_radio_steering
+        self.radio_cmd_vel_publisher.publish(twist)
 
     def refresh_radio_timestamp(self):
         with self.radio_override_lock:
@@ -140,7 +181,7 @@ class ControllerNode(Node):
             )
         except can.exceptions.CanOperationError:
             self.get_logger().error(
-                "CAN error: steering command not sent. Retrying in 1s"
+                "CAN error: control command not sent. Retrying in 1s"
             )
             self.get_logger().info(
                 "Potential causes: Rover offline, broken CAN connection, CAN Tx buffer overflow, CAN error frame or invalid bitrate setting"

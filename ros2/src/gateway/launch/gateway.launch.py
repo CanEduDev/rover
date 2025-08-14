@@ -48,14 +48,6 @@ def generate_launch_description():
                 name="mayor",
                 arguments=default_args,
             ),
-            # Radio node
-            Node(
-                package=package,
-                namespace=namespace,
-                executable="radio_node",
-                name="radio",
-                arguments=default_args,
-            ),
             # Controller node
             Node(
                 package=package,
