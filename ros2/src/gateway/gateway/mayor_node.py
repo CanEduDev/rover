@@ -16,7 +16,7 @@ from rclpy.qos import ReliabilityPolicy
 
 class MayorNode(Node):
     def __init__(self, interface, channel, bitrate):
-        super().__init__("can_toggle_node")
+        super().__init__("mayor_node")
         self.can_enabled = True
         self.can_enabled_lock = threading.Lock()
 
