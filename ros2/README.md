@@ -75,7 +75,7 @@ meson compile -C build ros-gateway # build
 - **`/rover/cmd_vel`** (`geometry_msgs/Twist`): Control commands for throttle and steering
   - `linear.x`: Forward/backward velocity (-1 to 1), where 1 is full throttle and -1 is full reverse.
   - `angular.z`: Angular velocity in radians
-- **`/radio/cmd_vel`** (`geometry_msgs/Twist`): Radio control commands (published by controller node when radio is active)
+- **`/rover/radio/cmd_vel`** (`geometry_msgs/Twist`): Radio control commands (published by controller node when radio is active)
   - `linear.x`: Radio throttle input (-1 to 1)
   - `angular.z`: Radio steering input in radians
 
