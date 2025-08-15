@@ -55,6 +55,15 @@ class ObstacleDetectorNode(Node):
         self.can_bus.shutdown()
 
     def can_reader_task(self):
+        can_mask_11_bits = (1 << 11) - 1
+
+        can_id = rover.Envelope.OBSTACLE_DETECTOR_FRONT_DISTANCE
+
+        if self.position == ObstacleDetectorPosition.REAR:
+            can_id = rover.Envelope.OBSTACLE_DETECTOR_REAR_DISTANCE
+
+        self.can_bus.set_filters([{"can_id": can_id, "can_mask": can_mask_11_bits}])
+
         for msg in self.can_bus:
             if not rclpy.ok():
                 break
@@ -62,25 +71,17 @@ class ObstacleDetectorNode(Node):
             self.publish(msg)
 
     def publish(self, msg):
-        id = msg.arbitration_id
-        if (
-            self.position == ObstacleDetectorPosition.FRONT
-            and id == rover.Envelope.OBSTACLE_DETECTOR_FRONT_DISTANCE
-        ) or (
-            self.position == ObstacleDetectorPosition.REAR
-            and id == rover.Envelope.OBSTACLE_DETECTOR_REAR_DISTANCE
-        ):
-            distance_msg = ObstacleDistance()
-            distance_msg.distances_mm = [
-                struct.unpack("H", msg.data[0:2])[0],
-                struct.unpack("H", msg.data[2:4])[0],
-                struct.unpack("H", msg.data[4:6])[0],
-                struct.unpack("H", msg.data[6:8])[0],
-            ]
-            self.publisher.publish(distance_msg)
-            self.get_logger().debug(
-                f"Publishing {self.topic}: distances={distance_msg.distances_mm}mm"
-            )
+        distance_msg = ObstacleDistance()
+        distance_msg.distances_mm = [
+            struct.unpack("H", msg.data[0:2])[0],
+            struct.unpack("H", msg.data[2:4])[0],
+            struct.unpack("H", msg.data[4:6])[0],
+            struct.unpack("H", msg.data[6:8])[0],
+        ]
+        self.publisher.publish(distance_msg)
+        self.get_logger().debug(
+            f"Publishing {self.topic}: distances={distance_msg.distances_mm}mm"
+        )
 
 
 def main(args=None):

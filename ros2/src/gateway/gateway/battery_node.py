@@ -73,6 +73,24 @@ class BatteryNode(Node):
         self.can_bus.shutdown()
 
     def can_reader_task(self):
+        self.cell_voltages_id = rover.Envelope.BATTERY_CELL_VOLTAGES
+        self.output_id = rover.Envelope.BATTERY_OUTPUT
+        self.regulated_output_id = rover.Envelope.BATTERY_REGULATED_OUTPUT
+
+        if self.position == BatteryPosition.AD_SYSTEM:
+            self.cell_voltages_id = rover.Envelope.AD_BATTERY_CELL_VOLTAGES
+            self.output_id = rover.Envelope.AD_BATTERY_OUTPUT
+            self.regulated_output_id = rover.Envelope.AD_BATTERY_REGULATED_OUTPUT
+
+        can_mask_11_bits = (1 << 11) - 1
+        filters = [
+            {"can_id": self.cell_voltages_id, "can_mask": can_mask_11_bits},
+            {"can_id": self.output_id, "can_mask": can_mask_11_bits},
+            {"can_id": self.regulated_output_id, "can_mask": can_mask_11_bits},
+        ]
+
+        self.can_bus.set_filters(filters)
+
         for msg in self.can_bus:
             if not rclpy.ok():
                 break
@@ -82,21 +100,12 @@ class BatteryNode(Node):
     def publish(self, msg):
         id = msg.arbitration_id
 
-        if self.position == BatteryPosition.CONTROL_SYSTEM:
-            if id == rover.Envelope.BATTERY_CELL_VOLTAGES:
-                self.publish_cell_voltages(msg)
-            if id == rover.Envelope.BATTERY_OUTPUT:
-                self.publish_output(msg)
-            if id == rover.Envelope.BATTERY_REGULATED_OUTPUT:
-                self.publish_reg_output(msg)
-
-        if self.position == BatteryPosition.AD_SYSTEM:
-            if id == rover.Envelope.AD_BATTERY_CELL_VOLTAGES:
-                self.publish_cell_voltages(msg)
-            if id == rover.Envelope.AD_BATTERY_OUTPUT:
-                self.publish_output(msg)
-            if id == rover.Envelope.AD_BATTERY_REGULATED_OUTPUT:
-                self.publish_reg_output(msg)
+        if id == self.cell_voltages_id:
+            self.publish_cell_voltages(msg)
+        elif id == self.output_id:
+            self.publish_output(msg)
+        elif id == self.regulated_output_id:
+            self.publish_reg_output(msg)
 
     def publish_cell_voltages(self, msg):
         # If first message received is for the last 3 cells, skip it

@@ -81,6 +81,14 @@ class ControllerNode(Node):
         self.radio_override_logged = True
 
     def can_reader_task(self):
+        can_mask_11_bits = (1 << 11) - 1
+        self.can_bus.set_filters(
+            [
+                {"can_id": rover.Envelope.STEERING, "can_mask": can_mask_11_bits},
+                {"can_id": rover.Envelope.THROTTLE, "can_mask": can_mask_11_bits},
+            ]
+        )
+
         for msg in self.can_bus:
             if not rclpy.ok():
                 break

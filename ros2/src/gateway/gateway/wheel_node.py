@@ -74,13 +74,28 @@ class WheelNode(Node):
             self.can_enabled = msg.can_enabled
 
     def can_reader_task(self):
+        can_mask_11_bits = (1 << 11) - 1
+        can_id = rover.Envelope.WHEEL_FRONT_LEFT_SPEED
+        self.report_freq_id = rover.Envelope.WHEEL_FRONT_LEFT_REPORT_FREQUENCY
+        if self.position == WheelPosition.FRONT_RIGHT:
+            can_id = rover.Envelope.WHEEL_FRONT_RIGHT_SPEED
+            self.report_freq_id = rover.Envelope.WHEEL_FRONT_RIGHT_REPORT_FREQUENCY
+        elif self.position == WheelPosition.REAR_LEFT:
+            can_id = rover.Envelope.WHEEL_REAR_LEFT_SPEED
+            self.report_freq_id = rover.Envelope.WHEEL_REAR_LEFT_REPORT_FREQUENCY
+        elif self.position == WheelPosition.REAR_RIGHT:
+            can_id = rover.Envelope.WHEEL_REAR_RIGHT_SPEED
+            self.report_freq_id = rover.Envelope.WHEEL_REAR_RIGHT_REPORT_FREQUENCY
+
+        self.can_bus.set_filters([{"can_id": can_id, "can_mask": can_mask_11_bits}])
+
         for msg in self.can_bus:
             if not rclpy.ok():
                 break
 
             self.publish(msg)
 
-    def publish_wheel_status(self, msg):
+    def publish(self, msg):
         wheel_status = WheelStatus()
         wheel_status.rpm = struct.unpack("f", msg.data[0:4])[0]
         wheel_status.speed_kph = struct.unpack("f", msg.data[4:8])[0]
@@ -88,29 +103,6 @@ class WheelNode(Node):
         self.get_logger().debug(
             f"Publishing {self.wheel_status_topic}: rpm={wheel_status.rpm}, speed={wheel_status.speed_kph}kph"
         )
-
-    def publish(self, msg):
-        id = msg.arbitration_id
-
-        if (
-            (
-                self.position == WheelPosition.FRONT_LEFT
-                and id == rover.Envelope.WHEEL_FRONT_LEFT_SPEED
-            )
-            or (
-                self.position == WheelPosition.FRONT_RIGHT
-                and id == rover.Envelope.WHEEL_FRONT_RIGHT_SPEED
-            )
-            or (
-                self.position == WheelPosition.REAR_LEFT
-                and id == rover.Envelope.WHEEL_REAR_LEFT_SPEED
-            )
-            or (
-                self.position == WheelPosition.REAR_RIGHT
-                and id == rover.Envelope.WHEEL_REAR_RIGHT_SPEED
-            )
-        ):
-            self.publish_wheel_status(msg)
 
     def report_freq_callback(self, msg):
         max_freq = 100
@@ -156,19 +148,10 @@ class WheelNode(Node):
             self.can_bus.flush_tx_buffer()
 
     def set_report_period_message(self):
-        if self.position == WheelPosition.FRONT_LEFT:
-            envelope = rover.Envelope.WHEEL_FRONT_LEFT_REPORT_FREQUENCY
-        elif self.position == WheelPosition.FRONT_RIGHT:
-            envelope = rover.Envelope.WHEEL_FRONT_RIGHT_REPORT_FREQUENCY
-        elif self.position == WheelPosition.REAR_LEFT:
-            envelope = rover.Envelope.WHEEL_REAR_LEFT_REPORT_FREQUENCY
-        else:
-            envelope = rover.Envelope.WHEEL_REAR_RIGHT_REPORT_FREQUENCY
-
         report_freq_ms = round(1000 / self.report_freq_hz)
 
         return can.Message(
-            arbitration_id=envelope,
+            arbitration_id=self.report_freq_id,
             data=list(struct.pack("H", report_freq_ms)),
             is_extended_id=False,
         )

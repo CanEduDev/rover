@@ -64,11 +64,13 @@ class MayorNode(Node):
         )
 
     def can_reader_task(self):
+        can_mask_11_bits = (1 << 11) - 1
+        self.can_bus.set_filters([{"can_id": 0, "can_mask": can_mask_11_bits}])
         for msg in self.can_bus:
             if not rclpy.ok():
                 break
 
-            if not self.is_kings_page(msg):
+            if len(msg.data) != 8:
                 continue
 
             city = msg.data[0]
@@ -92,9 +94,6 @@ class MayorNode(Node):
                 or comm_mode == rover.CommMode.COMMUNICATE
             ):
                 self.enable_can()
-
-    def is_kings_page(self, msg):
-        return msg.arbitration_id == self.kp_id and len(msg.data) == 8
 
 
 def main(args=None):
