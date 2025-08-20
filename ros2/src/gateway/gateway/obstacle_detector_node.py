@@ -43,27 +43,27 @@ class ObstacleDetectorNode(Node):
             ReliabilityPolicy.BEST_EFFORT,
         )
 
-        self.can_bus = can.ThreadSafeBus(
-            interface=interface, channel=channel, bitrate=bitrate
-        )
-
-        threading.Thread(target=self.can_reader_task, daemon=True).start()
-        self.get_logger().info("finished intialization")
+        self.init_can_bus(interface, channel, bitrate)
+        self.get_logger().info("finished initialization")
 
     def destroy_node(self):
         super().destroy_node()
         self.can_bus.shutdown()
 
-    def can_reader_task(self):
+    def init_can_bus(self, interface, channel, bitrate):
         can_mask_11_bits = (1 << 11) - 1
-
         can_id = rover.Envelope.OBSTACLE_DETECTOR_FRONT_DISTANCE
-
         if self.position == ObstacleDetectorPosition.REAR:
             can_id = rover.Envelope.OBSTACLE_DETECTOR_REAR_DISTANCE
 
+        self.can_bus = can.ThreadSafeBus(
+            interface=interface, channel=channel, bitrate=bitrate
+        )
         self.can_bus.set_filters([{"can_id": can_id, "can_mask": can_mask_11_bits}])
 
+        threading.Thread(target=self.can_reader_task, daemon=True).start()
+
+    def can_reader_task(self):
         for msg in self.can_bus:
             if not rclpy.ok():
                 break

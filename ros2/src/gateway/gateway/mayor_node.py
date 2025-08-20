@@ -26,19 +26,23 @@ class MayorNode(Node):
         )
         self.publish_can_enabled()
 
-        self.can_bus = can.ThreadSafeBus(
-            interface=interface, channel=channel, bitrate=bitrate
-        )
-
-        self.kp_id = 0
-
-        # Start CAN reader thread
-        threading.Thread(target=self.can_reader_task, daemon=True).start()
+        self.init_can_bus(interface, channel, bitrate)
         self.get_logger().info("finished initialization")
 
     def destroy_node(self):
         super().destroy_node()
         self.can_bus.shutdown()
+
+    def init_can_bus(self, interface, channel, bitrate):
+        self.kp_id = 0
+        can_mask_11_bits = (1 << 11) - 1
+        self.can_bus = can.ThreadSafeBus(
+            interface=interface, channel=channel, bitrate=bitrate
+        )
+        self.can_bus.set_filters([{"can_id": self.kp_id, "can_mask": can_mask_11_bits}])
+
+        # Start CAN reader thread
+        threading.Thread(target=self.can_reader_task, daemon=True).start()
 
     def disable_can(self):
         with self.can_enabled_lock:
@@ -64,8 +68,6 @@ class MayorNode(Node):
         )
 
     def can_reader_task(self):
-        can_mask_11_bits = (1 << 11) - 1
-        self.can_bus.set_filters([{"can_id": 0, "can_mask": can_mask_11_bits}])
         for msg in self.can_bus:
             if not rclpy.ok():
                 break

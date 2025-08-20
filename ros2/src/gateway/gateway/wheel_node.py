@@ -51,29 +51,14 @@ class WheelNode(Node):
             ReliabilityPolicy.RELIABLE,
         )
 
-        self.can_bus = can.ThreadSafeBus(
-            interface=interface, channel=channel, bitrate=bitrate
-        )
-
-        # Add CAN enabled state
-        self.can_enabled = True
-        self.can_enabled_lock = threading.Lock()
-        self.can_enabled_sub = self.create_subscription(
-            CANStatus, "can_status", self.can_enabled_callback, 10
-        )
-
-        threading.Thread(target=self.can_reader_task, daemon=True).start()
-        self.get_logger().info("finished intialization")
+        self.init_can_bus(interface, channel, bitrate)
+        self.get_logger().info("finished initialization")
 
     def destroy_node(self):
         super().destroy_node()
         self.can_bus.shutdown()
 
-    def can_enabled_callback(self, msg):
-        with self.can_enabled_lock:
-            self.can_enabled = msg.can_enabled
-
-    def can_reader_task(self):
+    def init_can_bus(self, interface, channel, bitrate):
         can_mask_11_bits = (1 << 11) - 1
         can_id = rover.Envelope.WHEEL_FRONT_LEFT_SPEED
         self.report_freq_id = rover.Envelope.WHEEL_FRONT_LEFT_REPORT_FREQUENCY
@@ -87,8 +72,26 @@ class WheelNode(Node):
             can_id = rover.Envelope.WHEEL_REAR_RIGHT_SPEED
             self.report_freq_id = rover.Envelope.WHEEL_REAR_RIGHT_REPORT_FREQUENCY
 
+        self.can_bus = can.ThreadSafeBus(
+            interface=interface, channel=channel, bitrate=bitrate
+        )
+
         self.can_bus.set_filters([{"can_id": can_id, "can_mask": can_mask_11_bits}])
 
+        # Add CAN enabled state
+        self.can_enabled = True
+        self.can_enabled_lock = threading.Lock()
+        self.can_enabled_sub = self.create_subscription(
+            CANStatus, "can_status", self.can_enabled_callback, 10
+        )
+
+        threading.Thread(target=self.can_reader_task, daemon=True).start()
+
+    def can_enabled_callback(self, msg):
+        with self.can_enabled_lock:
+            self.can_enabled = msg.can_enabled
+
+    def can_reader_task(self):
         for msg in self.can_bus:
             if not rclpy.ok():
                 break

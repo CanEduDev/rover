@@ -50,8 +50,23 @@ class ControllerNode(Node):
             1 / self.control_freq_hz, self.send_control_command
         )
 
+        self.init_can_bus(interface, channel, bitrate)
+        self.get_logger().info("finished initialization")
+
+    def destroy_node(self):
+        super().destroy_node()
+        self.can_bus.shutdown()
+
+    def init_can_bus(self, interface, channel, bitrate):
         self.can_bus = can.ThreadSafeBus(
             interface=interface, channel=channel, bitrate=bitrate
+        )
+        can_mask_11_bits = (1 << 11) - 1
+        self.can_bus.set_filters(
+            [
+                {"can_id": rover.Envelope.STEERING, "can_mask": can_mask_11_bits},
+                {"can_id": rover.Envelope.THROTTLE, "can_mask": can_mask_11_bits},
+            ]
         )
 
         # Add CAN enabled state
@@ -66,11 +81,6 @@ class ControllerNode(Node):
 
         # Start CAN reader thread
         threading.Thread(target=self.can_reader_task, daemon=True).start()
-        self.get_logger().info("finished initialization")
-
-    def destroy_node(self):
-        super().destroy_node()
-        self.can_bus.shutdown()
 
     def can_enabled_callback(self, msg):
         with self.can_enabled_lock:
@@ -81,14 +91,6 @@ class ControllerNode(Node):
         self.radio_override_logged = True
 
     def can_reader_task(self):
-        can_mask_11_bits = (1 << 11) - 1
-        self.can_bus.set_filters(
-            [
-                {"can_id": rover.Envelope.STEERING, "can_mask": can_mask_11_bits},
-                {"can_id": rover.Envelope.THROTTLE, "can_mask": can_mask_11_bits},
-            ]
-        )
-
         for msg in self.can_bus:
             if not rclpy.ok():
                 break
