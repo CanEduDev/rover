@@ -110,7 +110,7 @@ class ControllerNode(Node):
         # Process throttle from CAN message
         throttle_pulse = struct.unpack("H", msg.data[1:3])[0]
         # Normalize to [-1, 1] range
-        throttle = round((throttle_pulse - 1500) / 500)
+        throttle = (throttle_pulse - 1500) / 500
         if throttle > 1:
             throttle = 1
         if throttle < -1:
