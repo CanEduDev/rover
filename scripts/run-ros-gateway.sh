@@ -89,10 +89,22 @@ parse_arguments() {
     done
 }
 
+setup_vcan_interface() {
+    # If using log replay, we don't want to reboot the device.
+    if ! ip link show "${CAN_CHANNEL}" | grep UP; then
+        sudo ip link set "${CAN_CHANNEL}" up
+    fi
+}
+
 # Function to set up CAN interface
 setup_can_interface() {
     if [[ ${CAN_INTERFACE} == "socketcan" ]]; then
         echo "Setting up socketcan interface ${CAN_CHANNEL} with bitrate ${CAN_BITRATE}"
+        if [[ ${CAN_CHANNEL} == vcan* ]]; then
+            setup_vcan_interface
+            return
+        fi
+
         sudo ip link set "${CAN_CHANNEL}" down 2>/dev/null || true
         sudo ip link set "${CAN_CHANNEL}" type can bitrate "${CAN_BITRATE}" restart-ms 100
         sudo ip link set "${CAN_CHANNEL}" up
