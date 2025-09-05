@@ -79,16 +79,22 @@ class BatteryNode(Node):
             self.regulated_output_id = rover.Envelope.AD_BATTERY_REGULATED_OUTPUT
 
         can_mask_11_bits = (1 << 11) - 1
-        filters = [
+        can_filters = [
             {"can_id": self.cell_voltages_id, "can_mask": can_mask_11_bits},
             {"can_id": self.output_id, "can_mask": can_mask_11_bits},
             {"can_id": self.regulated_output_id, "can_mask": can_mask_11_bits},
         ]
 
         self.can_bus = can.ThreadSafeBus(
-            interface=interface, channel=channel, bitrate=bitrate
+            interface=interface,
+            channel=channel,
+            bitrate=bitrate,
+            can_filters=can_filters,
         )
-        self.can_bus.set_filters(filters)
+
+        # Flush receive buffer because sometimes messages pass through before filter is applied.
+        while self.can_bus.recv(timeout=0) is not None:
+            pass
 
         threading.Thread(target=self.can_reader_task, daemon=True).start()
 

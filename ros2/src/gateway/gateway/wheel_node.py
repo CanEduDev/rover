@@ -72,11 +72,18 @@ class WheelNode(Node):
             can_id = rover.Envelope.WHEEL_REAR_RIGHT_SPEED
             self.report_freq_id = rover.Envelope.WHEEL_REAR_RIGHT_REPORT_FREQUENCY
 
+        can_filters = [{"can_id": can_id, "can_mask": can_mask_11_bits}]
+
         self.can_bus = can.ThreadSafeBus(
-            interface=interface, channel=channel, bitrate=bitrate
+            interface=interface,
+            channel=channel,
+            bitrate=bitrate,
+            can_filters=can_filters,
         )
 
-        self.can_bus.set_filters([{"can_id": can_id, "can_mask": can_mask_11_bits}])
+        # Flush receive buffer because sometimes messages pass through before filter is applied.
+        while self.can_bus.recv(timeout=0) is not None:
+            pass
 
         # Add CAN enabled state
         self.can_enabled = True

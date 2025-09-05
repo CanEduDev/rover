@@ -36,10 +36,18 @@ class MayorNode(Node):
     def init_can_bus(self, interface, channel, bitrate):
         self.kp_id = 0
         can_mask_11_bits = (1 << 11) - 1
+        can_filters = [{"can_id": self.kp_id, "can_mask": can_mask_11_bits}]
+
         self.can_bus = can.ThreadSafeBus(
-            interface=interface, channel=channel, bitrate=bitrate
+            interface=interface,
+            channel=channel,
+            bitrate=bitrate,
+            can_filters=can_filters,
         )
-        self.can_bus.set_filters([{"can_id": self.kp_id, "can_mask": can_mask_11_bits}])
+
+        # Flush receive buffer because sometimes messages pass through before filter is applied.
+        while self.can_bus.recv(timeout=0) is not None:
+            pass
 
         # Start CAN reader thread
         threading.Thread(target=self.can_reader_task, daemon=True).start()

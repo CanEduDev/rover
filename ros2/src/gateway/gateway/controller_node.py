@@ -58,16 +58,20 @@ class ControllerNode(Node):
         self.can_bus.shutdown()
 
     def init_can_bus(self, interface, channel, bitrate):
-        self.can_bus = can.ThreadSafeBus(
-            interface=interface, channel=channel, bitrate=bitrate
-        )
         can_mask_11_bits = (1 << 11) - 1
-        self.can_bus.set_filters(
-            [
-                {"can_id": rover.Envelope.STEERING, "can_mask": can_mask_11_bits},
-                {"can_id": rover.Envelope.THROTTLE, "can_mask": can_mask_11_bits},
-            ]
+        can_filters = [
+            {"can_id": rover.Envelope.STEERING, "can_mask": can_mask_11_bits},
+            {"can_id": rover.Envelope.THROTTLE, "can_mask": can_mask_11_bits},
+        ]
+
+        self.can_bus = can.ThreadSafeBus(
+            interface=interface,
+            channel=channel,
+            bitrate=bitrate,
+            can_filters=can_filters,
         )
+
+        # Don't need to flush rx buffer here because we check for the ID in the reader either way.
 
         # Add CAN enabled state
         self.can_enabled = True
