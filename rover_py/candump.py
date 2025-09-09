@@ -82,6 +82,7 @@ class Dumper:
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
+            notifier.stop()
             self.bus.shutdown()
 
 
