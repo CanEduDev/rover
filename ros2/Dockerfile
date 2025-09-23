@@ -13,7 +13,7 @@ EOF
 COPY ros2 /ros2_ws
 
 # Derive build/exec dependencies
-RUN bash -e <<'EOF'
+RUN bash -eo pipefail <<'EOF'
 declare -A types=(
   [exec]="--dependency-types=exec"
   [build]="")
