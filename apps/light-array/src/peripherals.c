@@ -32,7 +32,7 @@ void gpio_init(void) {
   HAL_GPIO_WritePin(GPIOB, LIGHT_3_PIN | LIGHT_4_PIN | VDD_IO_LEVEL_PIN,
                     GPIO_PIN_RESET);
 
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   gpio_init.Pin = LIGHT_1_PIN | LIGHT_2_PIN;
   gpio_init.Mode = GPIO_MODE_OUTPUT_PP;
   gpio_init.Pull = GPIO_NOPULL;

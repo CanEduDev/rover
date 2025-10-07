@@ -146,7 +146,7 @@ static void uart1_init(void) {
 }
 
 void can_msp_init(void) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   /* Peripheral clock enable */
   __HAL_RCC_CAN1_CLK_ENABLE();
 
@@ -184,7 +184,7 @@ void can_msp_deinit(void) {
 }
 
 void spi1_msp_init(void) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   /* Peripheral clock enable */
   __HAL_RCC_SPI1_CLK_ENABLE();
 
@@ -229,7 +229,7 @@ void spi1_msp_deinit(void) {
 }
 
 void spi2_msp_init(void) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   /* Peripheral clock enable */
   __HAL_RCC_SPI2_CLK_ENABLE();
 
@@ -274,7 +274,7 @@ void spi2_msp_deinit(void) {
 }
 
 void uart1_msp_init(void) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   /* Peripheral clock enable */
   __HAL_RCC_USART1_CLK_ENABLE();
 

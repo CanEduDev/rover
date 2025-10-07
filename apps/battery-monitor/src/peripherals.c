@@ -34,7 +34,7 @@ void peripherals_init(void) {
 }
 
 void adc1_init(void) {
-  ADC_ChannelConfTypeDef config;
+  ADC_ChannelConfTypeDef config = {0};
   ADC_HandleTypeDef* hadc1 = &peripherals.hadc1;
 
   ADC12_COMMON->CCR |= ADC12_CCR_VREFEN;
@@ -109,7 +109,7 @@ void adc1_init(void) {
 }
 
 void adc2_init(void) {
-  ADC_ChannelConfTypeDef config;
+  ADC_ChannelConfTypeDef config = {0};
   ADC_HandleTypeDef* hadc2 = &peripherals.hadc2;
 
   // Common config for all channels
@@ -223,7 +223,7 @@ void dma_init(void) {
 }
 
 void gpio_init(void) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -308,7 +308,7 @@ void adc2_dma_init(ADC_HandleTypeDef* hadc) {
  * @retval None
  */
 void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   if (hadc->Instance == ADC1) {
     /* Peripheral clock enable */
     hal_rcc_adc12_clk_enabled++;
@@ -448,7 +448,7 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan) {
  * @retval None
  */
 void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   if (hi2c->Instance == I2C1) {
     __HAL_RCC_GPIOB_CLK_ENABLE();
     /**I2C1 GPIO Configuration

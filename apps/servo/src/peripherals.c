@@ -45,8 +45,8 @@ void peripherals_init(void) {
 
 void adc1_init(void) {
   ADC_HandleTypeDef* hadc1 = &peripherals.hadc1;
-  ADC_MultiModeTypeDef multimode;
-  ADC_ChannelConfTypeDef config;
+  ADC_MultiModeTypeDef multimode = {0};
+  ADC_ChannelConfTypeDef config = {0};
 
   /** Common config
    */
@@ -110,7 +110,7 @@ void adc1_init(void) {
 
 void adc2_init(void) {
   ADC_HandleTypeDef* hadc2 = &peripherals.hadc2;
-  ADC_ChannelConfTypeDef config;
+  ADC_ChannelConfTypeDef config = {0};
 
   /** Common config
    */
@@ -236,8 +236,8 @@ void spi3_init(void) {
 
 void tim1_init(void) {
   TIM_HandleTypeDef* htim1 = &peripherals.htim1;
-  TIM_ClockConfigTypeDef clock_source_config;
-  TIM_OC_InitTypeDef config_oc;
+  TIM_ClockConfigTypeDef clock_source_config = {0};
+  TIM_OC_InitTypeDef config_oc = {0};
 
   htim1->Instance = TIM1;
   htim1->Init.Prescaler = PWM_PSC_1MHZ;
@@ -269,7 +269,7 @@ void tim1_init(void) {
     error();
   }
 
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   __HAL_RCC_GPIOC_CLK_ENABLE();
   /**TIM1 GPIO Configuration
   PC3     ------> TIM1_CH4
@@ -297,7 +297,7 @@ void dma_init(void) {
 }
 
 void gpio_init(void) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOF_CLK_ENABLE();
@@ -366,7 +366,7 @@ void adc2_dma_init(ADC_HandleTypeDef* hadc) {
  * @retval None
  */
 void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   if (hadc->Instance == ADC1) {
     /* Peripheral clock enable */
     hal_rcc_adc12_clk_enabled++;
@@ -479,7 +479,7 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan) {
  * @retval None
  */
 void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   if (hi2c->Instance == I2C1) {
     __HAL_RCC_GPIOB_CLK_ENABLE();
     /**I2C1 GPIO Configuration
@@ -560,7 +560,7 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c) {
  * @retval None
  */
 void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   if (hspi->Instance == SPI1) {
     spi1_msp_init();
 

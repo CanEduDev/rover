@@ -34,7 +34,7 @@ void gpio_init(void) {
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   gpio_init.Pin = VDD_IO_LEVEL_PIN;
   gpio_init.Mode = GPIO_MODE_OUTPUT_PP;
   gpio_init.Pull = GPIO_NOPULL;
@@ -47,8 +47,8 @@ void gpio_init(void) {
 
 void adc1_init(void) {
   ADC_HandleTypeDef* hadc1 = &peripherals.hadc1;
-  ADC_MultiModeTypeDef multimode;
-  ADC_ChannelConfTypeDef config;
+  ADC_MultiModeTypeDef multimode = {0};
+  ADC_ChannelConfTypeDef config = {0};
 
   /** Common config
    */
@@ -156,7 +156,7 @@ void adc1_dma_init(ADC_HandleTypeDef* hadc) {
  * @retval None
  */
 void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   if (hadc->Instance == ADC1) {
     /* Peripheral clock enable */
     hal_rcc_adc12_clk_enabled++;

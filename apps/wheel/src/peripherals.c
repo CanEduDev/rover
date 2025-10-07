@@ -98,7 +98,7 @@ void tim2_init(void) {
     error();
   }
 
-  TIM_IC_InitTypeDef ic_config;
+  TIM_IC_InitTypeDef ic_config = {0};
   ic_config.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
   ic_config.ICSelection = TIM_ICSELECTION_DIRECTTI;
   ic_config.ICPrescaler = TIM_ICPSC_DIV1;
@@ -121,7 +121,7 @@ void dma_init(void) {
 }
 
 void gpio_init(void) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOF_CLK_ENABLE();
@@ -187,7 +187,7 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan) {
  * @retval None
  */
 void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   if (hi2c->Instance == I2C1) {
     __HAL_RCC_GPIOB_CLK_ENABLE();
     /**I2C1 GPIO Configuration
@@ -262,7 +262,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi) {
  * @retval None
  */
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base) {
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   if (htim_base->Instance == TIM2) {
     /* Peripheral clock enable */
     __HAL_RCC_TIM2_CLK_ENABLE();

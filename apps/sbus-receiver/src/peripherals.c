@@ -32,7 +32,7 @@ void gpio_init(void) {
 
   HAL_GPIO_WritePin(VDD_IO_LEVEL_GPIO_PORT, VDD_IO_LEVEL_PIN, GPIO_PIN_RESET);
 
-  GPIO_InitTypeDef gpio_init;
+  GPIO_InitTypeDef gpio_init = {0};
   gpio_init.Pin = VDD_IO_LEVEL_PIN;
   gpio_init.Mode = GPIO_MODE_OUTPUT_PP;
   gpio_init.Pull = GPIO_NOPULL;
@@ -125,7 +125,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart) {
     uart1_msp_init();
 
   } else if (huart->Instance == USART2) {
-    GPIO_InitTypeDef gpio_init;
+    GPIO_InitTypeDef gpio_init = {0};
     /* Peripheral clock enable */
     __HAL_RCC_USART2_CLK_ENABLE();
 

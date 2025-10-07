@@ -2,9 +2,9 @@
 #include "stm32f3xx_hal.h"
 
 void system_clock_init(void) {
-  RCC_OscInitTypeDef rcc_osc_init;
-  RCC_ClkInitTypeDef rcc_clk_init;
-  RCC_PeriphCLKInitTypeDef rcc_periph_clk_init;
+  RCC_OscInitTypeDef rcc_osc_init = {0};
+  RCC_ClkInitTypeDef rcc_clk_init = {0};
+  RCC_PeriphCLKInitTypeDef rcc_periph_clk_init = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
    * in the RCC_OscInitTypeDef structure.
