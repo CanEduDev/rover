@@ -77,10 +77,13 @@ void list_init(void) {
 }
 
 void folder_init(void) {
+  // NOLINTBEGIN(*-magic-numbers)
   ck_data.steering_folder = &ck_data.folders[2];
   ck_data.throttle_folder = &ck_data.folders[3];
   ck_data.steering_subtrim_folder = &ck_data.folders[4];
-  ck_data.throttle_subtrim_folder = &ck_data.folders[5];  // NOLINT
+  ck_data.throttle_subtrim_folder = &ck_data.folders[5];
+  ck_data.buzzer_sound_folder = &ck_data.folders[6];
+  // NOLINTEND(*-magic-numbers)
 
   // Set up the transmit folders
   for (int i = 2; i < 2 + CK_DATA_TX_FOLDER_COUNT; i++) {
@@ -97,6 +100,17 @@ void folder_init(void) {
       ck_data.steering_subtrim_page->line_count;
   ck_data.throttle_subtrim_folder->dlc =
       ck_data.throttle_subtrim_page->line_count;
+
+  // Set up the receive folders
+  for (int i = 2 + CK_DATA_TX_FOLDER_COUNT; i < CK_DATA_FOLDER_COUNT; i++) {
+    ck_data.folders[i].folder_no = i;
+    ck_data.folders[i].direction = CK_DIRECTION_RECEIVE;
+    ck_data.folders[i].doc_list_no = 0;
+    ck_data.folders[i].doc_no = i - (2 + CK_DATA_TX_FOLDER_COUNT);
+    ck_data.folders[i].enable = true;
+  }
+
+  ck_data.buzzer_sound_folder->dlc = 3 * sizeof(uint16_t);
 }
 
 static void assign_stored(void) {

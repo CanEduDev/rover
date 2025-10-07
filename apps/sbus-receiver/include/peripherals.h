@@ -11,12 +11,12 @@ extern "C" {
 #endif
 
 #include "common-peripherals.h"
-#include "stm32f3xx_hal.h"
 
 typedef struct {
   // Provided by CPU board
   common_peripherals_t *common_peripherals;
 
+  TIM_HandleTypeDef htim3;
   UART_HandleTypeDef huart2;
 } peripherals_t;
 

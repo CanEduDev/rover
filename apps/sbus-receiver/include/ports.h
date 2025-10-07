@@ -12,6 +12,8 @@ extern "C" {
 
 #include "stm32f3xx_hal.h"
 
+#define BUZZER_GPIO_PORT GPIOB
+#define BUZZER_PIN GPIO_PIN_1
 #define UART2_GPIO_PORT GPIOA
 #define UART2_RX_PIN GPIO_PIN_3
 #define VDD_IO_LEVEL_GPIO_PORT GPIOB

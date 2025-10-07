@@ -1,6 +1,7 @@
 sbus_receiver_inc = include_directories('include')
 
 sbus_receiver_src = files(
+    'src' / 'buzzer.c',
     'src' / 'ck-data.c',
     'src' / 'freertos-tasks.c',
     'src' / 'interrupts.c',

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "buzzer.h"
 #include "ck-data.h"
 #include "sbus.h"
 #include "steering.h"
@@ -34,6 +35,8 @@ void task_init(void) {
   if (init_lfs_task(priority++) < 0) {
     error();
   }
+
+  init_buzzer_task(priority++);
 
   steering_task = xTaskCreateStatic(
       sbus_read_and_steer, "sbus read", 2 * configMINIMAL_STACK_SIZE, NULL,
@@ -102,7 +105,15 @@ void send_steering_command(steering_command_t *command) {
 }
 
 int handle_letter(const ck_folder_t *folder, const ck_letter_t *letter) {
-  (void)folder;
-  (void)letter;
+  if (ck_get_action_mode() == CK_ACTION_MODE_FREEZE) {
+    return APP_OK;
+  }
+
+  ck_data_t *ck_data = get_ck_data();
+
+  if (folder->folder_no == ck_data->buzzer_sound_folder->folder_no) {
+    return process_buzzer_sound_letter(letter);
+  }
+
   return APP_OK;
 }

@@ -33,6 +33,7 @@ class Envelope(enum.IntEnum):
     THROTTLE = 0x101
     LIGHT_ARRAY_FRONT_STATE = 0x120
     LIGHT_ARRAY_REAR_STATE = 0x121
+    BUZZER_SOUND = 0x122
 
     # Report messages
     BATTERY_CELL_VOLTAGES = 0x200
@@ -147,6 +148,7 @@ class SbusReceiverFolder(enum.IntEnum):
     THROTTLE = 3
     STEERING_SUBTRIM = 4
     THROTTLE_SUBTRIM = 5
+    BUZZER_SOUND = 6
 
     def prefix(self):
         return "SBUS_RECEIVER"
@@ -321,6 +323,11 @@ SBUS_RECEIVER_ASSIGNMENTS = [
         City.SBUS_RECEIVER,
         Envelope.THROTTLE_SUBTRIM,
         SbusReceiverFolder.THROTTLE_SUBTRIM,
+    ),
+    Assignment(
+        City.SBUS_RECEIVER,
+        Envelope.BUZZER_SOUND,
+        SbusReceiverFolder.BUZZER_SOUND,
     ),
 ]
 
