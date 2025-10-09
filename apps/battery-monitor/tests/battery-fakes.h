@@ -8,6 +8,7 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "alarm.h"
 #include "led.h"
 #include "lfs-wrapper.h"
 #include "power.h"
@@ -15,6 +16,9 @@ extern "C" {
 // Testing
 #include "fff.h"
 
+DECLARE_FAKE_VOID_FUNC(alarm_init)
+DECLARE_FAKE_VOID_FUNC(alarm_start)
+DECLARE_FAKE_VOID_FUNC(alarm_stop)
 DECLARE_FAKE_VOID_FUNC(set_vbat_power_on)
 DECLARE_FAKE_VOID_FUNC(set_vbat_power_off)
 DECLARE_FAKE_VOID_FUNC(set_reg_out_power_on)
@@ -31,6 +35,9 @@ DECLARE_FAKE_VALUE_FUNC(int, read_file, file_t *)
 DECLARE_FAKE_VALUE_FUNC(int, write_file_async, const file_t *)
 
 #define FFF_FAKES_LIST(FAKE)      \
+  FAKE(alarm_init)                \
+  FAKE(alarm_start)               \
+  FAKE(alarm_stop)                \
   FAKE(set_vbat_power_on)         \
   FAKE(set_vbat_power_off)        \
   FAKE(set_reg_out_power_on)      \

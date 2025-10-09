@@ -167,6 +167,7 @@ class BatteryMonitorFolder(enum.IntEnum):
     VBAT_OUT_OVERCURRENT_THRESHOLD = 10
     REG_OUT_OVERCURRENT_THRESHOLD = 11
     CELL_CALIBRATION = 12
+    ALARM = 13
 
     def prefix(self):
         return "BATTERY_MONITOR"
@@ -387,6 +388,11 @@ BATTERY_MONITOR_ASSIGNMENTS = [
         Envelope.BATTERY_CELL_CALIBRATION,
         BatteryMonitorFolder.CELL_CALIBRATION,
     ),
+    Assignment(
+        City.BATTERY_MONITOR,
+        Envelope.BUZZER_SOUND,
+        BatteryMonitorFolder.ALARM,
+    ),
 ]
 
 WHEEL_FRONT_LEFT_ASSIGNMENTS = [
@@ -516,6 +522,11 @@ AD_BATTERY_MONITOR_ASSIGNMENTS = [
         City.AD_BATTERY_MONITOR,
         Envelope.AD_BATTERY_CELL_CALIBRATION,
         BatteryMonitorFolder.CELL_CALIBRATION,
+    ),
+    Assignment(
+        City.AD_BATTERY_MONITOR,
+        Envelope.BUZZER_SOUND,
+        BatteryMonitorFolder.ALARM,
     ),
 ]
 

@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "adc.h"
+#include "alarm.h"
 #include "jumpers.h"
 #include "led.h"
 #include "potentiometer.h"
@@ -43,6 +44,7 @@ battery_state_t *get_battery_state(void) {
 
 void battery_state_init(void) {
   led_init();
+  alarm_init();
   battery_state_reset();
   load_calibration();
 
@@ -190,16 +192,19 @@ void update_battery_leds(void) {
   if (battery_state.charge < warning_percentage) {
     set_led_color(LED6, RED);
     set_led_color(LED7, RED);
+    alarm_start();
   }
 
   else if (battery_state.charge < caution_percentage) {
     set_led_color(LED6, ORANGE);
     set_led_color(LED7, ORANGE);
+    alarm_stop();
   }
 
   else {
     set_led_color(LED6, GREEN);
     set_led_color(LED7, GREEN);
+    alarm_stop();
   }
 }
 

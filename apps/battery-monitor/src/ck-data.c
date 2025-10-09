@@ -1,5 +1,8 @@
 #include "ck-data.h"
 
+#include <stdint.h>
+
+#include "ck-types.h"
 #include "error.h"
 #include "jsondb.h"
 
@@ -32,6 +35,7 @@ void page_init(void) {
   ck_data.cell_page1 = &ck_data.pages[1];
   ck_data.reg_out_page = &ck_data.pages[2];
   ck_data.vbat_out_page = &ck_data.pages[3];
+  ck_data.alarm_page = &ck_data.pages[4];
 
   // 3 cells per page + 1 byte for pagination.
   ck_data.cell_page0->line_count = 3 * sizeof(uint16_t) + 1;
@@ -41,12 +45,15 @@ void page_init(void) {
   // Voltage and current are uin32_t.
   ck_data.reg_out_page->line_count = 2 * sizeof(uint32_t);
   ck_data.vbat_out_page->line_count = 2 * sizeof(uint32_t);
+  // Alarm page: frequency (2 bytes) + duration (2 bytes) + volume (2 bytes)
+  ck_data.alarm_page->line_count = 3 * sizeof(uint16_t);
 }
 
 void doc_init(void) {
   ck_data.cell_doc = &ck_data.docs[0];
   ck_data.reg_out_doc = &ck_data.docs[1];
   ck_data.vbat_out_doc = &ck_data.docs[2];
+  ck_data.alarm_doc = &ck_data.docs[3];
 
   // Set up the documents
   ck_data.cell_doc->direction = CK_DIRECTION_TRANSMIT;
@@ -61,6 +68,10 @@ void doc_init(void) {
   ck_data.vbat_out_doc->direction = CK_DIRECTION_TRANSMIT;
   ck_data.vbat_out_doc->page_count = 1;
   ck_data.vbat_out_doc->pages[0] = ck_data.vbat_out_page;
+
+  ck_data.alarm_doc->direction = CK_DIRECTION_TRANSMIT;
+  ck_data.alarm_doc->page_count = 1;
+  ck_data.alarm_doc->pages[0] = ck_data.alarm_page;
 }
 
 void list_init(void) {
@@ -83,6 +94,7 @@ void list_init(void) {
   ck_data.tx_list->records[1] = ck_data.cell_doc;
   ck_data.tx_list->records[2] = ck_data.reg_out_doc;
   ck_data.tx_list->records[3] = ck_data.vbat_out_doc;
+  ck_data.tx_list->records[4] = ck_data.alarm_doc;
 }
 
 void folder_init(void) {
@@ -98,41 +110,67 @@ void folder_init(void) {
   ck_data.vbat_out_overcurrent_threshold_folder = &ck_data.folders[10];
   ck_data.reg_out_overcurrent_threshold_folder = &ck_data.folders[11];
   ck_data.cell_calibration_folder = &ck_data.folders[12];
+  ck_data.alarm_folder = &ck_data.folders[13];
   // NOLINTEND(*-magic-numbers)
 
-  // Set up the transmit folders
-  for (int i = 2; i < 2 + CK_DATA_TX_FOLDER_COUNT; i++) {
-    ck_data.folders[i].folder_no = i;
-    ck_data.folders[i].direction = CK_DIRECTION_TRANSMIT;
-    ck_data.folders[i].doc_list_no = 0;
-    ck_data.folders[i].doc_no = i - 1;  // 0 reserved by mayor's doc
-    ck_data.folders[i].enable = true;
-  }
-
+  // Transmit folders
+  ck_data.cell_folder->direction = CK_DIRECTION_TRANSMIT;
   ck_data.cell_folder->dlc = ck_data.cell_page0->line_count;
+
+  ck_data.reg_out_folder->direction = CK_DIRECTION_TRANSMIT;
   ck_data.reg_out_folder->dlc = ck_data.reg_out_page->line_count;
+
+  ck_data.vbat_out_folder->direction = CK_DIRECTION_TRANSMIT;
   ck_data.vbat_out_folder->dlc = ck_data.vbat_out_page->line_count;
 
-  // Set up the receive folders
-  uint8_t rx_doc_no = 0;  // Start counting from 0
-  for (int i = 2 + CK_DATA_TX_FOLDER_COUNT; i < CK_DATA_FOLDER_COUNT; i++) {
-    ck_data.folders[i].folder_no = i;
-    ck_data.folders[i].direction = CK_DIRECTION_RECEIVE;
-    ck_data.folders[i].doc_list_no = 1;
-    ck_data.folders[i].doc_no = rx_doc_no;
-    ck_data.folders[i].enable = true;
+  ck_data.alarm_folder->direction = CK_DIRECTION_TRANSMIT;
+  ck_data.alarm_folder->dlc = ck_data.alarm_page->line_count;
 
-    rx_doc_no++;
-  }
-
+  // Receive folders
+  ck_data.jumper_config_folder->direction = CK_DIRECTION_RECEIVE;
   ck_data.jumper_config_folder->dlc = sizeof(uint8_t);
+
+  ck_data.set_reg_out_voltage_folder->direction = CK_DIRECTION_RECEIVE;
   ck_data.set_reg_out_voltage_folder->dlc = sizeof(uint32_t);
+
+  ck_data.output_on_off_folder->direction = CK_DIRECTION_RECEIVE;
   ck_data.output_on_off_folder->dlc = 2 * sizeof(uint8_t);
+
+  ck_data.report_freq_folder->direction = CK_DIRECTION_RECEIVE;
   ck_data.report_freq_folder->dlc = sizeof(uint16_t);
+
+  ck_data.low_voltage_cutoff_folder->direction = CK_DIRECTION_RECEIVE;
   ck_data.low_voltage_cutoff_folder->dlc = sizeof(uint16_t);
+
+  ck_data.vbat_out_overcurrent_threshold_folder->direction =
+      CK_DIRECTION_RECEIVE;
   ck_data.vbat_out_overcurrent_threshold_folder->dlc = sizeof(uint32_t);
+
+  ck_data.reg_out_overcurrent_threshold_folder->direction =
+      CK_DIRECTION_RECEIVE;
   ck_data.reg_out_overcurrent_threshold_folder->dlc = sizeof(uint32_t);
+
+  ck_data.cell_calibration_folder->direction = CK_DIRECTION_RECEIVE;
   ck_data.cell_calibration_folder->dlc = sizeof(uint16_t);
+
+  // Set up the doc lists, folder numbers and enable flags
+  const uint8_t tx_doc_list_no = 0;
+  const uint8_t rx_doc_list_no = 1;
+
+  uint8_t tx_doc_no = 1;
+  uint8_t rx_doc_no = 0;
+
+  for (int i = 2; i < CK_DATA_FOLDER_COUNT; i++) {
+    ck_data.folders[i].folder_no = i;
+    ck_data.folders[i].enable = true;
+    if (ck_data.folders[i].direction == CK_DIRECTION_TRANSMIT) {
+      ck_data.folders[i].doc_list_no = tx_doc_list_no;
+      ck_data.folders[i].doc_no = tx_doc_no++;
+    } else {
+      ck_data.folders[i].doc_list_no = rx_doc_list_no;
+      ck_data.folders[i].doc_no = rx_doc_no++;
+    }
+  }
 }
 
 static void assign_stored(void) {

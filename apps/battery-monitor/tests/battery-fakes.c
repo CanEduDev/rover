@@ -1,5 +1,6 @@
 #include "battery-fakes.h"
 
+#include "alarm.h"
 #include "led.h"
 #include "power.h"
 
@@ -9,6 +10,9 @@
 DEFINE_FFF_GLOBALS
 
 // NOLINTBEGIN
+DEFINE_FAKE_VOID_FUNC(alarm_init)
+DEFINE_FAKE_VOID_FUNC(alarm_start)
+DEFINE_FAKE_VOID_FUNC(alarm_stop)
 DEFINE_FAKE_VOID_FUNC(set_vbat_power_on)
 DEFINE_FAKE_VOID_FUNC(set_vbat_power_off)
 DEFINE_FAKE_VOID_FUNC(set_reg_out_power_on)

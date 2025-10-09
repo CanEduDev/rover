@@ -7,8 +7,8 @@ extern "C" {
 
 #include "ck-types.h"
 
-#define CK_DATA_TX_PAGE_COUNT 4
-#define CK_DATA_TX_DOC_COUNT 3
+#define CK_DATA_TX_PAGE_COUNT 5
+#define CK_DATA_TX_DOC_COUNT 4
 #define CK_DATA_RX_DOC_COUNT 8
 #define CK_DATA_LIST_COUNT 2
 #define CK_DATA_TX_FOLDER_COUNT CK_DATA_TX_DOC_COUNT
@@ -31,15 +31,18 @@ typedef struct {
   ck_page_t *cell_page1;
   ck_page_t *reg_out_page;
   ck_page_t *vbat_out_page;
+  ck_page_t *alarm_page;
 
   ck_document_t *cell_doc;
   ck_document_t *reg_out_doc;
   ck_document_t *vbat_out_doc;
+  ck_document_t *alarm_doc;
 
   // Transmit
   ck_folder_t *cell_folder;
   ck_folder_t *reg_out_folder;
   ck_folder_t *vbat_out_folder;
+  ck_folder_t *alarm_folder;
 
   // Receive
   ck_folder_t *jumper_config_folder;
