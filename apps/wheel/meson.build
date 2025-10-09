@@ -27,20 +27,7 @@ wheel_bin = custom_target(
     build_by_default: true,
 )
 
-run_target(
-    'swd-flash-wheel',
-    command: [
-        openocd,
-        '-f',
-        openocd_config,
-        '-c',
-        'program @0@ verify'.format(bootloader_elf.full_path()),
-        '-c',
-        'program @0@ verify reset exit'.format(wheel_elf.full_path()),
-    ],
-    depends: [bootloader_elf, wheel_elf],  # required because full_path doesn't create automatic dependency on these objects
-)
-
+app_elfs += [wheel_elf]
+app_binaries += [wheel_bin]
+tidy_files += [wheel_src]
 release_files += [wheel_elf, wheel_bin]
-
-wheel_tidy_files = wheel_src

@@ -31,8 +31,4 @@ battery_test = executable(
 
 test('battery', battery_test, suite: battery_test_suite)
 
-battery_test_tidy_files = [
-    battery_common_test_src,
-    battery_adc_test_src,
-    battery_test_src,
-]
+tidy_files += [battery_common_test_src, battery_adc_test_src, battery_test_src]

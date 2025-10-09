@@ -38,7 +38,6 @@ custom_target(
         meson.current_build_dir() / 'html',
     ],
     input: sphinx_src,
-    # depends: [doxygen_xml, download_assets],
     depends: doxygen_xml,
     output: 'html',
     build_always_stale: true,

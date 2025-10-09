@@ -24,20 +24,7 @@ light_array_bin = custom_target(
     build_by_default: true,
 )
 
-run_target(
-    'swd-flash-light-array',
-    command: [
-        openocd,
-        '-f',
-        openocd_config,
-        '-c',
-        'program @0@ verify'.format(bootloader_elf.full_path()),
-        '-c',
-        'program @0@ verify reset exit'.format(light_array_elf.full_path()),
-    ],
-    depends: [bootloader_elf, light_array_elf],  # required because full_path doesn't create automatic dependency on these objects
-)
-
+app_elfs += [light_array_elf]
+app_binaries += [light_array_bin]
+tidy_files += [light_array_src]
 release_files += [light_array_elf, light_array_bin]
-
-light_array_tidy_files = [light_array_src]

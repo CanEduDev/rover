@@ -7,4 +7,4 @@ circuits_dep = declare_dependency(
     sources: circuits_src,
 )
 
-circuits_tidy_files = circuits_src
+tidy_files += circuits_src

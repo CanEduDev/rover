@@ -35,4 +35,4 @@ rover_king_dep = [rover_dep, can_kingdom_king_dep]
 
 subdir('tests')
 
-rover_tidy_files = [rover_src, rover_test_tidy_files]
+tidy_files += [rover_src]

@@ -24,4 +24,4 @@ float_test = executable(
 
 test('float', float_test, suite: float_test_suite)
 
-float_test_tidy_files = [float_test_src]
+tidy_files += [float_test_src]

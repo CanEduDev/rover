@@ -27,4 +27,4 @@ json_test = executable(
 
 test('json', json_test, args: json_test_data, suite: json_test_suite)
 
-json_test_tidy_files = [json_test_src]
+tidy_files += [json_test_src]

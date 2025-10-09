@@ -9,4 +9,4 @@ arena_dep = declare_dependency(
 
 subdir('tests')
 
-arena_tidy_files = [arena_src, arena_test_tidy_files]
+tidy_files += [arena_src]

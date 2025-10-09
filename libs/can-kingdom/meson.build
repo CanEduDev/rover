@@ -16,9 +16,8 @@ can_kingdom_king_dep = declare_dependency(
 
 subdir('tests')
 
-can_kingdom_tidy_files = [
+tidy_files += [
     can_kingdom_mayor_src,
     can_kingdom_king_src,
     can_kingdom_postmaster_dummy_src,
-    can_kingdom_test_tidy_files,
 ]

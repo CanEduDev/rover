@@ -10,4 +10,4 @@ json_dep = declare_dependency(
 
 subdir('tests')
 
-json_tidy_files = [json_src, json_test_tidy_files]
+tidy_files += [json_src]

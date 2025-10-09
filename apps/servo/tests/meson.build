@@ -26,8 +26,4 @@ servo_test = executable(
 
 test('servo', servo_test, suite: servo_test_suite)
 
-servo_test_tidy_files = [
-    servo_common_test_src,
-    servo_adc_test_src,
-    servo_test_src,
-]
+tidy_files += [servo_common_test_src, servo_adc_test_src, servo_test_src]

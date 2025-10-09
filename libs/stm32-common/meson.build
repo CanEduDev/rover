@@ -31,4 +31,4 @@ stm32_common_dep = declare_dependency(
     dependencies: json_dep,
 )
 
-stm32_common_tidy_files = [stm32_lib_src]
+tidy_files += [stm32_lib_src]

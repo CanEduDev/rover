@@ -24,4 +24,4 @@ arena_test = executable(
 
 test('arena', arena_test, suite: arena_test_suite)
 
-arena_test_tidy_files = [arena_test_src]
+tidy_files += [arena_test_src]

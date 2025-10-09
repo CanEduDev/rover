@@ -48,7 +48,7 @@ can_kingdom_types_test = executable(
 
 test('ck-types', can_kingdom_types_test, suite: can_kingdom_test_suite)
 
-can_kingdom_test_tidy_files = [
+tidy_files += [
     can_kingdom_king_test_src,
     can_kingdom_mayor_test_src,
     can_kingdom_types_test_src,

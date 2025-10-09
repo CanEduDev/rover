@@ -12,4 +12,4 @@ rover_test = executable(
 
 test('rover', rover_test, suite: rover_test_suite)
 
-rover_test_tidy_files = [rover_test_src]
+tidy_files += [rover_test_src]

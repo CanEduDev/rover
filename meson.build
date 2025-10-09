@@ -22,9 +22,8 @@ objcopy = find_program('objcopy')
 size = find_program('size')
 clang_tidy = find_program('clang-tidy')
 cat = find_program('cat')
-python = find_program('python3', required: true)
+python = find_program('python3')
 openocd = find_program('openocd')
-openocd_config = files('openocd.cfg')
 
 stm32f3_hal_dep = dependency('stm32f3-hal')
 freertos_dep = dependency('freertos')
@@ -35,15 +34,46 @@ common_deps = [stm32f3_hal_dep, freertos_dep, littlefs_dep]
 
 # Populated in subdirs
 release_files = []
+tidy_files = []
 
 # Order is important
 fs = import('fs')
 subdir('libs')
-subdir('bootloader')
 subdir('apps')
+subdir('bootloader')
 subdir('docs')
 
-tidy_files = [apps_tidy_files, bootloader_tidy_files, common_libs_tidy_files]
+# Build binaries with bootloader. Creates binaries with both the bootloader and the app, using cat.
+foreach app_bin : app_binaries
+    bin_name = app_bin.full_path().split('/')[-1].split('.')[0]
+    release_files += custom_target(
+        '@0@-with-bootloader.bin'.format(bin_name),
+        build_by_default: true,
+        capture: true,  # This makes stdout of cat be captured and written to output file.
+        command: [cat, '@INPUT@'],
+        input: [bootloader_bin, app_bin],
+        output: ['@0@-with-bootloader.bin'.format(bin_name)],
+        depends: [bootloader_bin, app_bin],
+    )
+endforeach
+
+# SWD flash targets for all elf files
+foreach elf : app_elfs + [bootloader_elf]
+    elf_name = elf.name().split('.')[0]
+    run_target(
+        'swd-flash-@0@'.format(elf_name),
+        command: [
+            openocd,
+            '-f',
+            files('openocd.cfg'),
+            '-c',
+            'program @0@ verify'.format(bootloader_elf.full_path()),
+            '-c',
+            'program @0@ verify reset exit'.format(elf.full_path()),
+        ],
+        depends: [bootloader_elf, elf],
+    )
+endforeach
 
 # Override default meson clang-tidy targets
 run_target(
@@ -74,12 +104,10 @@ run_target(
     ],
 )
 
-check_src_script = files('scripts' / 'check-src.sh')
-
 run_target(
     'check',
     command: [
-        check_src_script,
+        files('scripts' / 'check-src.sh'),
         meson.project_source_root(),
         meson.project_build_root(),
     ],
@@ -88,35 +116,16 @@ run_target(
 # Binary size reporting
 run_target(
     'size',
-    command: [
-        size,
-        battery_monitor_elf,
-        light_array_elf,
-        obstacle_detector_elf,
-        sbus_receiver_elf,
-        servo_elf,
-        wheel_elf,
-        bootloader_elf,
-    ],
-    depends: [
-        battery_monitor_elf,
-        light_array_elf,
-        obstacle_detector_elf,
-        sbus_receiver_elf,
-        servo_elf,
-        wheel_elf,
-        bootloader_elf,
-    ],
+    command: [size, app_elfs, bootloader_elf],
+    depends: [app_elfs, bootloader_elf],
 )
-
-gen_system_conf_script = files('scripts' / 'gen-system-conf.py')
 
 config_dir = custom_target(
     'config',
     output: 'config',
     command: [
         python,
-        gen_system_conf_script,
+        files('scripts' / 'gen-system-conf.py'),
         '--force',
         '--battery-monitor-bin',
         battery_monitor_bin,
@@ -160,9 +169,7 @@ release_tgt = custom_target(
     depends: config_dir,
 )
 
-ros_gateway_build_script = files('scripts' / 'build-ros-gateway.sh')
-
-run_target('ros-gateway', command: [ros_gateway_build_script])
+run_target('ros-gateway', command: [files('scripts' / 'build-ros-gateway.sh')])
 
 # Try to find python3.exe first, in case we're running in WSL.
 python_flash = find_program('python3.exe', 'python3', required: false)
@@ -178,5 +185,5 @@ run_target(
         '--binary-dir',
         release_dir / 'binaries',
     ],
-    depends: release_tgt,
+    depends: [config_dir, release_tgt],
 )

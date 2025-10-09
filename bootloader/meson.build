@@ -6,8 +6,6 @@ bootloader_src = files(
     'src' / 'postmaster.c',
 )
 
-app_linker_script = fs.copyfile(files('src' / 'app.ld'))
-
 bootloader_linker_script = fs.copyfile(files('src' / 'bootloader.ld'))
 
 bootloader_elf = executable(
@@ -38,18 +36,5 @@ bootloader_bin = custom_target(
     build_by_default: true,
 )
 
-run_target(
-    'swd-flash-bootloader',
-    command: [
-        openocd,
-        '-f',
-        openocd_config,
-        '-c',
-        'program @0@ verify reset exit'.format(bootloader_elf.full_path()),
-    ],
-    depends: [bootloader_elf],  # required because full_path doesn't create automatic dependency on this object
-)
-
 release_files += [bootloader_elf, bootloader_bin]
-
-bootloader_tidy_files = [bootloader_src]
+tidy_files += [bootloader_src]

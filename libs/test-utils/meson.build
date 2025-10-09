@@ -13,3 +13,5 @@ test_utils_dep = declare_dependency(
     include_directories: test_utils_inc,
     link_with: test_utils_lib,
 )
+
+tidy_files += test_utils_src

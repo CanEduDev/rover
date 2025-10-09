@@ -9,4 +9,4 @@ float_dep = declare_dependency(
 
 subdir('tests')
 
-float_tidy_files = [float_src, float_test_tidy_files]
+tidy_files += [float_src]
