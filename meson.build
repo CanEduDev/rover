@@ -19,6 +19,7 @@ cc_native = meson.get_compiler('c', native: true)
 math_dep = cc_native.find_library('m')
 
 objcopy = find_program('objcopy')
+size = find_program('size')
 clang_tidy = find_program('clang-tidy')
 cat = find_program('cat')
 python = find_program('python3', required: true)
@@ -81,6 +82,30 @@ run_target(
         check_src_script,
         meson.project_source_root(),
         meson.project_build_root(),
+    ],
+)
+
+# Binary size reporting
+run_target(
+    'size',
+    command: [
+        size,
+        battery_monitor_elf,
+        light_array_elf,
+        obstacle_detector_elf,
+        sbus_receiver_elf,
+        servo_elf,
+        wheel_elf,
+        bootloader_elf,
+    ],
+    depends: [
+        battery_monitor_elf,
+        light_array_elf,
+        obstacle_detector_elf,
+        sbus_receiver_elf,
+        servo_elf,
+        wheel_elf,
+        bootloader_elf,
     ],
 )
 
