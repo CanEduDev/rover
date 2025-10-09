@@ -98,29 +98,10 @@ static void list_init(void) {
 }
 
 static void folder_init(void) {
-  // Set up the transmit folders
+  // NOLINTBEGIN(*-magic-numbers)
   ck_data.command_ack_folder = &ck_data.folders[2];
   ck_data.program_transmit_folder = &ck_data.folders[3];
   ck_data.config_transmit_folder = &ck_data.folders[4];
-
-  for (int i = 2; i < 2 + CK_DATA_TX_FOLDER_COUNT; i++) {
-    ck_data.folders[i].dlc = 0;
-    ck_data.folders[i].folder_no = i;
-    ck_data.folders[i].direction = CK_DIRECTION_TRANSMIT;
-    ck_data.folders[i].doc_list_no = 0;
-    ck_data.folders[i].doc_no = i - 1;  // 0 reserved by mayor's doc
-    ck_data.folders[i].enable = true;
-  }
-
-  // NOLINTBEGIN(*-magic-numbers)
-  ck_data.command_ack_folder->dlc = 5;
-  ck_data.program_transmit_folder->dlc = 8;
-  ck_data.config_transmit_folder->dlc = 8;
-  // NOLINTEND(*-magic-numbers)
-
-  // Set up the receive folders
-
-  // NOLINTBEGIN(*-magic-numbers)
   ck_data.enter_bootloader_folder = &ck_data.folders[5];
   ck_data.exit_bootloader_folder = &ck_data.folders[6];
   ck_data.flash_erase_folder = &ck_data.folders[7];
@@ -129,21 +110,52 @@ static void folder_init(void) {
   ck_data.config_receive_folder = &ck_data.folders[10];
   // NOLINTEND(*-magic-numbers)
 
-  uint8_t rx_doc_no = 0;  // Start counting from 0
-  for (int i = 2 + CK_DATA_TX_FOLDER_COUNT; i < CK_DATA_FOLDER_COUNT; i++) {
-    ck_data.folders[i].dlc = 0;
+  // Transmit folders
+  ck_data.command_ack_folder->direction = CK_DIRECTION_TRANSMIT;
+  ck_data.command_ack_folder->dlc = ck_data.command_ack_page->line_count;
+
+  ck_data.program_transmit_folder->direction = CK_DIRECTION_TRANSMIT;
+  ck_data.program_transmit_folder->dlc =
+      ck_data.bundle_request_page->line_count;
+
+  ck_data.config_transmit_folder->direction = CK_DIRECTION_TRANSMIT;
+  ck_data.config_transmit_folder->dlc = ck_data.bundle_request_page->line_count;
+
+  // Receive folders
+  ck_data.enter_bootloader_folder->direction = CK_DIRECTION_RECEIVE;
+  ck_data.enter_bootloader_folder->dlc = 0;
+
+  ck_data.exit_bootloader_folder->direction = CK_DIRECTION_RECEIVE;
+  ck_data.exit_bootloader_folder->dlc = 0;
+
+  ck_data.flash_erase_folder->direction = CK_DIRECTION_RECEIVE;
+  ck_data.flash_erase_folder->dlc = 4;  // NOLINT(*-magic-numbers)
+
+  ck_data.fs_format_folder->direction = CK_DIRECTION_RECEIVE;
+  ck_data.fs_format_folder->dlc = 0;
+
+  ck_data.program_receive_folder->direction = CK_DIRECTION_RECEIVE;
+  ck_data.program_receive_folder->dlc = 8;  // NOLINT(*-magic-numbers)
+
+  ck_data.config_receive_folder->direction = CK_DIRECTION_RECEIVE;
+  ck_data.config_receive_folder->dlc = 8;  // NOLINT(*-magic-numbers)
+
+  // Set up the doc lists, folder numbers and enable flags
+  const uint8_t tx_doc_list_no = 0;
+  const uint8_t rx_doc_list_no = 1;
+
+  uint8_t tx_doc_no = 1;
+  uint8_t rx_doc_no = 0;
+
+  for (int i = 2; i < CK_DATA_FOLDER_COUNT; i++) {
     ck_data.folders[i].folder_no = i;
-    ck_data.folders[i].direction = CK_DIRECTION_RECEIVE;
-    ck_data.folders[i].doc_list_no = 1;
-    ck_data.folders[i].doc_no = rx_doc_no;
     ck_data.folders[i].enable = true;
-
-    rx_doc_no++;
+    if (ck_data.folders[i].direction == CK_DIRECTION_TRANSMIT) {
+      ck_data.folders[i].doc_list_no = tx_doc_list_no;
+      ck_data.folders[i].doc_no = tx_doc_no++;
+    } else {
+      ck_data.folders[i].doc_list_no = rx_doc_list_no;
+      ck_data.folders[i].doc_no = rx_doc_no++;
+    }
   }
-
-  // NOLINTBEGIN(*-magic-numbers)
-  ck_data.flash_erase_folder->dlc = 4;
-  ck_data.program_receive_folder->dlc = 8;
-  ck_data.config_receive_folder->dlc = 8;
-  // NOLINTEND(*-magic-numbers)
 }

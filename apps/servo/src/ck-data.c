@@ -89,33 +89,60 @@ void folder_init(void) {
   ck_data.failsafe_folder = &ck_data.folders[12];
   // NOLINTEND(*-magic-numbers)
 
-  // Set up the transmit folders
-  for (int i = 2; i < 2 + CK_DATA_TX_FOLDER_COUNT; i++) {
-    ck_data.folders[i].folder_no = i;
-    ck_data.folders[i].direction = CK_DIRECTION_TRANSMIT;
-    ck_data.folders[i].doc_list_no = 0;
-    ck_data.folders[i].doc_no = i - 1;  // 0 reserved by mayor's doc
-    ck_data.folders[i].enable = true;
-    ck_data.folders[i].dlc = sizeof(uint16_t);
-  }
-  ck_data.servo_position_folder->dlc = sizeof(float);
+  // Transmit folders
+  ck_data.servo_position_folder->direction = CK_DIRECTION_TRANSMIT;
+  ck_data.servo_position_folder->dlc = ck_data.servo_position_page->line_count;
 
-  // Set up the receive folders
-  for (int i = 2 + CK_DATA_TX_FOLDER_COUNT; i < CK_DATA_FOLDER_COUNT; i++) {
-    ck_data.folders[i].folder_no = i;
-    ck_data.folders[i].direction = CK_DIRECTION_RECEIVE;
-    ck_data.folders[i].doc_list_no = 0;
-    ck_data.folders[i].enable = true;
-    ck_data.folders[i].doc_no = i - (2 + CK_DATA_TX_FOLDER_COUNT);
-  }
+  ck_data.servo_current_folder->direction = CK_DIRECTION_TRANSMIT;
+  ck_data.servo_current_folder->dlc = ck_data.servo_current_page->line_count;
 
+  ck_data.battery_voltage_folder->direction = CK_DIRECTION_TRANSMIT;
+  ck_data.battery_voltage_folder->dlc =
+      ck_data.battery_voltage_page->line_count;
+
+  ck_data.servo_voltage_folder->direction = CK_DIRECTION_TRANSMIT;
+  ck_data.servo_voltage_folder->dlc = ck_data.servo_voltage_page->line_count;
+
+  // Receive folders
+  ck_data.set_servo_voltage_folder->direction = CK_DIRECTION_RECEIVE;
   ck_data.set_servo_voltage_folder->dlc = sizeof(uint16_t);
+
+  ck_data.pwm_conf_folder->direction = CK_DIRECTION_RECEIVE;
   ck_data.pwm_conf_folder->dlc = sizeof(uint16_t);
+
+  ck_data.steering_folder->direction = CK_DIRECTION_RECEIVE;
   ck_data.steering_folder->dlc = sizeof(uint8_t) + sizeof(float);
+
+  ck_data.subtrim_folder->direction = CK_DIRECTION_RECEIVE;
   ck_data.subtrim_folder->dlc = sizeof(int16_t);
+
+  ck_data.report_freq_folder->direction = CK_DIRECTION_RECEIVE;
   ck_data.report_freq_folder->dlc = sizeof(uint16_t);
+
+  ck_data.reverse_folder->direction = CK_DIRECTION_RECEIVE;
   ck_data.reverse_folder->dlc = 0;
+
+  ck_data.failsafe_folder->direction = CK_DIRECTION_RECEIVE;
   ck_data.failsafe_folder->dlc = sizeof(uint8_t) + 2 * sizeof(uint16_t);
+
+  // Set up the doc lists, folder numbers and enable flags
+  const uint8_t tx_doc_list_no = 0;
+  const uint8_t rx_doc_list_no = 1;
+
+  uint8_t tx_doc_no = 1;
+  uint8_t rx_doc_no = 0;
+
+  for (int i = 2; i < CK_DATA_FOLDER_COUNT; i++) {
+    ck_data.folders[i].folder_no = i;
+    ck_data.folders[i].enable = true;
+    if (ck_data.folders[i].direction == CK_DIRECTION_TRANSMIT) {
+      ck_data.folders[i].doc_list_no = tx_doc_list_no;
+      ck_data.folders[i].doc_no = tx_doc_no++;
+    } else {
+      ck_data.folders[i].doc_list_no = rx_doc_list_no;
+      ck_data.folders[i].doc_no = rx_doc_no++;
+    }
+  }
 }
 
 static void assign_stored(void) {

@@ -85,32 +85,43 @@ void folder_init(void) {
   ck_data.buzzer_sound_folder = &ck_data.folders[6];
   // NOLINTEND(*-magic-numbers)
 
-  // Set up the transmit folders
-  for (int i = 2; i < 2 + CK_DATA_TX_FOLDER_COUNT; i++) {
-    ck_data.folders[i].folder_no = i;
-    ck_data.folders[i].direction = CK_DIRECTION_TRANSMIT;
-    ck_data.folders[i].doc_list_no = 0;
-    ck_data.folders[i].doc_no = i - 1;  // 0 reserved by mayor's doc
-    ck_data.folders[i].enable = true;
-  }
-
+  // Transmit folders
+  ck_data.steering_folder->direction = CK_DIRECTION_TRANSMIT;
   ck_data.steering_folder->dlc = ck_data.steering_page->line_count;
+
+  ck_data.throttle_folder->direction = CK_DIRECTION_TRANSMIT;
   ck_data.throttle_folder->dlc = ck_data.throttle_page->line_count;
+
+  ck_data.steering_subtrim_folder->direction = CK_DIRECTION_TRANSMIT;
   ck_data.steering_subtrim_folder->dlc =
       ck_data.steering_subtrim_page->line_count;
+
+  ck_data.throttle_subtrim_folder->direction = CK_DIRECTION_TRANSMIT;
   ck_data.throttle_subtrim_folder->dlc =
       ck_data.throttle_subtrim_page->line_count;
 
-  // Set up the receive folders
-  for (int i = 2 + CK_DATA_TX_FOLDER_COUNT; i < CK_DATA_FOLDER_COUNT; i++) {
-    ck_data.folders[i].folder_no = i;
-    ck_data.folders[i].direction = CK_DIRECTION_RECEIVE;
-    ck_data.folders[i].doc_list_no = 0;
-    ck_data.folders[i].doc_no = i - (2 + CK_DATA_TX_FOLDER_COUNT);
-    ck_data.folders[i].enable = true;
-  }
-
+  // Receive folders
+  ck_data.buzzer_sound_folder->direction = CK_DIRECTION_RECEIVE;
   ck_data.buzzer_sound_folder->dlc = 3 * sizeof(uint16_t);
+
+  // Set up the doc lists, folder numbers and enable flags
+  const uint8_t tx_doc_list_no = 0;
+  const uint8_t rx_doc_list_no = 1;
+
+  uint8_t tx_doc_no = 1;
+  uint8_t rx_doc_no = 0;
+
+  for (int i = 2; i < CK_DATA_FOLDER_COUNT; i++) {
+    ck_data.folders[i].folder_no = i;
+    ck_data.folders[i].enable = true;
+    if (ck_data.folders[i].direction == CK_DIRECTION_TRANSMIT) {
+      ck_data.folders[i].doc_list_no = tx_doc_list_no;
+      ck_data.folders[i].doc_no = tx_doc_no++;
+    } else {
+      ck_data.folders[i].doc_list_no = rx_doc_list_no;
+      ck_data.folders[i].doc_no = rx_doc_no++;
+    }
+  }
 }
 
 static void assign_stored(void) {
