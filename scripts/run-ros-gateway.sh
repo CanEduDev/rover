@@ -124,7 +124,6 @@ run_container() {
         --network host \
         --ipc host \
         --pid host \
-        --cap-add=NET_ADMIN \
         rover-ros-gateway:"${ROS_DISTRO}" \
         --interface "${CAN_INTERFACE}" \
         --channel "${CAN_CHANNEL}" \
