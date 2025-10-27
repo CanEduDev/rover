@@ -88,7 +88,7 @@ int process_buzzer_sound_letter(const ck_letter_t *letter) {
 static int buzzer_init(void) {
   peripherals_t *peripherals = get_peripherals();
 
-  if (HAL_TIM_PWM_Start(&peripherals->htim3, TIM_CHANNEL_4) != HAL_OK) {
+  if (HAL_TIM_PWM_Start(&peripherals->htim2, TIM_CHANNEL_1) != HAL_OK) {
     printf("error: failed to start buzzer timer\r\n");
     return APP_NOT_OK;
   }
@@ -140,7 +140,7 @@ static void tone_timer_callback(TimerHandle_t timer) {
 
 static void set_buzzer_tone(uint16_t frequency_hz) {
   peripherals_t *peripherals = get_peripherals();
-  __HAL_TIM_SET_AUTORELOAD(&peripherals->htim3,
+  __HAL_TIM_SET_AUTORELOAD(&peripherals->htim2,
                            (TIMER_FREQ / frequency_hz) - 1);
 }
 
@@ -148,9 +148,9 @@ static void set_buzzer_volume(uint16_t volume) {
   peripherals_t *peripherals = get_peripherals();
   // Limit to 90% duty cycle
   const uint32_t max_volume =
-      (__HAL_TIM_GET_AUTORELOAD(&peripherals->htim3) / 10) * 9;
+      (__HAL_TIM_GET_AUTORELOAD(&peripherals->htim2) / 10) * 9;
   if (volume > max_volume) {
     volume = max_volume;
   }
-  __HAL_TIM_SET_COMPARE(&peripherals->htim3, TIM_CHANNEL_4, volume);
+  __HAL_TIM_SET_COMPARE(&peripherals->htim2, TIM_CHANNEL_1, volume);
 }

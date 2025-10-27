@@ -16,7 +16,7 @@ typedef struct {
   // Provided by CPU board
   common_peripherals_t *common_peripherals;
 
-  TIM_HandleTypeDef htim3;
+  TIM_HandleTypeDef htim2;
   UART_HandleTypeDef huart2;
 } peripherals_t;
 

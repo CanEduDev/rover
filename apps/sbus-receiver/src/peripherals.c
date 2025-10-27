@@ -10,7 +10,7 @@
 static peripherals_t peripherals;
 
 void gpio_init(void);
-void tim3_init(void);
+void tim2_init(void);
 void uart2_init(void);
 
 peripherals_t* get_peripherals(void) {
@@ -22,7 +22,7 @@ void peripherals_init(void) {
   peripherals.common_peripherals = get_common_peripherals();
 
   gpio_init();
-  tim3_init();
+  tim2_init();
   uart2_init();
 }
 
@@ -33,8 +33,6 @@ void gpio_init(void) {
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
-  HAL_GPIO_WritePin(VDD_IO_LEVEL_GPIO_PORT, VDD_IO_LEVEL_PIN, GPIO_PIN_RESET);
-
   GPIO_InitTypeDef gpio_init = {0};
   gpio_init.Pin = VDD_IO_LEVEL_PIN;
   gpio_init.Mode = GPIO_MODE_OUTPUT_PP;
@@ -42,32 +40,32 @@ void gpio_init(void) {
   gpio_init.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(VDD_IO_LEVEL_GPIO_PORT, &gpio_init);
 
-  HAL_GPIO_WritePin(VDD_IO_LEVEL_GPIO_PORT, VDD_IO_LEVEL_PIN, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(VDD_IO_LEVEL_GPIO_PORT, VDD_IO_LEVEL_PIN, GPIO_PIN_RESET);
 }
 
-void tim3_init(void) {
-  TIM_HandleTypeDef* htim3 = &peripherals.htim3;
+void tim2_init(void) {
+  TIM_HandleTypeDef* htim2 = &peripherals.htim2;
   TIM_ClockConfigTypeDef clock_source_config = {0};
   TIM_OC_InitTypeDef config_oc = {0};
 
-  htim3->Instance = TIM3;
-  htim3->Init.Prescaler = PWM_PSC_1MHZ;
-  htim3->Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3->Init.Period =
+  htim2->Instance = TIM2;
+  htim2->Init.Prescaler = PWM_PSC_1MHZ;
+  htim2->Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2->Init.Period =
       1000;  // NOLINT (*-magic-numbers) // Dummy value, must be >0
-  htim3->Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim3->Init.RepetitionCounter = 0;
-  htim3->Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-  if (HAL_TIM_Base_Init(htim3) != HAL_OK) {
+  htim2->Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2->Init.RepetitionCounter = 0;
+  htim2->Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(htim2) != HAL_OK) {
     error();
   }
 
   clock_source_config.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(htim3, &clock_source_config) != HAL_OK) {
+  if (HAL_TIM_ConfigClockSource(htim2, &clock_source_config) != HAL_OK) {
     error();
   }
 
-  if (HAL_TIM_PWM_Init(htim3) != HAL_OK) {
+  if (HAL_TIM_PWM_Init(htim2) != HAL_OK) {
     error();
   }
 
@@ -77,20 +75,20 @@ void tim3_init(void) {
   config_oc.OCFastMode = TIM_OCFAST_DISABLE;
   config_oc.OCIdleState = TIM_OCIDLESTATE_RESET;
   config_oc.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-  if (HAL_TIM_PWM_ConfigChannel(htim3, &config_oc, TIM_CHANNEL_4) != HAL_OK) {
+  if (HAL_TIM_PWM_ConfigChannel(htim2, &config_oc, TIM_CHANNEL_1) != HAL_OK) {
     error();
   }
 
   GPIO_InitTypeDef gpio_init = {0};
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-  /**TIM3 GPIO Configuration
-  PB1     ------> TIM3_CH4
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  /**TIM2 GPIO Configuration
+  PA0     ------> TIM2_CH1
   */
   gpio_init.Pin = BUZZER_PIN;
   gpio_init.Mode = GPIO_MODE_AF_PP;
   gpio_init.Pull = GPIO_NOPULL;
   gpio_init.Speed = GPIO_SPEED_FREQ_HIGH;
-  gpio_init.Alternate = GPIO_AF2_TIM3;
+  gpio_init.Alternate = GPIO_AF1_TIM2;
   HAL_GPIO_Init(BUZZER_GPIO_PORT, &gpio_init);
 }
 
@@ -173,9 +171,9 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi) {
  * @retval None
  */
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base) {
-  if (htim_base->Instance == TIM3) {
+  if (htim_base->Instance == TIM2) {
     /* Peripheral clock enable */
-    __HAL_RCC_TIM3_CLK_ENABLE();
+    __HAL_RCC_TIM2_CLK_ENABLE();
   }
 }
 
@@ -186,9 +184,9 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base) {
  * @retval None
  */
 void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base) {
-  if (htim_base->Instance == TIM3) {
+  if (htim_base->Instance == TIM2) {
     /* Peripheral clock disable */
-    __HAL_RCC_TIM3_CLK_DISABLE();
+    __HAL_RCC_TIM2_CLK_DISABLE();
   }
 }
 
