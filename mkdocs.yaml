@@ -1,0 +1,156 @@
+site_name: Rover Documentation
+site_description: Documentation for the CanEduDev Rover platform
+site_author: CanEduDev AB
+site_url: https://docs.canedudev.com
+repo_url: https://github.com/CanEduDev/rover
+repo_name: CanEduDev/rover
+edit_uri: edit/main/docs/
+docs_dir: docs
+copyright: Copyright © 2023 CanEduDev AB
+
+theme:
+  name: material
+  logo: images/ced-logo-light.png
+  favicon: images/favicon.png
+  font: false # Fonts managed in stylesheets
+  features:
+    - content.code.annotate
+    - content.code.copy
+    - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+  palette:
+    # Automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+plugins:
+  - search:
+      lang: en
+  - glightbox:
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            show_category_heading: true
+            docstring_style: google
+            docstring_section_style: table
+            members_order: source
+            show_signature_annotations: true
+            separate_signature: true
+  - to-pdf:
+      author: CanEduDev AB
+      copyright: Copyright © 2023 CanEduDev AB
+      cover_title: Rover User Guide
+      cover_subtitle: Complete documentation for the Rover platform
+      output_path: ../rover-documentation.pdf
+      enabled_if_env: ENABLE_PDF_EXPORT
+      toc_title: Table of Contents
+      heading_shift: false
+      toc_level: 2
+      ordered_chapter_level: 3
+      two_columns_level: 3
+      excludes_children:
+        - faq/
+        - resources/
+      exclude_pages:
+        - faq/
+        - resources/
+
+extra:
+  homepage: https://canedudev.com
+  social:
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/canedudev
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/r45d624Tan
+
+  generator: false
+
+markdown_extensions:
+  # Code highlighting
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+  # Content features
+  - pymdownx.blocks.admonition
+  - pymdownx.blocks.details
+  - attr_list
+  - md_in_html
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - tables
+  - footnotes
+
+  # Typography
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.betterem
+  - abbr
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+extra_css:
+  - stylesheets/web.css
+  - stylesheets/pdf.css
+
+nav:
+  - Home:
+      - index.md
+      - Getting Started:
+          - getting-started/index.md
+          - getting-started/rover-system.md
+          - getting-started/upgrading.md
+          - getting-started/calibration.md
+  - FAQ:
+      - faq/index.md
+  - CAN Reference:
+      - can/index.md
+      - can/control-messages.md
+      - can/status-messages.md
+      - can/configuration-messages.md
+  - ROS2 Reference:
+      - ros2/index.md
+      - ros2/nodes.md
+      - ros2/messages.md
+      - ros2/safety.md
+  - Resources:
+      - resources/index.md

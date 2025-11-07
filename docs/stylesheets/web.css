@@ -1,0 +1,235 @@
+/* Custom styles for CanEduDev Rover Documentation */
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
+
+:root {
+    /* CanEduDev brand colors - Official brand guide */
+    /* Brand Colors */
+    --canedudev-primary: rgba(33, 57, 128, 1);           /* #213980 - Primary */
+    --canedudev-secondary: rgba(255, 203, 8, 1);         /* #FFCB08 - Secondary (Yellow) */
+    --canedudev-tertiary: rgba(8, 40, 51, 1);            /* #082833 - Tertiary (Dark teal) */
+
+    /* Logo Colors */
+    --canedudev-logo-blue: rgba(57, 139, 183, 1);        /* #398BB7 */
+    --canedudev-logo-dark-blue: rgba(33, 57, 128, 1);    /* #213980 */
+    --canedudev-logo-light-blue: rgba(156, 186, 217, 1); /* #9CBAD9 */
+    --canedudev-logo-light-blue-transparent: rgba(156, 186, 217, 0.2);
+
+    /* Neutral Colors */
+    --canedudev-black: rgba(0, 0, 0, 1);                 /* #000000 */
+    --canedudev-gray-darkest: rgba(34, 34, 34, 1);       /* #222222 */
+    --canedudev-gray-darker: rgba(60, 60, 60, 1);        /* #3C3C3C */
+    --canedudev-gray-medium: rgba(112, 112, 112, 1);     /* #707070 */
+    --canedudev-gray-light: rgba(194, 194, 194, 1);      /* #C2C2C2 */
+    --canedudev-white: rgba(255, 255, 255, 1);           /* #FFFFFF */
+
+    /* Typography */
+    --md-text-font: "Poppins";
+    --md-code-font: "Roboto Mono";
+    font-size: 1.2rem;
+}
+
+
+/* Light mode (default scheme) */
+[data-md-color-scheme="default"] {
+  /* Primary color - using logo blue for headers, navigation */
+  --md-primary-fg-color:        var(--canedudev-primary);
+  --md-primary-fg-color--light: var(--canedudev-logo-light-blue);
+  --md-primary-fg-color--dark:  var(--canedudev-logo-dark-blue);
+
+  /* Accent color - using primary brand color for links, buttons */
+  --md-accent-fg-color:        var(--canedudev-primary);
+  --md-accent-fg-color--transparent: rgba(33, 57, 128, 0.1);
+
+  /* Default color shades */
+  --md-default-fg-color:               rgba(0, 0, 0, 0.87);
+  --md-default-fg-color--light:        var(--canedudev-gray-medium);
+  --md-default-fg-color--lighter:      var(--canedudev-gray-light);
+  --md-default-fg-color--lightest:     rgba(0, 0, 0, 0.07);
+  --md-default-bg-color:               var(--canedudev-white);
+  --md-default-bg-color--light:        rgba(255, 255, 255, 0.7);
+  --md-default-bg-color--lighter:      rgba(255, 255, 255, 0.3);
+  --md-default-bg-color--lightest:     rgba(255, 255, 255, 0.12);
+
+  /* Code color shades */
+  --md-code-fg-color:                  var(--canedudev-primary);
+  --md-code-bg-color:                  rgba(57, 139, 183, 0.05);
+  --md-code-hl-color:                  var(--canedudev-logo-blue);
+  --md-code-hl-color--light:           rgba(57, 139, 183, 0.1);
+
+  /* Code highlighting syntax colors */
+  --md-code-hl-number-color:           var(--canedudev-primary);
+  --md-code-hl-special-color:          rgba(156, 39, 176, 1);
+  --md-code-hl-function-color:         var(--canedudev-logo-blue);
+  --md-code-hl-constant-color:         var(--canedudev-logo-dark-blue);
+  --md-code-hl-keyword-color:          var(--canedudev-primary);
+  --md-code-hl-string-color:           rgba(46, 125, 50, 1);
+  --md-code-hl-name-color:             var(--md-code-fg-color);
+  --md-code-hl-operator-color:         var(--md-default-fg-color--light);
+  --md-code-hl-punctuation-color:      var(--md-default-fg-color--light);
+  --md-code-hl-comment-color:          var(--md-default-fg-color--light);
+  --md-code-hl-generic-color:          var(--md-default-fg-color--light);
+  --md-code-hl-variable-color:         var(--md-default-fg-color--light);
+
+  /* Typeset colors */
+  --md-typeset-color:                  var(--md-default-fg-color);
+  --md-typeset-a-color:                var(--canedudev-logo-blue);
+
+  /* Typeset del and ins colors */
+  --md-typeset-del-color:              rgba(239, 83, 80, 0.15);
+  --md-typeset-ins-color:              rgba(76, 175, 80, 0.15);
+
+  /* Typeset kbd colors */
+  --md-typeset-kbd-color:              rgba(250, 250, 250, 1);
+  --md-typeset-kbd-accent-color:       rgba(255, 255, 255, 1);
+  --md-typeset-kbd-border-color:       rgba(184, 184, 184, 1);
+
+  /* Typeset mark color */
+  --md-typeset-mark-color:             rgba(255, 203, 8, 0.5);
+
+  /* Typeset table colors */
+  --md-typeset-table-color:            rgba(0, 0, 0, 0.12);
+  --md-typeset-table-color--light:     rgba(0, 0, 0, 0.035);
+
+  /* Admonition colors */
+  --md-admonition-fg-color:            var(--md-default-fg-color);
+  --md-admonition-bg-color:            var(--md-default-bg-color);
+
+  /* Warning colors */
+  --md-warning-fg-color:               rgba(0, 0, 0, 0.87);
+  --md-warning-bg-color:               rgba(255, 235, 59, 1);
+
+  /* Footer colors */
+  --md-footer-fg-color:                var(--canedudev-white);
+  --md-footer-fg-color--light:         rgba(255, 255, 255, 0.7);
+  --md-footer-fg-color--lighter:       rgba(255, 255, 255, 0.45);
+  --md-footer-bg-color:                var(--canedudev-tertiary);
+  --md-footer-bg-color--dark:          var(--canedudev-gray-darkest);
+  
+  /* FAQ */
+  .question > summary::before {
+    background-color: var(--canedudev-primary);
+  }
+  .question > summary::after {
+    background-color: var(--canedudev-primary);
+  }
+
+  .question > summary {
+    background-color: var(--canedudev-logo-light-blue-transparent);
+  }
+
+  details.question {
+    border-color: var(--canedudev-logo-blue);
+  }
+
+  .md-typeset details.question:focus-within {
+  box-shadow: 0 0 0 .2rem var(--canedudev-logo-light-blue-transparent);
+  }
+  
+  .md-clipboard::after {
+    color: var(--canedudev-logo-blue);
+  }
+}
+
+/* Dark mode (slate scheme) */
+[data-md-color-scheme="slate"] {
+  /* Primary color - using logo blue for headers, navigation */
+  --md-primary-fg-color:        var(--canedudev-primary);
+  --md-primary-fg-color--light: var(--canedudev-logo-light-blue);
+  --md-primary-fg-color--dark:  var(--canedudev-logo-dark-blue);
+
+  /* Accent color - using secondary (yellow) for high contrast on dark */
+  --md-accent-fg-color:        var(--canedudev-secondary);
+  --md-accent-fg-color--transparent: rgba(255, 203, 8, 0.1);
+
+  /* Default color shades */
+  --md-default-fg-color:               rgba(255, 255, 255, 0.87);
+  --md-default-fg-color--light:        var(--canedudev-gray-light);
+  --md-default-fg-color--lighter:      var(--canedudev-gray-medium);
+  --md-default-fg-color--lightest:     var(--canedudev-gray-darker);
+  --md-default-bg-color:               var(--canedudev-gray-darkest);
+  --md-default-bg-color--light:        rgba(34, 34, 34, 0.7);
+  --md-default-bg-color--lighter:      rgba(34, 34, 34, 0.3);
+  --md-default-bg-color--lightest:     rgba(34, 34, 34, 0.12);
+
+  /* Code color shades */
+  --md-code-fg-color:                  var(--canedudev-logo-light-blue);
+  --md-code-bg-color:                  rgba(156, 186, 217, 0.1);
+  --md-code-hl-color:                  var(--canedudev-logo-light-blue);
+  --md-code-hl-color--light:           rgba(156, 186, 217, 0.15);
+
+  /* Code highlighting syntax colors */
+  --md-code-hl-number-color:           var(--canedudev-logo-light-blue);
+  --md-code-hl-special-color:          rgba(206, 147, 216, 1);
+  --md-code-hl-function-color:         var(--canedudev-logo-light-blue);
+  --md-code-hl-constant-color:         var(--canedudev-logo-blue);
+  --md-code-hl-keyword-color:          var(--canedudev-secondary);
+  --md-code-hl-string-color:           rgba(129, 199, 132, 1);
+  --md-code-hl-name-color:             var(--md-code-fg-color);
+  --md-code-hl-operator-color:         var(--md-default-fg-color--light);
+  --md-code-hl-punctuation-color:      var(--md-default-fg-color--light);
+  --md-code-hl-comment-color:          var(--md-default-fg-color--light);
+  --md-code-hl-generic-color:          var(--md-default-fg-color--light);
+  --md-code-hl-variable-color:         var(--md-default-fg-color--light);
+
+  /* Typeset colors */
+  --md-typeset-color:                  var(--md-default-fg-color);
+  --md-typeset-a-color:                var(--canedudev-logo-light-blue);
+
+  /* Typeset del and ins colors */
+  --md-typeset-del-color:              rgba(239, 83, 80, 0.2);
+  --md-typeset-ins-color:              rgba(76, 175, 80, 0.2);
+
+  /* Typeset kbd colors */
+  --md-typeset-kbd-color:              var(--canedudev-gray-darker);
+  --md-typeset-kbd-accent-color:       var(--canedudev-gray-darkest);
+  --md-typeset-kbd-border-color:       var(--canedudev-gray-medium);
+
+  /* Typeset mark color */
+  --md-typeset-mark-color:             rgba(255, 203, 8, 0.3);
+
+  /* Typeset table colors */
+  --md-typeset-table-color:            rgba(255, 255, 255, 0.12);
+  --md-typeset-table-color--light:     rgba(255, 255, 255, 0.035);
+
+  /* Admonition colors */
+  --md-admonition-fg-color:            var(--md-default-fg-color);
+  --md-admonition-bg-color:            var(--md-default-bg-color);
+
+  /* Warning colors */
+  --md-warning-fg-color:               var(--canedudev-black);
+  --md-warning-bg-color:               var(--canedudev-secondary);
+
+  /* Footer colors */
+  --md-footer-fg-color:                var(--canedudev-white);
+  --md-footer-fg-color--light:         rgba(255, 255, 255, 0.7);
+  --md-footer-fg-color--lighter:       rgba(255, 255, 255, 0.45);
+  --md-footer-bg-color:                var(--canedudev-tertiary);
+  --md-footer-bg-color--dark:          var(--canedudev-gray-darkest);
+
+  /* FAQ */
+  .question > summary::before {
+    background-color: var(--canedudev-logo-light-blue);
+  }
+
+  .question > summary::after {
+    background-color: var(--canedudev-logo-light-blue);
+  }
+
+  .question > summary {
+    background-color: var(--canedudev-logo-light-blue-transparent);
+  }
+
+  details.question {
+    border-color: var(--canedudev-logo-blue);
+  }
+
+  .md-typeset details.question:focus-within {
+  box-shadow: 0 0 0 .2rem var(--canedudev-logo-light-blue-transparent);
+  }
+
+  .md-clipboard::after {
+    color: var(--canedudev-logo-blue);
+  }
+}

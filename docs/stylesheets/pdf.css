@@ -1,0 +1,111 @@
+/* PDF specifics */
+@media print {
+    /* Disable two-column layout (we use two_columns_level for page inclusion only) */
+    section.two-columns {
+        columns: 1 !important;
+        column-gap: 0 !important;
+    }
+
+    /* Ensure proper page breaks */
+    h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid;
+        page-break-inside: avoid;
+    }
+
+    img, figure {
+        page-break-inside: avoid;
+    }
+
+    /* Allow large tables to break across pages */
+    table {
+        page-break-inside: auto;
+    }
+
+    /* Repeat table headers on each page */
+    thead {
+        display: table-header-group;
+    }
+
+    /* Avoid breaking table rows */
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+
+    /* Keep header row with at least one data row */
+    thead tr {
+        page-break-after: avoid;
+    }
+
+      /* Prevent orphaned lines */
+    p {
+        orphans: 3;
+        widows: 3;
+    }
+
+    /* Cover page accent elements */
+    #cover h1::after,
+    #cover .accent,
+    .cover-accent,
+    h1::after,
+    h2::after,
+    h3::after {
+        background-color: rgba(33, 57, 128, 1) !important;
+        border-color: rgba(33, 57, 128, 1) !important;
+        color: rgba(33, 57, 128, 1) !important;
+    }
+
+    /* Any red accent bars or decorations */
+    .accent-bar,
+    hr.accent,
+    .section-separator {
+        background-color: rgba(33, 57, 128, 1) !important;
+        border-color: rgba(33, 57, 128, 1) !important;
+    }
+
+    /* Headers with decorative elements */
+    article h1,
+    article h2,
+    article h3 {
+        border-bottom-color: rgba(33, 57, 128, 1) !important;
+    }
+
+    /* Code blocks - readable on print */
+    code,
+    pre {
+        background-color: rgba(240, 240, 240, 1) !important;
+        color: rgba(33, 57, 128, 1) !important;
+    }
+
+    /* Links */
+    a {
+        color: rgba(33, 57, 128, 1) !important;
+    }
+
+    /* Tables */
+    table {
+        border-color: rgba(0, 0, 0, 0.2) !important;
+    }
+
+    th, td {
+        border-color: rgba(0, 0, 0, 0.2) !important;
+    }
+    /* Remove shadows and effects that don't print well */
+    * {
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    /* Ensure links show their URLs in print */
+    a[href^="http"]:after {
+        content: " (" attr(href) ")";
+        font-size: 0.8em;
+        color: var(--canedudev-gray-medium);
+    }
+
+    /* Don't show URLs for internal links */
+    a[href^="#"]:after,
+    a[href^="/"]:after {
+        content: "";
+    }
+}

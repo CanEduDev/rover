@@ -41,7 +41,6 @@ fs = import('fs')
 subdir('libs')
 subdir('apps')
 subdir('bootloader')
-subdir('docs')
 
 # Build binaries with bootloader. Creates binaries with both the bootloader and the app, using cat.
 foreach app_bin : app_binaries
@@ -186,4 +185,44 @@ run_target(
         release_dir / 'binaries',
     ],
     depends: [config_dir, release_tgt],
+)
+
+# MkDocs documentation build configuration
+mkdocs = find_program('mkdocs')
+mkdocs_conf = files('mkdocs.yaml')
+
+docs = custom_target(
+    'docs',
+    command: [
+        mkdocs,
+        'build',
+        '-f',
+        mkdocs_conf,
+        '--strict',
+        '--site-dir',
+        meson.current_build_dir() / 'docs' / 'html',
+    ],
+    build_always_stale: true,
+    output: 'html',
+)
+
+custom_target(
+    'docs-pdf',
+    command: [
+        mkdocs,
+        'build',
+        '-f',
+        mkdocs_conf,
+        '--site-dir',
+        meson.current_build_dir() / 'docs' / 'html',
+    ],
+    build_always_stale: true,
+    output: 'rover-documentation.pdf',
+    env: {'ENABLE_PDF_EXPORT': '1'},
+)
+
+# Serve target for local development
+run_target(
+    'docs-serve',
+    command: [mkdocs, 'serve', '-f', mkdocs_conf, '--livereload'],
 )

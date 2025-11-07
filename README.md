@@ -7,7 +7,7 @@ The Rover system includes:
 - **ROS2 Gateway**: Python-based bridge between ROS and Rover's CAN system for high-level control.
 - **Python Tools**: Development, testing, and configuration utilities.
 
-For more documentation, visit [CanEduDev's Documentation](https://www.canedudev.com/getting-started-with-the-rover/).
+📚 **[Complete Documentation](https://docs.canedudev.com)** - Full documentation including guides, API references, and tutorials.
 
 ## Hardware Components
 

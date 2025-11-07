@@ -1,0 +1,22 @@
+name: Build Documentation
+description: Build the Rover's MkDocs documentation
+
+outputs:
+  site:
+    description: documentation site directory
+    value: ${{ steps.site.outputs.site }}
+
+runs:
+  using: composite
+  steps:
+
+    - name: Bootstrap repository
+      uses: ./.github/actions/bootstrap
+
+    - name: Build documentation
+      run: meson compile -C build docs
+      shell: bash
+
+    - run: echo "site=build/docs/html" >> $GITHUB_OUTPUT
+      id: site
+      shell: bash
