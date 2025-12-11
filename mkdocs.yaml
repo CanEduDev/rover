@@ -77,12 +77,6 @@ plugins:
       toc_level: 2
       ordered_chapter_level: 3
       two_columns_level: 3
-      excludes_children:
-        - faq/
-        - resources/
-      exclude_pages:
-        - faq/
-        - resources/
 
 extra:
   homepage: https://canedudev.com
