@@ -40,7 +40,7 @@ void gpio_init(void) {
   gpio_init.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(VDD_IO_LEVEL_GPIO_PORT, &gpio_init);
 
-  HAL_GPIO_WritePin(VDD_IO_LEVEL_GPIO_PORT, VDD_IO_LEVEL_PIN, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(VDD_IO_LEVEL_GPIO_PORT, VDD_IO_LEVEL_PIN, GPIO_PIN_SET);
 }
 
 void tim2_init(void) {
