@@ -47,3 +47,8 @@ select = [
     "N",
 ]
 ignore = ["E501"]
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.18.0",
+]
