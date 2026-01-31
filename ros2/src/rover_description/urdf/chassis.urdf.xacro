@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<robot name="rover_base" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="rover_base" params="config_file">
+    <!-- Rover wheel diameter (matches your wheel config) -->
+    <!-- Basic body dimensions (rectangle box) -->
+    <xacro:property name="config" value="${xacro.load_yaml(config_file)}"/>
+    <xacro:property name="wheel_diameter" value="${2 * config['tire']['radius']}"/>
+    <xacro:property name="wheelbase" value="${config['kinematics']['l']}"/>
+
+    <!-- Chassis dimensions -->
+    <xacro:property name="chassis_length" value="${config['chassis']['length']}"/>
+    <xacro:property name="chassis_width" value="${config['chassis']['width']}"/>
+    <xacro:property name="chassis_height" value="${config['chassis']['height']}"/>
+
+    <!-- BASE LINK is body frame; BASE FOOTPRINT is ground projection (REP-105) -->
+    <link name="base_link"/>
+    <link name="base_footprint"/>
+
+    <joint name="base_footprint_to_base_link" type="fixed">
+      <parent link="base_footprint"/>
+      <child link="base_link"/>
+      <origin xyz="0 0 ${wheel_diameter/2}" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="chassis_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="chassis"/>
+      <!-- Place chassis at wheelbase/2 forward and chassis half-height above base_link -->
+      <origin xyz="${wheelbase/2} 0 ${wheel_diameter/2 + chassis_height/2}" rpy="0 0 0"/>
+      <axis xyz="1 0 0"/>
+    </joint>
+
+    <link name="chassis">
+      <!-- SIMPLE BOX VISUAL -->
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+        </geometry>
+        <material name="gray">
+          <color rgba="0.4 0.4 0.4 1.0"/>
+        </material>
+      </visual>
+
+      <!-- INERTIA (approximate, good enough for now) -->
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${config['chassis']['mass']}"/>
+        <!-- Rough inertia guess -->
+        <inertia ixx="0.3" ixy="0.0" ixz="0.0" iyy="0.6" iyz="0.0" izz="${config['inertia']['I_z']}"/>
+      </inertial>
+
+      <!-- SIMPLE BOX COLLISION (same as visual) -->
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+        </geometry>
+      </collision>
+    </link>
+  </xacro:macro>
+</robot>
