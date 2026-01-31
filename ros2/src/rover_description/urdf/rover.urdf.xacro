@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<robot name="rover" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="config_file" default="$(find rover_description)/urdf/rover_config.yaml"/>
+  <xacro:property name="config_vals" value="${xacro.load_yaml('$(arg config_file)')}"/>
+  <xacro:property name="PI" value="3.1415926535897931"/>
+
+  <xacro:property name="config" value="${xacro.load_yaml('$(arg config_file)')}"/>
+
+  <!-- Implicit gazebo arguments -->
+  <!-- simulate_perception needs to be false, as it sets the ground_truth plugin to publish
+        /cones instead of using the lidar_cone plugin which publishes at /lidar/cones
+    -->
+
+  <!--  Import the rover wheels  -->
+  <xacro:include filename="$(find rover_description)/urdf/wheels.urdf.xacro"/>
+
+  <!-- Import rover base element with the chassis -->
+  <xacro:include filename="$(find rover_description)/urdf/chassis.urdf.xacro"/>
+  <xacro:rover_base config_file="$(arg config_file)"/>
+
+  <!-- Import all available sensors -->
+  <xacro:include filename="$(find rover_description)/sensors/zed2.urdf.xacro"/>
+  <xacro:include filename="$(find rover_description)/sensors/robosense_lidar.urdf.xacro"/>
+
+  <!-- **************** -->
+  <!-- Mechanical Parts -->
+  <!-- **************** -->
+
+  <!-- Sensor mount platform sitting on top of the chassis -->
+  <xacro:property name="sensor_mount_height" value="${config['sensor_mount']['height']}"/>
+  <link name="sensor_mount">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.20 0.15 ${sensor_mount_height}"/>
+      </geometry>
+      <material name="dark_gray">
+        <color rgba="0.2 0.2 0.2 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="sensor_mount_joint" type="fixed">
+    <parent link="chassis"/>
+    <child link="sensor_mount"/>
+    <origin xyz="0.05 0.0 ${config['chassis']['height']/2 + sensor_mount_height/2}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Wheels of the rover -->
+  <xacro:rover_wheels config_file="$(arg config_file)"/>
+
+  <!-- *********************************************** -->
+  <!--                    SENSORS                      -->
+  <!-- *********************************************** -->
+  <!-- This is to give the lidar frame, will simulate pointclouds in future -->
+  <!-- Sensor mount platform above the chassis -->
+  <xacro:robosense_m1 parent="sensor_mount" xyz="0.05 0.0 ${sensor_mount_height/2}" rpy="0 0 0"/>
+
+  <xacro:zed2_camera name="zed" parent="lidar_base" xyz="0.04 0.0 0.03" rpy="0 0 0"/>
+</robot>
