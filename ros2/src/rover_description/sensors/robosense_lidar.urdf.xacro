@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robosense_m1">
+  <!-- RS-LiDAR-M1 size/weight references:
+       ~108 mm (D) x 110 mm (W) x 45 mm (H), ~0.73 kg (no cable). -->
+  <!-- Sources: RoboSense RS-LiDAR-M1 User Guide + datasheet. -->
+
+  <!-- Materials (define once, avoid redefinition warnings when macro repeats) -->
+  <material name="m1_dark_gray">
+    <color rgba="0.10 0.10 0.10 1.0"/>
+  </material>
+  <material name="m1_black">
+    <color rgba="0.02 0.02 0.02 1.0"/>
+  </material>
+  <material name="m1_window_tint">
+    <!-- dark glass-ish -->
+    <color rgba="0.02 0.02 0.02 0.65"/>
+  </material>
+  <material name="m1_metal">
+    <color rgba="0.25 0.25 0.25 1.0"/>
+  </material>
+
+  <xacro:macro name="robosense_m1" params="
+      prefix:=lidar_
+      parent
+      xyz:='0 0 0'
+      rpy:='0 0 0'
+      mass:=0.73
+    ">
+    <!-- Dimensions (meters) -->
+    <xacro:property name="D" value="0.108"/>
+    <!-- depth (x) -->
+    <xacro:property name="W" value="0.110"/>
+    <!-- width (y) -->
+    <xacro:property name="H" value="0.045"/>
+    <!-- height (z) -->
+
+    <!-- Box-approx inertia around COM for the full envelope -->
+    <!-- Ixx = 1/12*m*(W^2 + H^2), Iyy = 1/12*m*(D^2 + H^2), Izz = 1/12*m*(D^2 + W^2) -->
+    <xacro:property name="Ixx" value="${(mass*(W*W + H*H))/12.0}"/>
+    <xacro:property name="Iyy" value="${(mass*(D*D + H*H))/12.0}"/>
+    <xacro:property name="Izz" value="${(mass*(D*D + W*W))/12.0}"/>
+
+    <!-- Link origin convention used here:
+         - x forward, y left, z up (REP-103)
+         - link origin at bottom plane center (z=0 at bottom), centered in x/y. -->
+    <link name="${prefix}base">
+      <!-- Visuals: wedge-like body approximation -->
+      <!-- Rear main block (taller) -->
+      <!-- Front block (slightly lower) to suggest wedge -->
+      <visual>
+        <origin xyz="0.035 0 0.0175" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.037 ${W-0.001} 0.034"/>
+        </geometry>
+        <material name="m1_dark_gray"/>
+      </visual>
+
+      <!-- Slanted front window (thin box rotated about Y) -->
+      <!-- Angle is an approximation from product photos (no mesh available). -->
+      <visual>
+        <origin xyz="0.052 0 0.027" rpy="0 -0.35 0"/>
+        <geometry>
+          <box size="0.002 0.102 0.030"/>
+        </geometry>
+        <material name="m1_window_tint"/>
+      </visual>
+
+      <!-- Front bezel frame (slightly larger, very thin, behind the glass) -->
+      <visual>
+        <origin xyz="0.051 0 0.027" rpy="0 -0.35 0"/>
+        <geometry>
+          <box size="0.0015 0.106 0.034"/>
+        </geometry>
+        <material name="m1_black"/>
+      </visual>
+
+      <!-- Collision: keep simple as full envelope -->
+      <collision>
+        <origin xyz="0 0 ${H/2}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${D} ${W} ${H}"/>
+        </geometry>
+      </collision>
+
+      <!-- Inertial: COM at geometric center of the full envelope (z = H/2 from bottom plane) -->
+      <inertial>
+        <mass value="${mass}"/>
+        <origin xyz="0 0 ${H/2}" rpy="0 0 0"/>
+        <inertia ixx="${Ixx}" iyy="${Iyy}" izz="${Izz}" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+    </link>
+
+    <!-- Optional “measurement origin” frame (approx: behind front window) -->
+    <link name="${prefix}frame"/>
+    <joint name="${prefix}frame_joint" type="fixed">
+      <parent link="${prefix}base"/>
+      <child link="${prefix}frame"/>
+      <origin xyz="0.045 0 0.027" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Mount to parent -->
+    <joint name="${prefix}mount" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${prefix}base"/>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+    </joint>
+  </xacro:macro>
+</robot>

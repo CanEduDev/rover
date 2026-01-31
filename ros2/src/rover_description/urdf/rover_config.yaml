@@ -1,0 +1,81 @@
+# This is a slightly unclear config mixing both configs for the robot and properties in a gazebo simulation
+# Many of them are unused, and some are for a custom model simulation we are using 
+# For anyone who wants to use this as a template, i'd recomend restarting having one config for simulation
+# and one config for simulation, with specifiers which parameter affects which gazeboplugin 
+
+inertia:
+  m:   15.0      # guess [kg]
+  g:   9.81      # truth
+  I_z: 0.95      # guess
+
+kinematics:
+  l:        0.565     # measured, wheelbase [m]
+  b_F:      0.2825    # guess, CoG to front axle
+  b_R:      0.2825    # guess, CoG to rear axle
+  w_front:  0.5       # guess, 50% weight on front
+  axle_width: 0.5     # guess, approx track outer-to-outer
+
+chassis:
+  length: 0.60    # [m] overall chassis length
+  width:  0.3    # [m] overall chassis width
+  height: 0.15    # [m] overall chassis height
+  mass: 0.15    # [m] overall chassis height
+
+
+sensor_mount:
+  height: 0.20
+
+# ==========================================================
+# WHEEL AND TIRE PARAMETERS
+# ==========================================================
+
+# Tire-level physical & force model parameters
+tire:
+  tire_coefficient: 1.0      # [-] base friction coefficient (μ)  | guess
+  B: 12.56                   # [-] Pacejka B (stiffness factor)   | guess
+  C: -1.38                   # [-] Pacejka C (shape factor)       | guess
+  D: 1.60                    # [-] Pacejka D (peak factor)        | guess
+  E: -0.58                   # [-] Pacejka E (curvature factor)   | guess
+  radius: 0.0825             # [m] tire radius                    | measured
+  width: 0.065               # [m] physical tire width            | guess
+  mass: 0.5                  # [kg] mass per wheel                | guess
+
+# Gazebo contact model friction parameters (proably unused as we uses custom made bicycle simulation)
+wheel_friction:
+  mu1: 2.0                   # [-] primary friction coefficient   | guess
+  mu2: 2.0                   # [-] secondary friction coefficient | guess
+  kp: 1.0e8                  # [N/m] contact stiffness (soft-constraint gain) | guess
+
+
+# Steering and wheel joint dynamics
+wheel_steering:
+  hinge_mass: 0.3            # [kg] mass of steering hinge link | guess
+  effort_limit: 1.0e7        # [N·m] joint effort limit         | guess
+  velocity_limit: 2.0          # [rad/s] joint velocity limit     | guess
+  steering_ratio: 15.0       # [-] steering input to wheel angle ratio | guess
+  max_rate: 3.0              # [rad/s] steering rate limit             | guess
+
+# Drive and braking parameters
+wheel_drive:
+  torque_max: 30.0           # [N·m] max drive torque         | guess
+  response_time: 0.20        # [s] throttle actuator lag      | guess
+  drive_type: "rear"         # [rear|front|all]               | real
+
+wheel_brake:
+  torque_max: 40.0           # [N·m] max brake torque
+  response_time: 0.15        # [s] brake actuator lag
+
+aero:
+  C_Down: 1.9     # guess
+  C_drag: 1.0     # guess
+
+input_ranges:
+  acceleration:
+    max: 3        # guess, [m/s]
+    min: -10      # guess, [m/s]
+  velocity:
+    max: 10       # guess, [m/s]
+    min: 0        # guess, [m/s]
+  steering:
+    max: 0.52     # guess, [rad]
+    min: -0.52    # guess, [rad]
