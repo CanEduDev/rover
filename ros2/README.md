@@ -4,7 +4,7 @@ This ROS2 workspace provides a gateway between the CAN bus and ROS2 topics, conv
 
 ## Workspace Structure
 
-The workspace contains two main packages:
+The workspace contains three main packages:
 
 ### `gateway_msgs/` - Message Definitions
 Custom ROS2 message types for the rover's various subsystems:
@@ -13,6 +13,13 @@ Custom ROS2 message types for the rover's various subsystems:
 - `ObstacleDistance.msg` - Distance readings from obstacle detectors
 - `ReportFrequency.msg` - Report frequency configuration
 - `CANStatus.msg` - CAN bus status information
+
+### `rover_description/` - Robot Description
+URDF/Xacro description of the rover for visualization and simulation:
+- `urdf/` - Xacro files defining the rover model (chassis, wheels)
+- `meshes/` - 3D mesh files (STL) for sensors and components
+- `sensors/` - Sensor definitions (ZED2 camera, Robosense LiDAR)
+- `config/` - Static configuration files
 
 ### `gateway/` - Main Gateway Package
 ROS2 nodes that act as the gateway between CAN bus and ROS2 topics:
