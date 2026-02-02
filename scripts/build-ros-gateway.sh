@@ -133,9 +133,10 @@ fi
 # CI options
 if [[ -n ${CI} ]]; then
     CACHE_ARCH="$(uname -m)"
+    CACHE_SCOPE="${PACKAGE}-${CACHE_ARCH}"
     BUILD_ARGS+=(
-        "--cache-from" "type=registry,ref=${PACKAGE}:buildcache-${CACHE_ARCH}"
-        "--cache-to" "type=registry,ref=${PACKAGE}:buildcache-${CACHE_ARCH},mode=max"
+        "--cache-from" "type=gha,scope=${CACHE_SCOPE}"
+        "--cache-to" "type=gha,mode=max,scope=${CACHE_SCOPE}"
     )
 fi
 

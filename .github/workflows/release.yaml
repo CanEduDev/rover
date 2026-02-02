@@ -43,10 +43,11 @@ jobs:
     runs-on: ${{ matrix.runner }}
 
     permissions:
-      contents: read
-      packages: write
+      actions: write
       attestations: write
+      contents: read
       id-token: write
+      packages: write
 
     steps:
       - uses: actions/checkout@v4
@@ -77,10 +78,11 @@ jobs:
     runs-on: ubuntu-24.04
 
     permissions:
-      contents: read
-      packages: write
+      actions: write
       attestations: write
+      contents: read
       id-token: write
+      packages: write
 
     steps:
       - uses: actions/checkout@v4
