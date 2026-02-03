@@ -1,5 +1,4 @@
-import os
-from glob import glob
+from pathlib import Path
 
 from setuptools import find_packages, setup
 
@@ -12,7 +11,10 @@ setup(
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
-        (os.path.join("share", package_name, "launch"), glob("launch/*")),  # noqa: PTH207, PTH118
+        (
+            str(Path("share") / package_name / "launch"),
+            [str(p) for p in Path("launch").glob("*")],
+        ),
     ],
     install_requires=["setuptools"],
     zip_safe=True,

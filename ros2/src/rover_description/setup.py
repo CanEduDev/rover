@@ -39,5 +39,5 @@ setup(
     maintainer="None",
     maintainer_email="none@todo.todo",
     description="Robot description (URDF/Xacro) for rover",
-    license="Apache-2.0",
+    license="MIT",
 )
