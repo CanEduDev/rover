@@ -36,5 +36,3 @@ jobs:
         uses: ./.github/actions/build-gateway
         with:
           ros_distro: ${{ matrix.ros_distro }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

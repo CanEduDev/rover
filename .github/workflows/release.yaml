@@ -69,8 +69,6 @@ jobs:
           push: true
           ros_distro: ${{ matrix.ros_distro }}
           tags: ${{ steps.tag.outputs.tag }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   ros-gateway-release:
     needs: ros-gateway
