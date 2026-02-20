@@ -24,7 +24,7 @@
 #define MAX_BLOCK_TIME_MS 100
 
 // Helpers
-static int program_page(uint32_t page_address, uint8_t *bytes, size_t size);
+static int program_page(uint32_t page_address, uint8_t* bytes, size_t size);
 static int wait_until_ready(void);
 static int set_write_enable_flag(void);
 static void start_spi_cmd(void);
@@ -37,7 +37,7 @@ int spi_flash_workaround_init(void) {
 
   uint8_t data = 0xFF;  // NOLINT(*-magic-numbers)
   if (program_page(SPI_FLASH_SIZE - 1, &data, sizeof(data)) != APP_OK) {
-    printf("Program didn't work, trying erase instead");
+    printf("Program didn't work, trying erase instead\r\n");
     return erase(SPI_FLASH_SIZE - SPI_FLASH_SECTOR_SIZE);
   }
   return APP_OK;
@@ -68,7 +68,7 @@ int erase(uint32_t sector_address) {
   }
 
   // Erase
-  common_peripherals_t *peripherals = get_common_peripherals();
+  common_peripherals_t* peripherals = get_common_peripherals();
 
   start_spi_cmd();
 
@@ -85,7 +85,7 @@ int erase(uint32_t sector_address) {
   return wait_until_ready();
 }
 
-int program(uint32_t address, uint8_t *bytes, size_t size) {
+int program(uint32_t address, uint8_t* bytes, size_t size) {
   // Bounds check
   if (address + size > SPI_FLASH_SIZE) {
     printf("error: page out of bounds\r\n");
@@ -98,7 +98,7 @@ int program(uint32_t address, uint8_t *bytes, size_t size) {
 
   while (bytes_left > 0) {
     uint32_t page_address = address + bytes_written;
-    uint8_t *chunk = &bytes[bytes_written];
+    uint8_t* chunk = &bytes[bytes_written];
     size_t chunk_size = bytes_left;
 
     if (chunk_size > SPI_FLASH_PAGE_SIZE) {
@@ -118,7 +118,7 @@ int program(uint32_t address, uint8_t *bytes, size_t size) {
 }
 
 // Can read whole flash using one command
-int read(uint32_t address, uint8_t *data, size_t size) {
+int read(uint32_t address, uint8_t* data, size_t size) {
   // Bounds check
   if (address + size > SPI_FLASH_SIZE) {
     printf("error: size out of bounds\r\n");
@@ -137,7 +137,7 @@ int read(uint32_t address, uint8_t *data, size_t size) {
   // NOLINTEND(*-magic-numbers)
 
   // Read data
-  common_peripherals_t *peripherals = get_common_peripherals();
+  common_peripherals_t* peripherals = get_common_peripherals();
 
   start_spi_cmd();
 
@@ -178,7 +178,7 @@ int read(uint32_t address, uint8_t *data, size_t size) {
   return APP_OK;
 }
 
-static int program_page(uint32_t page_address, uint8_t *bytes, size_t size) {
+static int program_page(uint32_t page_address, uint8_t* bytes, size_t size) {
   // Command consists of command number followed by page address in big
   // endian format. If an entire page should be programmed the last address byte
   // should be set to 0.
@@ -199,7 +199,7 @@ static int program_page(uint32_t page_address, uint8_t *bytes, size_t size) {
     return APP_NOT_OK;
   }
 
-  common_peripherals_t *peripherals = get_common_peripherals();
+  common_peripherals_t* peripherals = get_common_peripherals();
 
   // Transmit command
   start_spi_cmd();
@@ -226,7 +226,7 @@ static int program_page(uint32_t page_address, uint8_t *bytes, size_t size) {
 }
 
 static int wait_until_ready(void) {
-  common_peripherals_t *peripherals = get_common_peripherals();
+  common_peripherals_t* peripherals = get_common_peripherals();
   uint8_t cmd = READ_SR1_COMMAND;
 
   uint8_t response = SR1_BUSY;
@@ -252,7 +252,7 @@ static int wait_until_ready(void) {
 }
 
 static int set_write_enable_flag(void) {
-  common_peripherals_t *peripherals = get_common_peripherals();
+  common_peripherals_t* peripherals = get_common_peripherals();
   uint8_t cmd = WRITE_ENABLE_COMMAND;
 
   // Set write enable flag
