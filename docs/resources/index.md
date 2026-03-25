@@ -16,10 +16,10 @@ External resources and additional documentation for the Rover project.
 
 ### Schematics
 
-- [CPU Board Rev E](../schematics/cpu-board-rev-e.pdf)
-- [IO Board Rev E](../schematics/io-board-rev-e.pdf)
-- [Power Board Rev D](../schematics/power-board-rev-d.pdf)
-- [Servo Board Rev E](../schematics/servo-board-rev-e.pdf)
+- [CPU Board Rev E]({{ config.site_url }}schematics/cpu-board-rev-e.pdf)
+- [IO Board Rev E]({{ config.site_url }}schematics/io-board-rev-e.pdf)
+- [Power Board Rev D]({{ config.site_url }}schematics/power-board-rev-d.pdf)
+- [Servo Board Rev E]({{ config.site_url }}schematics/servo-board-rev-e.pdf)
 
 ### Other Resources
 

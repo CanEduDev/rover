@@ -11,6 +11,7 @@ dependencies = [
     "meson>=1.5.2",
     "mkdocs-glightbox>=0.5.2",
     "mkdocs-material>=9.2.6",
+    "mkdocs-macros-plugin>=1.0.0",
     "mkdocs-to-pdf>=0.10.1",
     "mkdocstrings-python>=1.18.2",
     "ninja>=1.11",
