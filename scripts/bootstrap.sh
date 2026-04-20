@@ -14,7 +14,6 @@ sudo apt-get -qq install --no-upgrade -y \
     curl \
     clang-format \
     clang-tidy \
-    doxygen \
     openocd \
     zip
 
