@@ -37,6 +37,14 @@ class Flasher:
     def detect_online_nodes(self, restore_comm=True):
         print("Detecting online nodes...")
         self.bus.send(rover.set_action_mode(mode=rover.ActionMode.FREEZE))
+
+        # Let the freeze propagate, then flush the rx buffer. Otherwise report
+        # frames already in flight (e.g. the AD battery monitor's 0x500 cell
+        # voltages) are read below and misidentified as base number responses.
+        time.sleep(self.default_timeout_s)
+        while self.bus.recv(timeout=0) is not None:
+            pass
+
         self.bus.send(rover.give_base_number(response_page=1))
 
         # Check responses
