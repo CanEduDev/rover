@@ -114,7 +114,7 @@ View available topics:
 ros2 topic list | grep /rover
 
 # Monitor battery status
-ros2 topic echo /rover/battery_monitor_front/cell_voltages
+ros2 topic echo /rover/battery_monitor_control_system/cell_voltages
 
 # Monitor wheel speeds
 ros2 topic echo /rover/wheel_front_left/wheel_status
