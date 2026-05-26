@@ -9,7 +9,7 @@ jobs:
   firmware:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build firmware
         uses: ./.github/actions/build-firmware
@@ -30,7 +30,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build ROS gateway
         uses: ./.github/actions/build-gateway

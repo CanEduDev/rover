@@ -20,11 +20,11 @@ runs:
   using: composite
   steps:
     # Set up builder outside of script to use this action's built-in caching
-    - uses: docker/setup-buildx-action@v3
+    - uses: docker/setup-buildx-action@v4
       id: builder
 
     # Required to export ACTIONS_RUNTIME_TOKEN and ACTIONS_RUNTIME_URL for caching
-    - uses: crazy-max/ghaction-github-runtime@v3
+    - uses: crazy-max/ghaction-github-runtime@v4
 
     - name: Build docker image
       run: |
