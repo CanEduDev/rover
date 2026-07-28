@@ -55,7 +55,7 @@ static void alarm_timer_callback(TimerHandle_t timer) {
 }
 
 static void send_buzzer_message(void) {
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
 
   // Create buzzer sound data (6 bytes total)
   uint16_t frequency = alarm_state.frequency;

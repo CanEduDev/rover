@@ -220,6 +220,8 @@ typedef enum {
 
 /// Communication mode flags, used in KP0.
 typedef enum {
+  /// No flags.
+  CK_COMM_FLAGS_NONE = 0,
   /// Reset communication by going through the startup sequence with new bit
   /// timing settings.
   CK_COMM_RESET = 1 << 2,
@@ -287,7 +289,7 @@ typedef struct {
   /// How many pages the document contains.
   uint8_t page_count;
   /// List of pointers to pages.
-  ck_page_t *pages[CK_MAX_PAGES_PER_DOCUMENT];
+  ck_page_t* pages[CK_MAX_PAGES_PER_DOCUMENT];
 } ck_document_t;
 
 /*******************************************************************************
@@ -360,7 +362,7 @@ typedef struct {
   /// Number of records in the list.
   uint8_t record_count;
   /// List of pointers to records.
-  void *records[CK_MAX_RECORDS_PER_LIST];
+  void* records[CK_MAX_RECORDS_PER_LIST];
 } ck_list_t;
 
 /*******************************************************************************
@@ -485,7 +487,7 @@ ck_err_t ck_check_list_type(ck_list_type_t type);
  * @return #CK_ERR_INVALID_CAN_BIT_TIMING if bit_timing is invalid.
  * @return #CK_OK on success.
  ******************************************************************************/
-ck_err_t ck_check_can_bit_timing(const ck_can_bit_timing_t *bit_timing);
+ck_err_t ck_check_can_bit_timing(const ck_can_bit_timing_t* bit_timing);
 
 /*******************************************************************************
  * Check if the given ck_id_t is valid.
@@ -495,7 +497,7 @@ ck_err_t ck_check_can_bit_timing(const ck_can_bit_timing_t *bit_timing);
  * @return #CK_ERR_INVALID_CK_ID if id is invalid.
  * @return #CK_OK on success.
  ******************************************************************************/
-ck_err_t ck_check_ck_id(const ck_id_t *id);
+ck_err_t ck_check_ck_id(const ck_id_t* id);
 
 /*******************************************************************************
  * Returns a CAN Kingdom default letter.
@@ -515,10 +517,10 @@ ck_letter_t ck_default_letter(void);
  ******************************************************************************/
 ck_can_bit_timing_t ck_default_bit_timing(void);
 
-ck_err_t ck_check_envelope(ck_envelope_t *envelope);
-bool ck_is_envelope_equal(const ck_envelope_t *envelope1,
-                          const ck_envelope_t *envelope2);
-int ck_find_envelope(const ck_folder_t *folder, const ck_envelope_t *envelope);
+ck_err_t ck_check_envelope(ck_envelope_t* envelope);
+bool ck_is_envelope_equal(const ck_envelope_t* envelope1,
+                          const ck_envelope_t* envelope2);
+int ck_find_envelope(const ck_folder_t* folder, const ck_envelope_t* envelope);
 
 #ifdef __cplusplus
 }

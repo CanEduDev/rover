@@ -14,23 +14,23 @@ typedef struct {
 static ck_data_t ck_data;
 static const ck_id_t ck_id = {.city_address = 99};
 
-void setup_test(void);
-void test_send_default_letter(void);
-void test_set_rover_base_number(void);
-void test_assign_rover_envelopes(void);
-void test_start_communication(void);
+static void setup_test(void);
+static void test_send_default_letter(void);
+static void test_set_rover_base_number(void);
+static void test_assign_rover_envelopes(void);
+static void test_start_communication(void);
 
-ck_err_t mock_set_action_mode(ck_action_mode_t mode) {
+static ck_err_t mock_set_action_mode(ck_action_mode_t mode) {
   (void)mode;
   return CK_OK;
 }
 
-ck_err_t mock_set_city_mode(ck_city_mode_t mode) {
+static ck_err_t mock_set_city_mode(ck_city_mode_t mode) {
   (void)mode;
   return CK_OK;
 }
 
-void mock_start_200ms_timer(void) {
+static void mock_start_200ms_timer(void) {
 }
 
 int main(void) {

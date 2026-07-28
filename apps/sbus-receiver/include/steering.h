@@ -19,7 +19,7 @@ typedef struct {
 void init_steering(void);
 
 steering_command_t sbus_message_to_steering_command(
-    const sbus_message_t *sbus_packet);
+    const sbus_message_t* sbus_packet);
 
 steering_command_t neutral_steering_command(void);
 

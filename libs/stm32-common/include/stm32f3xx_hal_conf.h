@@ -17,8 +17,8 @@
  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32F3xx_HAL_CONF_H
-#define __STM32F3xx_HAL_CONF_H
+#ifndef STM32F3xx_HAL_CONF_H
+#define STM32F3xx_HAL_CONF_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -80,7 +80,7 @@ extern "C" {
  * frequency (when HSE is used as system clock source, directly or through the
  * PLL).
  */
-#if !defined(HSE_VALUE)
+#ifndef HSE_VALUE
 #define HSE_VALUE \
   ((uint32_t)12000000) /*!< Value of the External oscillator in Hz */
 #endif                 /* HSE_VALUE */
@@ -89,7 +89,7 @@ extern "C" {
  * @brief In the following line adjust the External High Speed oscillator (HSE)
  * Startup Timeout value
  */
-#if !defined(HSE_STARTUP_TIMEOUT)
+#ifndef HSE_STARTUP_TIMEOUT
 #define HSE_STARTUP_TIMEOUT \
   ((uint32_t)100) /*!< Time out for HSE start up, in ms */
 #endif            /* HSE_STARTUP_TIMEOUT */
@@ -100,7 +100,7 @@ extern "C" {
  * frequency (when HSI is used as system clock source, directly or through the
  * PLL).
  */
-#if !defined(HSI_VALUE)
+#ifndef HSI_VALUE
 #define HSI_VALUE \
   ((uint32_t)8000000) /*!< Value of the Internal oscillator in Hz*/
 #endif                /* HSI_VALUE */
@@ -109,14 +109,14 @@ extern "C" {
  * @brief In the following line adjust the Internal High Speed oscillator (HSI)
  * Startup Timeout value
  */
-#if !defined(HSI_STARTUP_TIMEOUT)
+#ifndef HSI_STARTUP_TIMEOUT
 #define HSI_STARTUP_TIMEOUT ((uint32_t)5000) /*!< Time out for HSI start up */
 #endif                                       /* HSI_STARTUP_TIMEOUT */
 
 /**
  * @brief Internal Low Speed oscillator (LSI) value.
  */
-#if !defined(LSI_VALUE)
+#ifndef LSI_VALUE
 #define LSI_VALUE ((uint32_t)40000)
 #endif /* LSI_VALUE */ /*!< Value of the Internal Low Speed oscillator in Hz \
                         The real value may vary depending on the variations  \
@@ -124,7 +124,7 @@ extern "C" {
 /**
  * @brief External Low Speed oscillator (LSE) value.
  */
-#if !defined(LSE_VALUE)
+#ifndef LSE_VALUE
 #define LSE_VALUE \
   ((uint32_t)32768) /*!< Value of the External Low Speed oscillator in Hz */
 #endif              /* LSE_VALUE */
@@ -132,7 +132,7 @@ extern "C" {
 /**
  * @brief Time out for LSE start up value in ms.
  */
-#if !defined(LSE_STARTUP_TIMEOUT)
+#ifndef LSE_STARTUP_TIMEOUT
 #define LSE_STARTUP_TIMEOUT \
   ((uint32_t)5000) /*!< Time out for LSE start up, in ms */
 #endif             /* LSE_STARTUP_TIMEOUT */
@@ -145,7 +145,7 @@ extern "C" {
  * (based on MCO or crystal)
  *        - External clock not generated on EVAL 373
  */
-#if !defined(EXTERNAL_CLOCK_VALUE)
+#ifndef EXTERNAL_CLOCK_VALUE
 #define EXTERNAL_CLOCK_VALUE \
   ((uint32_t)8000000) /*!< Value of the External oscillator in Hz*/
 #endif                /* EXTERNAL_CLOCK_VALUE */
@@ -390,4 +390,4 @@ void assert_failed(uint8_t* file, uint32_t line);
 }
 #endif
 
-#endif /* __STM32F3xx_HAL_CONF_H */
+#endif /* STM32F3xx_HAL_CONF_H */

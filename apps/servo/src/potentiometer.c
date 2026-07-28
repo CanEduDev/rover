@@ -13,7 +13,7 @@
 #define POTENTIOMETER_ACR_ADDRESS 0x10  // Access control register
 
 int init_potentiometers(void) {
-  peripherals_t *peripherals = get_peripherals();
+  peripherals_t* peripherals = get_peripherals();
   // Volatile RW enable, Shutdown disable
   const uint8_t acr_contents = 0xC0;
   uint8_t acr_write[2] = {POTENTIOMETER_ACR_ADDRESS, acr_contents};
@@ -29,8 +29,9 @@ int init_potentiometers(void) {
   return APP_OK;
 }
 
-int write_potentiometer_value(uint8_t terminal_address, uint8_t pot_value) {
-  peripherals_t *peripherals = get_peripherals();
+static int write_potentiometer_value(uint8_t terminal_address,
+                                     uint8_t pot_value) {
+  peripherals_t* peripherals = get_peripherals();
   uint8_t write_cmd[2] = {terminal_address, pot_value};
 
   HAL_StatusTypeDef err =
@@ -54,12 +55,12 @@ int write_sensor_potentiometer(uint8_t pot_value) {
   return write_potentiometer_value(POTENTIOMETER_WRB_ADDRESS, pot_value);
 }
 
-int read_servo_potentiometer(uint8_t *pot_value) {
+int read_servo_potentiometer(uint8_t* pot_value) {
   if (pot_value == NULL) {
     return APP_NOT_OK;
   }
 
-  peripherals_t *peripherals = get_peripherals();
+  peripherals_t* peripherals = get_peripherals();
   uint8_t wra_read_cmd = POTENTIOMETER_WRA_ADDRESS;
 
   HAL_StatusTypeDef err = HAL_I2C_Master_Transmit(

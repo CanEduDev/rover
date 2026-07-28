@@ -15,7 +15,7 @@ extern "C" {
 
 typedef struct {
   // Provided by CPU board
-  common_peripherals_t *common_peripherals;
+  common_peripherals_t* common_peripherals;
 
   ADC_HandleTypeDef hadc1;
   ADC_HandleTypeDef hadc2;
@@ -24,7 +24,7 @@ typedef struct {
   I2C_HandleTypeDef hi2c1;
 } peripherals_t;
 
-peripherals_t *get_peripherals(void);
+peripherals_t* get_peripherals(void);
 
 void peripherals_init(void);
 

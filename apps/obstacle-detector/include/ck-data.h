@@ -22,21 +22,21 @@ typedef struct {
   ck_folder_t folders[CK_DATA_FOLDER_COUNT];
 
   // Convenience pointers
-  ck_list_t *tx_list;
-  ck_list_t *rx_list;
+  ck_list_t* tx_list;
+  ck_list_t* rx_list;
 
-  ck_page_t *object_distance_page;
+  ck_page_t* object_distance_page;
 
   // Transmit
-  ck_folder_t *object_distance_folder;
+  ck_folder_t* object_distance_folder;
 
   // Receive
-  ck_folder_t *set_report_freq_folder;
+  ck_folder_t* set_report_freq_folder;
 
 } ck_data_t;
 
 void ck_data_init(void);
-ck_data_t *get_ck_data(void);
+ck_data_t* get_ck_data(void);
 
 #ifdef __cplusplus
 }

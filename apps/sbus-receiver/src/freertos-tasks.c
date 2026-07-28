@@ -24,10 +24,10 @@ static TaskHandle_t steering_task;
 static StaticTask_t steering_task_buf;
 static StackType_t steering_task_stack[2 * configMINIMAL_STACK_SIZE];
 
-void sbus_read_and_steer(void* unused);
-void send_steering_command(steering_command_t* command);
+static void sbus_read_and_steer(void* unused);
+static void send_steering_command(steering_command_t* command);
 
-int handle_letter(const ck_folder_t* folder, const ck_letter_t* letter);
+static int handle_letter(const ck_folder_t* folder, const ck_letter_t* letter);
 
 void task_init(void) {
   uint8_t priority = LOWEST_TASK_PRIORITY;
@@ -80,8 +80,8 @@ void sbus_read_and_steer(void* unused) {
 
     // Failsafe usually triggers if many frames are lost in a row. Indicates
     // heavy connection loss.
-    bool read_failed =
-        message.failsafe_activated || (frame_lost_count > frame_lost_threshold);
+    bool read_failed = (message.failsafe_activated ||
+                        (frame_lost_count > frame_lost_threshold)) != 0;
 
     if (read_failed) {
       printf("Frame lost, sending neutral command.\r\n");

@@ -45,7 +45,7 @@ ck_err_t ck_postmaster_init(void);
  *
  * @return #CK_OK if letter is sent correctly.
  ******************************************************************************/
-ck_err_t ck_send_letter(const ck_letter_t *letter);
+ck_err_t ck_send_letter(const ck_letter_t* letter);
 
 /*******************************************************************************
  * Apply the requested communication mode in hardware.
@@ -85,7 +85,7 @@ uint8_t ck_get_125kbit_prescaler(void);
  *
  * @return #CK_OK on success
  ******************************************************************************/
-ck_err_t ck_set_bit_timing(const ck_can_bit_timing_t *bit_timing);
+ck_err_t ck_set_bit_timing(const ck_can_bit_timing_t* bit_timing);
 
 /*******************************************************************************
  * Save the given bit_timing parameters to persistent storage.
@@ -95,7 +95,7 @@ ck_err_t ck_set_bit_timing(const ck_can_bit_timing_t *bit_timing);
  * @return #CK_ERR_PERIPHERAL if it wasn't possible to save the parameters.
  * @return #CK_OK on success
  ******************************************************************************/
-ck_err_t ck_save_bit_timing(const ck_can_bit_timing_t *bit_timing);
+ck_err_t ck_save_bit_timing(const ck_can_bit_timing_t* bit_timing);
 
 /*******************************************************************************
  * Load a bit timing parameters from persistent storage.
@@ -105,7 +105,7 @@ ck_err_t ck_save_bit_timing(const ck_can_bit_timing_t *bit_timing);
  * @return #CK_ERR_PERIPHERAL if it wasn't possible to load the parameters.
  * @return #CK_OK on success
  ******************************************************************************/
-ck_err_t ck_load_bit_timing(ck_can_bit_timing_t *bit_timing);
+ck_err_t ck_load_bit_timing(ck_can_bit_timing_t* bit_timing);
 
 #ifdef __cplusplus
 }

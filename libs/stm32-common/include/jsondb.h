@@ -9,13 +9,13 @@ extern "C" {
 
 #include "json.h"
 
-json_object_t *get_jsondb(void);
-char *get_jsondb_raw(void);
+json_object_t* get_jsondb(void);
+char* get_jsondb_raw(void);
 size_t get_jsondb_max_size(void);
 
 void jsondb_init(void);
-int jsondb_update(json_object_t *new_json);
-int jsondb_update_async(json_object_t *new_json);
+int jsondb_update(json_object_t* new_json);
+int jsondb_update_async(json_object_t* new_json);
 
 #ifdef __cplusplus
 } /* extern "C" */

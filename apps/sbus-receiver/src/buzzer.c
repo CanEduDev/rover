@@ -37,8 +37,8 @@ static StackType_t buzzer_task_stack[configMINIMAL_STACK_SIZE];
 static void set_buzzer_tone(uint16_t frequency_hz);
 static void set_buzzer_volume(uint16_t volume);
 static void tone_timer_callback(TimerHandle_t timer);
-static void buzzer_task_func(void *unused);
-static void buzzer_play_sound(const buzzer_sound_t *sound);
+static void buzzer_task_func(void* unused);
+static void buzzer_play_sound(const buzzer_sound_t* sound);
 static int buzzer_init(void);
 
 void init_buzzer_task(uint8_t priority) {
@@ -57,8 +57,8 @@ void init_buzzer_task(uint8_t priority) {
 // bytes 0-1: Sound frequency in Hz (uint16_t)
 // bytes 2-3: Sound duration in ms (uint16_t)
 // bytes 4-5: Sound volume (uint16_t)
-int process_buzzer_sound_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_buzzer_sound_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->buzzer_sound_folder->dlc) {
     return APP_NOT_OK;
   }
@@ -86,7 +86,7 @@ int process_buzzer_sound_letter(const ck_letter_t *letter) {
 }
 
 static int buzzer_init(void) {
-  peripherals_t *peripherals = get_peripherals();
+  peripherals_t* peripherals = get_peripherals();
 
   if (HAL_TIM_PWM_Start(&peripherals->htim2, TIM_CHANNEL_1) != HAL_OK) {
     printf("error: failed to start buzzer timer\r\n");
@@ -106,7 +106,7 @@ static int buzzer_init(void) {
   return APP_OK;
 }
 
-static void buzzer_task_func(void *unused) {
+static void buzzer_task_func(void* unused) {
   (void)unused;
 
   buzzer_sound_t sound;
@@ -118,7 +118,7 @@ static void buzzer_task_func(void *unused) {
   }
 }
 
-static void buzzer_play_sound(const buzzer_sound_t *sound) {
+static void buzzer_play_sound(const buzzer_sound_t* sound) {
   if (sound->frequency_hz > 0) {
     set_buzzer_tone(sound->frequency_hz);
     set_buzzer_volume(sound->volume);
@@ -139,13 +139,13 @@ static void tone_timer_callback(TimerHandle_t timer) {
 }
 
 static void set_buzzer_tone(uint16_t frequency_hz) {
-  peripherals_t *peripherals = get_peripherals();
+  peripherals_t* peripherals = get_peripherals();
   __HAL_TIM_SET_AUTORELOAD(&peripherals->htim2,
                            (TIMER_FREQ / frequency_hz) - 1);
 }
 
 static void set_buzzer_volume(uint16_t volume) {
-  peripherals_t *peripherals = get_peripherals();
+  peripherals_t* peripherals = get_peripherals();
   // Limit to 90% duty cycle
   const uint32_t max_volume =
       (__HAL_TIM_GET_AUTORELOAD(&peripherals->htim2) / 10) * 9;

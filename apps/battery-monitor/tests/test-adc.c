@@ -5,15 +5,15 @@
 // Testing
 #include "test.h"
 
-void setup_test(void);
-void test_adc_to_cell_voltage(void);
-void test_adc_to_reg_out_current(void);
-void test_adc_to_reg_out_voltage(void);
-void test_adc_to_vbat_out_current_x11_on_x12_on(void);
-void test_adc_to_vbat_out_current_x11_on(void);
-void test_adc_to_vbat_out_current_x12_on(void);
-void test_adc_to_vbat_out_current_x11_off_x12_off(void);
-void test_adc_to_vbat_out_voltage(void);
+static void setup_test(void);
+static void test_adc_to_cell_voltage(void);
+static void test_adc_to_reg_out_current(void);
+static void test_adc_to_reg_out_voltage(void);
+static void test_adc_to_vbat_out_current_x11_on_x12_on(void);
+static void test_adc_to_vbat_out_current_x11_on(void);
+static void test_adc_to_vbat_out_current_x12_on(void);
+static void test_adc_to_vbat_out_current_x11_off_x12_off(void);
+static void test_adc_to_vbat_out_voltage(void);
 
 int main(void) {
   setup_test();

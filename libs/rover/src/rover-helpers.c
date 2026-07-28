@@ -36,9 +36,9 @@ ck_err_t send_default_letter(void) {
   return CK_OK;
 }
 
-ck_err_t assign_rover_envelopes(const ck_id_t *own_id) {
+ck_err_t assign_rover_envelopes(const ck_id_t* own_id) {
   init_rover_kingdom();
-  rover_kingdom_t *kingdom = get_rover_kingdom();
+  rover_kingdom_t* kingdom = get_rover_kingdom();
 
   for (size_t i = 0; i < kingdom->assignment_count; i++) {
     ck_page_t page;
@@ -148,6 +148,7 @@ ck_err_t start_communication(void) {
       .city_mode = CK_CITY_MODE_KEEP_CURRENT,
       .action_mode = CK_ACTION_MODE_KEEP_CURRENT,
       .comm_mode = CK_COMM_MODE_COMMUNICATE,
+      .comm_flags = CK_COMM_FLAGS_NONE,
   };
   ck_err_t ret = ck_create_kings_page_0(&kp0_args, &page);
   if (ret != CK_OK) {

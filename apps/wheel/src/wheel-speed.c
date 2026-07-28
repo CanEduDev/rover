@@ -15,7 +15,7 @@ static TaskHandle_t wheel_speed_task;
 static StaticTask_t wheel_speed_task_buf;
 static StackType_t wheel_speed_task_stack[WHEEL_SPEED_TASK_STACK_SIZE];
 
-void measure_wheel_speed(void* unused);
+static void measure_wheel_speed(void* unused);
 uint32_t calculate_measure_delay(uint32_t rps);
 
 #define TIM2_FREQ_HZ (72 * 1000 * 1000)

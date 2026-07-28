@@ -19,11 +19,11 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-void mayor_init(void);
-ck_err_t set_action_mode(ck_action_mode_t mode);
-ck_err_t set_city_mode(ck_city_mode_t mode);
+static void mayor_init(void);
+static ck_err_t set_action_mode(ck_action_mode_t mode);
+static ck_err_t set_city_mode(ck_city_mode_t mode);
 
-int handle_letter(const ck_folder_t *folder, const ck_letter_t *letter);
+static int handle_letter(const ck_folder_t* folder, const ck_letter_t* letter);
 
 void init_ck_task(uint8_t priority) {
   letter_reader_cfg_t letter_reader_cfg = {
@@ -40,7 +40,7 @@ void init_ck_task(uint8_t priority) {
 
 void mayor_init(void) {
   ck_data_init();
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
 
   uint32_t city_address = ROVER_CITY_LIGHT_ARRAY_FRONT;
 
@@ -94,12 +94,12 @@ ck_err_t set_city_mode(ck_city_mode_t mode) {
   return CK_OK;
 }
 
-int handle_letter(const ck_folder_t *folder, const ck_letter_t *letter) {
+int handle_letter(const ck_folder_t* folder, const ck_letter_t* letter) {
   if (ck_get_action_mode() == CK_ACTION_MODE_FREEZE) {
     return APP_OK;
   }
 
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
 
   if (folder->folder_no == ck_data->set_light_state_folder->folder_no) {
     return process_light_state_letter(letter);

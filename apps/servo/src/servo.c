@@ -88,7 +88,7 @@ bool is_servo_voltage_stable(void) {
   int32_t max_voltage = (int32_t)servo.target_voltage + accepted_error;
   int32_t min_voltage = (int32_t)servo.target_voltage - accepted_error;
 
-  return servo.voltage < max_voltage && servo.voltage > min_voltage;
+  return (servo.voltage < max_voltage && servo.voltage > min_voltage) != 0;
 }
 
 int update_servo_pulse(int32_t pulse) {
@@ -133,7 +133,7 @@ static int32_t angle_to_pulse(float angle) {
 }
 
 static float pulse_to_angle(int32_t pulse) {
-  return ((float)(pulse)-m_angle_to_pulse) / k_angle_to_pulse;
+  return ((float)pulse - m_angle_to_pulse) / k_angle_to_pulse;
 }
 
 static float subtrim_pulse_to_angle(int32_t pulse) {

@@ -8,7 +8,7 @@
 
 #define ADC_REF_VOLTAGE_MV 3300
 #define ADC_RESOLUTION_12BIT ((1 << 12) - 1)
-#define VREFINT_CAL_ADDR ((uint16_t *)(0x1FFFF7BA))
+#define VREFINT_CAL_ADDR ((uint16_t*)(0x1FFFF7BA))
 
 // Constants for average indices
 #define CELL0_INDEX 0
@@ -32,7 +32,7 @@ static const int cell_indices[] = {
 void adc_update_vdda(uint16_t vrefint_cal, uint16_t vrefint);
 static uint16_t adc_value_to_voltage(uint16_t adc_value);
 
-void adc_average_samples(const adc_samples_t *samples, adc_reading_t *reading) {
+void adc_average_samples(const adc_samples_t* samples, adc_reading_t* reading) {
   // Need to initialize to 0, otherwise garbage data can be present
   uint32_t sum_adc1[ADC1_NUM_CHANNELS] = {0};
   uint32_t sum_adc2[ADC2_NUM_CHANNELS] = {0};

@@ -9,9 +9,9 @@
 
 static peripherals_t peripherals;
 
-void gpio_init(void);
-void tim2_init(void);
-void uart2_init(void);
+static void gpio_init(void);
+static void tim2_init(void);
+static void uart2_init(void);
 
 peripherals_t* get_peripherals(void) {
   return &peripherals;

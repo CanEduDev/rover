@@ -125,7 +125,7 @@ typedef struct {
  * @return #CK_ERR_INVALID_COMM_MODE if the given comm mode is invalid.
  * @return #CK_OK on success.
  ******************************************************************************/
-ck_err_t ck_create_kings_page_0(const ck_kp0_args_t *args, ck_page_t *page);
+ck_err_t ck_create_kings_page_0(const ck_kp0_args_t* args, ck_page_t* page);
 
 /*******************************************************************************
  * KP1 is the initiating page.
@@ -138,7 +138,7 @@ ck_err_t ck_create_kings_page_0(const ck_kp0_args_t *args, ck_page_t *page);
  * @return #CK_ERR_INVALID_CAN_ID if the given CAN ID is out of bounds.
  * @return #CK_OK on success.
  ******************************************************************************/
-ck_err_t ck_create_kings_page_1(const ck_kp1_args_t *args, ck_page_t *page);
+ck_err_t ck_create_kings_page_1(const ck_kp1_args_t* args, ck_page_t* page);
 
 /*******************************************************************************
  * KP2 is used to assign, expel or transfer envelopes from/to folders.
@@ -150,7 +150,7 @@ ck_err_t ck_create_kings_page_1(const ck_kp1_args_t *args, ck_page_t *page);
  * @return #CK_ERR_INVALID_CAN_ID if the given CAN ID is out of bounds.
  * @return #CK_OK on success.
  *******************************************************************************/
-ck_err_t ck_create_kings_page_2(const ck_kp2_args_t *args, ck_page_t *page);
+ck_err_t ck_create_kings_page_2(const ck_kp2_args_t* args, ck_page_t* page);
 
 /*******************************************************************************
  * KP8 is used to set the CAN bit timing settings for a city.
@@ -164,8 +164,8 @@ ck_err_t ck_create_kings_page_2(const ck_kp2_args_t *args, ck_page_t *page);
  * @return #CK_OK on success.
  *******************************************************************************/
 ck_err_t ck_create_kings_page_8(uint8_t address,
-                                const ck_can_bit_timing_t *bit_timing,
-                                ck_page_t *page);
+                                const ck_can_bit_timing_t* bit_timing,
+                                ck_page_t* page);
 
 /*******************************************************************************
  * KP16 Sets the folder label and/or places a document into a folder.
@@ -178,7 +178,7 @@ ck_err_t ck_create_kings_page_8(uint8_t address,
  * @return #CK_ERR_INVALID_CAN_DLC if the given DLC value is out of bounds.
  * @return #CK_OK on success.
  ******************************************************************************/
-ck_err_t ck_create_kings_page_16(const ck_kp16_args_t *args, ck_page_t *page);
+ck_err_t ck_create_kings_page_16(const ck_kp16_args_t* args, ck_page_t* page);
 
 /*******************************************************************************
  * KP17 Creates a document, a page or a line from predefined page, line, or bit
@@ -190,7 +190,7 @@ ck_err_t ck_create_kings_page_16(const ck_kp16_args_t *args, ck_page_t *page);
  * @return #CK_ERR_INVALID_LIST_TYPE if the given list type is invalid.
  * @return #CK_OK on success.
  *******************************************************************************/
-ck_err_t ck_create_kings_page_17(const ck_kp17_args_t *args, ck_page_t *page);
+ck_err_t ck_create_kings_page_17(const ck_kp17_args_t* args, ck_page_t* page);
 
 #ifdef __cplusplus
 }

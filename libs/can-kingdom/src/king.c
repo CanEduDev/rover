@@ -5,7 +5,7 @@
 // We are addressing individual bytes when constructing the king's pages.
 // NOLINTBEGIN(*magic-numbers)
 
-ck_err_t ck_create_kings_page_0(const ck_kp0_args_t *args, ck_page_t *page) {
+ck_err_t ck_create_kings_page_0(const ck_kp0_args_t* args, ck_page_t* page) {
   // Null pointer check
   if (!args || !page) {
     return CK_ERR_INVALID_PARAMETER;
@@ -30,7 +30,7 @@ ck_err_t ck_create_kings_page_0(const ck_kp0_args_t *args, ck_page_t *page) {
   return CK_OK;
 }
 
-ck_err_t ck_create_kings_page_1(const ck_kp1_args_t *args, ck_page_t *page) {
+ck_err_t ck_create_kings_page_1(const ck_kp1_args_t* args, ck_page_t* page) {
   // Null pointer check
   if (!args || !page) {
     return CK_ERR_INVALID_PARAMETER;
@@ -49,12 +49,12 @@ ck_err_t ck_create_kings_page_1(const ck_kp1_args_t *args, ck_page_t *page) {
 
   memcpy(&page->lines[4], &args->base_no, sizeof(args->base_no));
 
-  page->lines[7] |= (args->has_extended_id << 7);
+  page->lines[7] |= ((int)args->has_extended_id << 7);
 
   return CK_OK;
 }
 
-ck_err_t ck_create_kings_page_2(const ck_kp2_args_t *args, ck_page_t *page) {
+ck_err_t ck_create_kings_page_2(const ck_kp2_args_t* args, ck_page_t* page) {
   // Null pointer check
   if (!args || !page) {
     return CK_ERR_INVALID_PARAMETER;
@@ -79,19 +79,20 @@ ck_err_t ck_create_kings_page_2(const ck_kp2_args_t *args, ck_page_t *page) {
   memcpy(&page->lines[2], &args->envelope.envelope_no,
          sizeof(args->envelope.envelope_no));
 
-  page->lines[5] |= (args->envelope.is_compressed << 6);
-  page->lines[5] |= (args->envelope.has_extended_id << 7);
+  page->lines[5] |= ((int)args->envelope.is_compressed << 6);
+  page->lines[5] |= ((int)args->envelope.has_extended_id << 7);
 
   page->lines[6] = args->folder_no;
 
-  page->lines[7] = (args->envelope.enable) | (args->envelope_action << 1);
+  page->lines[7] =
+      (unsigned int)(args->envelope.enable) | (args->envelope_action << 1);
 
   return CK_OK;
 }
 
 ck_err_t ck_create_kings_page_8(uint8_t address,
-                                const ck_can_bit_timing_t *bit_timing,
-                                ck_page_t *page) {
+                                const ck_can_bit_timing_t* bit_timing,
+                                ck_page_t* page) {
   // Null pointer check
   if (!bit_timing | !page) {
     return CK_ERR_INVALID_PARAMETER;
@@ -110,7 +111,7 @@ ck_err_t ck_create_kings_page_8(uint8_t address,
   return CK_OK;
 }
 
-ck_err_t ck_create_kings_page_16(const ck_kp16_args_t *args, ck_page_t *page) {
+ck_err_t ck_create_kings_page_16(const ck_kp16_args_t* args, ck_page_t* page) {
   // Null pointer check
   if (!args || !page) {
     return CK_ERR_INVALID_PARAMETER;
@@ -131,7 +132,7 @@ ck_err_t ck_create_kings_page_16(const ck_kp16_args_t *args, ck_page_t *page) {
   page->lines[2] = args->folder_no;
 
   // MSB is set to 1 in CK specification
-  page->lines[3] = (1 << 7) | (args->has_rtr << 6) | args->dlc;
+  page->lines[3] = (1 << 7) | ((int)args->has_rtr << 6) | args->dlc;
 
   // If all bits except the MSB are 0, then settings should be unchanged and MSB
   // set to 0.
@@ -140,7 +141,7 @@ ck_err_t ck_create_kings_page_16(const ck_kp16_args_t *args, ck_page_t *page) {
   }
 
   // MSB is set to 1 in CK specification
-  page->lines[4] = (1 << 7) | (args->enable_folder << 6) |
+  page->lines[4] = (1 << 7) | ((int)args->enable_folder << 6) |
                    (args->document_action << 4) | args->direction;
 
   // If all bits except the MSB are 0, then settings should be unchanged and MSB
@@ -156,7 +157,7 @@ ck_err_t ck_create_kings_page_16(const ck_kp16_args_t *args, ck_page_t *page) {
   return CK_OK;
 }
 
-ck_err_t ck_create_kings_page_17(const ck_kp17_args_t *args, ck_page_t *page) {
+ck_err_t ck_create_kings_page_17(const ck_kp17_args_t* args, ck_page_t* page) {
   // Null pointer check
   if (!args || !page) {
     return CK_ERR_INVALID_PARAMETER;

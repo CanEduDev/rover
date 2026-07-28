@@ -7,15 +7,18 @@ Checks: |
   misc-*,
   readability-*,
 
+  -clang-analyzer-core.FixedAddressDereference,
   -clang-analyzer-optin.core.EnumCastOutOfRange,
   -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
   -cppcoreguidelines-avoid-non-const-global-variables,
   -cppcoreguidelines-macro-to-enum,
   -misc-include-cleaner,
+  -misc-use-internal-linkage,
   -readability-identifier-length
 
 WarningsAsErrors: '*'
-HeaderFilterRegex: '.*, -subprojects'
+HeaderFilterRegex: '.*'
+ExcludeHeaderFilterRegex: '.*/subprojects/.*'
 FormatStyle: file
 InheritParentConfig: true
 CheckOptions:

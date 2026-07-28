@@ -29,9 +29,9 @@ static StaticTask_t process_letter_buf;
 
 static StackType_t process_letter_stack[PROCESS_LETTER_STACK_SIZE];
 
-static void process_letter(void *unused);
-static void dispatch_letter(ck_letter_t *letter);
-static ck_letter_t frame_to_letter(CAN_RxHeaderTypeDef *header, uint8_t *data);
+static void process_letter(void* unused);
+static void dispatch_letter(ck_letter_t* letter);
+static ck_letter_t frame_to_letter(CAN_RxHeaderTypeDef* header, uint8_t* data);
 
 static letter_reader_cfg_t task_cfg;
 static TaskHandle_t task_handle;
@@ -60,10 +60,10 @@ TaskHandle_t get_letter_reader_task_handle(void) {
   return task_handle;
 }
 
-static void process_letter(void *unused) {
+static void process_letter(void* unused) {
   (void)unused;
 
-  common_peripherals_t *common_peripherals = get_common_peripherals();
+  common_peripherals_t* common_peripherals = get_common_peripherals();
 
   ck_letter_t letter;
 
@@ -87,8 +87,8 @@ static void process_letter(void *unused) {
   }
 }
 
-static void dispatch_letter(ck_letter_t *letter) {
-  ck_folder_t *folder = NULL;
+static void dispatch_letter(ck_letter_t* letter) {
+  ck_folder_t* folder = NULL;
 
   // Check for default letter
   if (ck_is_default_letter(letter) == CK_OK) {
@@ -110,10 +110,10 @@ static void dispatch_letter(ck_letter_t *letter) {
   }
 }
 
-static ck_letter_t frame_to_letter(CAN_RxHeaderTypeDef *header, uint8_t *data) {
+static ck_letter_t frame_to_letter(CAN_RxHeaderTypeDef* header, uint8_t* data) {
   ck_letter_t letter;
-  letter.envelope.is_remote = header->RTR;
-  letter.envelope.has_extended_id = header->IDE;
+  letter.envelope.is_remote = (header->RTR != 0U);
+  letter.envelope.has_extended_id = (header->IDE != 0U);
   if (letter.envelope.has_extended_id) {
     letter.envelope.envelope_no = header->ExtId;
   } else {
@@ -125,7 +125,7 @@ static ck_letter_t frame_to_letter(CAN_RxHeaderTypeDef *header, uint8_t *data) {
   return letter;
 }
 
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
   CAN_RxHeaderTypeDef header;
   uint8_t data[CK_CAN_MAX_DLC];
   ck_letter_t letter;

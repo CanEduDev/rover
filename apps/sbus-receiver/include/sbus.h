@@ -16,7 +16,7 @@ typedef struct {
   bool failsafe_activated;
 } sbus_message_t;
 
-int sbus_read_message(sbus_message_t *message);
+int sbus_read_message(sbus_message_t* message);
 
 #ifdef __cplusplus
 }

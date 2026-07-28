@@ -33,7 +33,7 @@ typedef struct {
   float accepted_error;
 } measurement_t;
 
-bool is_acceptable_measurement(measurement_t *measurement);
+bool is_acceptable_measurement(measurement_t* measurement);
 
 #ifdef __cplusplus
 }

@@ -10,7 +10,7 @@ extern "C" {
 #include "ck-types.h"
 
 void init_report_task(uint8_t priority);
-int process_report_freq_letter(const ck_letter_t *letter);
+int process_report_freq_letter(const ck_letter_t* letter);
 
 #ifdef __cplusplus
 } /* extern "C" */

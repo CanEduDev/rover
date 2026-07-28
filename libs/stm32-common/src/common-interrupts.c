@@ -54,16 +54,16 @@ void SysTick_Handler(void) {
 }
 
 void USART1_IRQHandler(void) {
-  common_peripherals_t *common_peripherals = get_common_peripherals();
+  common_peripherals_t* common_peripherals = get_common_peripherals();
   HAL_UART_IRQHandler(&common_peripherals->huart1);
 }
 
 void USB_LP_CAN_RX0_IRQHandler(void) {
-  common_peripherals_t *common_peripherals = get_common_peripherals();
+  common_peripherals_t* common_peripherals = get_common_peripherals();
   HAL_CAN_IRQHandler(&common_peripherals->hcan);
 }
 
 void USB_HP_CAN_TX_IRQHandler(void) {
-  common_peripherals_t *common_peripherals = get_common_peripherals();
+  common_peripherals_t* common_peripherals = get_common_peripherals();
   HAL_CAN_IRQHandler(&common_peripherals->hcan);
 }

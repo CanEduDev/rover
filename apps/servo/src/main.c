@@ -21,9 +21,9 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-void mayor_init(void);
-ck_err_t set_action_mode(ck_action_mode_t mode);
-ck_err_t set_city_mode(ck_city_mode_t mode);
+static void mayor_init(void);
+static ck_err_t set_action_mode(ck_action_mode_t mode);
+static ck_err_t set_city_mode(ck_city_mode_t mode);
 
 int main(void) {
   // Reset of all peripherals, Initializes the Flash interface and the Systick.
@@ -53,7 +53,7 @@ int main(void) {
 
 void mayor_init(void) {
   ck_data_init();
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
 
   uint32_t city_address = ROVER_CITY_SERVO;
 

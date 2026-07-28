@@ -10,7 +10,7 @@ extern "C" {
 bool someone_else_is_king(void);
 ck_err_t send_default_letter(void);
 ck_err_t set_rover_base_number(void);
-ck_err_t assign_rover_envelopes(const ck_id_t *own_id);
+ck_err_t assign_rover_envelopes(const ck_id_t* own_id);
 ck_err_t configure_rover_settings(void);
 ck_err_t start_communication(void);
 

@@ -7,9 +7,9 @@
 #include "timers.h"
 
 typedef struct {
-  GPIO_TypeDef *red_led_port;
+  GPIO_TypeDef* red_led_port;
   uint16_t red_led_pin;
-  GPIO_TypeDef *green_led_port;
+  GPIO_TypeDef* green_led_port;
   uint16_t green_led_pin;
 } led_cfg_t;
 
@@ -30,8 +30,8 @@ static const led_cfg_t led7_cfg = {
 static StaticTimer_t led_timer_buf;
 static TimerHandle_t led_timer;
 
-void led_timer_callback(TimerHandle_t timer);
-void blink_leds_red(void);
+static void led_timer_callback(TimerHandle_t timer);
+static void blink_leds_red(void);
 
 void led_init(void) {
   const uint16_t led_blink_period_ms = 100;
@@ -80,7 +80,7 @@ void blink_leds_red(void) {
 }
 
 void set_led_color(led_t led, led_color_t color) {
-  const led_cfg_t *led_cfg = &led6_cfg;
+  const led_cfg_t* led_cfg = &led6_cfg;
 
   if (led == LED7) {
     led_cfg = &led7_cfg;

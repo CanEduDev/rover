@@ -12,8 +12,8 @@
 static float adc_value_to_voltage(uint16_t adc_value);
 static float adc_value_to_angle(uint16_t adc_value);
 
-void adc_average_samples(adc_reading_t *average,
-                         const volatile adc_samples_t *samples) {
+void adc_average_samples(adc_reading_t* average,
+                         const volatile adc_samples_t* samples) {
   uint32_t sum_adc1[ADC1_NUM_CHANNELS] = {0};
   uint32_t sum_adc2[ADC2_NUM_CHANNELS] = {0};
 

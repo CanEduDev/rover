@@ -22,7 +22,7 @@
 
 static float sbus_to_steering_angle(float sbus_value);
 static int16_t sbus_to_throttle(float sbus_value);
-static void update_calibration(const sbus_message_t *sbus_packet);
+static void update_calibration(const sbus_message_t* sbus_packet);
 static void send_subtrim_commands(void);
 static bool switch_is_active(uint16_t switch_value);
 static void save_calibration_data(void);
@@ -48,7 +48,7 @@ static const calibration_values_t default_calibration_values = {
 
 static calibration_values_t calibration_values;
 
-static const char *calibration_file = "/calibration";
+static const char* calibration_file = "/calibration";
 
 void init_steering(void) {
   lfs_init();
@@ -70,7 +70,7 @@ void init_steering(void) {
 }
 
 steering_command_t sbus_message_to_steering_command(
-    const sbus_message_t *sbus_packet) {
+    const sbus_message_t* sbus_packet) {
   int16_t steering = (int16_t)sbus_packet->channels[STEERING_CHANNEL];
   int16_t throttle = (int16_t)sbus_packet->channels[THROTTLE_CHANNEL];
   uint16_t steering_switch = sbus_packet->channels[STEERING_SWITCH_CHANNEL];
@@ -112,7 +112,7 @@ static float sbus_to_steering_angle(float sbus_value) {
   steering_subtrim =
       (int16_t)(sbus_to_pwm(sbus_value, sbus_range) - PWM_MID_PULSE);
 
-  const float angle = 90 * sbus_value / sbus_range - 45;
+  const float angle = (90 * sbus_value / sbus_range) - 45;
   return angle;
 }
 
@@ -138,7 +138,7 @@ static int16_t sbus_to_throttle(float sbus_value) {
   return pwm;
 }
 
-static void update_calibration(const sbus_message_t *sbus_packet) {
+static void update_calibration(const sbus_message_t* sbus_packet) {
   static uint16_t switch_pressed_count = 0;
 
   if (switch_is_active(sbus_packet->channels[CALIBRATION_SWITCH_CHANNEL])) {
@@ -169,7 +169,7 @@ static void update_calibration(const sbus_message_t *sbus_packet) {
 }
 
 static void send_subtrim_commands(void) {
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
 
   memcpy(ck_data->steering_subtrim_page->lines, &steering_subtrim,
          sizeof(steering_subtrim));
@@ -209,6 +209,6 @@ static uint16_t get_press_time_in_seconds(uint16_t switch_message_count) {
 }
 
 static int16_t sbus_to_pwm(float value, float range) {
-  const float pwm = 1000 * value / range + 1000;
+  const float pwm = (1000 * value / range) + 1000;
   return (int16_t)roundf(pwm);
 }

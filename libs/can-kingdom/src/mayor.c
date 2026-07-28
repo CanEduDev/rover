@@ -43,21 +43,21 @@ static ck_err_t init_lists(void);
 static ck_folder_t kings_folder(void);
 static ck_folder_t mayors_folder(void);
 
-static ck_err_t process_kp0(const ck_page_t *page);
-static ck_err_t process_kp1(const ck_page_t *page);
-static ck_err_t process_kp2(const ck_page_t *page);
-static ck_err_t process_kp8(const ck_page_t *page);
-static ck_err_t process_kp16(const ck_page_t *page);
-static ck_err_t process_kp17(const ck_page_t *page);
+static ck_err_t process_kp0(const ck_page_t* page);
+static ck_err_t process_kp1(const ck_page_t* page);
+static ck_err_t process_kp2(const ck_page_t* page);
+static ck_err_t process_kp8(const ck_page_t* page);
+static ck_err_t process_kp16(const ck_page_t* page);
+static ck_err_t process_kp17(const ck_page_t* page);
 
-static ck_err_t remove_envelope_from_folder(ck_folder_t *folder,
-                                            const ck_envelope_t *envelope);
-static ck_err_t update_envelope(const ck_envelope_t *envelope);
+static ck_err_t remove_envelope_from_folder(ck_folder_t* folder,
+                                            const ck_envelope_t* envelope);
+static ck_err_t update_envelope(const ck_envelope_t* envelope);
 static ck_err_t assign_envelope(uint8_t folder_no,
-                                const ck_envelope_t *envelope);
-static ck_err_t expel_envelope(const ck_envelope_t *envelope);
+                                const ck_envelope_t* envelope);
+static ck_err_t expel_envelope(const ck_envelope_t* envelope);
 static ck_err_t transfer_envelope(uint8_t folder_no,
-                                  const ck_envelope_t *envelope);
+                                  const ck_envelope_t* envelope);
 
 // Returns true if mayor is in group with specified group number, false
 // otherwise.
@@ -65,20 +65,20 @@ static bool in_group(uint8_t group_no);
 
 // These return the item index if found, -1 otherwise.
 static int find_folder(uint8_t folder_no);
-static ck_err_t is_envelope_in_folder(const ck_envelope_t *envelope,
+static ck_err_t is_envelope_in_folder(const ck_envelope_t* envelope,
                                       uint8_t folder_no);
 
 // Returns pointer to list if found, NULL otherwise.
-static ck_list_t *find_list(ck_list_type_t list_type, ck_direction_t direction,
+static ck_list_t* find_list(ck_list_type_t list_type, ck_direction_t direction,
                             uint8_t list_no);
 
 // Set the source list type given a target list type.
 static ck_err_t get_source_list_type(ck_list_type_t target_list_type,
-                                     ck_list_type_t *source_list_type);
+                                     ck_list_type_t* source_list_type);
 
 static ck_err_t change_bit_timing(void);
 
-ck_err_t ck_mayor_init(const ck_mayor_t *mayor_) {
+ck_err_t ck_mayor_init(const ck_mayor_t* mayor_) {
   // Check for unset parameters.
   if (mayor_->ean_no == 0 || mayor_->serial_no == 0 ||
       !mayor_->set_action_mode || !mayor_->set_city_mode || !mayor_->folders) {
@@ -152,7 +152,7 @@ ck_err_t ck_mayor_init(const ck_mayor_t *mayor_) {
   return ck_set_comm_mode(mayor.comm_mode);
 }
 
-ck_err_t ck_process_kings_letter(const ck_letter_t *letter) {
+ck_err_t ck_process_kings_letter(const ck_letter_t* letter) {
   if (!letter) {
     return CK_ERR_INVALID_PARAMETER;
   }
@@ -198,7 +198,7 @@ ck_err_t ck_process_kings_letter(const ck_letter_t *letter) {
   }
 }
 
-ck_err_t ck_add_mayors_page(ck_page_t *page) {
+ck_err_t ck_add_mayors_page(ck_page_t* page) {
   // Check if mayor has been initialized
   if (mayor.user_data.ck_id.city_address == 0) {
     return CK_ERR_NOT_INITIALIZED;
@@ -229,14 +229,14 @@ ck_err_t ck_send_document(uint8_t folder_no) {
   if (folder_index < 0) {
     return CK_ERR_ITEM_NOT_FOUND;
   }
-  ck_folder_t *folder = &mayor.user_data.folders[folder_index];
+  ck_folder_t* folder = &mayor.user_data.folders[folder_index];
 
   // If folder is disabled or is a receive folder, return OK.
   if (folder->direction != CK_DIRECTION_TRANSMIT || !folder->enable) {
     return CK_OK;
   }
 
-  ck_list_t *doc_list =
+  ck_list_t* doc_list =
       find_list(CK_LIST_DOCUMENT, CK_DIRECTION_TRANSMIT, folder->doc_list_no);
   if (!doc_list) {
     return CK_ERR_ITEM_NOT_FOUND;
@@ -244,7 +244,7 @@ ck_err_t ck_send_document(uint8_t folder_no) {
   if (folder->doc_no >= doc_list->record_count) {
     return CK_ERR_ITEM_NOT_FOUND;
   }
-  ck_document_t *doc = (ck_document_t *)doc_list->records[folder->doc_no];
+  ck_document_t* doc = (ck_document_t*)doc_list->records[folder->doc_no];
   // If it's a receive document, return OK.
   if (doc->direction != CK_DIRECTION_TRANSMIT) {
     return CK_OK;
@@ -281,14 +281,14 @@ ck_err_t ck_send_page(uint8_t folder_no, uint8_t page_no) {
   if (folder_index < 0) {
     return CK_ERR_ITEM_NOT_FOUND;
   }
-  ck_folder_t *folder = &mayor.user_data.folders[folder_index];
+  ck_folder_t* folder = &mayor.user_data.folders[folder_index];
 
   // If folder is disabled or is a receive folder, return OK.
   if (folder->direction != CK_DIRECTION_TRANSMIT || !folder->enable) {
     return CK_OK;
   }
 
-  ck_list_t *doc_list =
+  ck_list_t* doc_list =
       find_list(CK_LIST_DOCUMENT, CK_DIRECTION_TRANSMIT, folder->doc_list_no);
   if (!doc_list) {
     return CK_ERR_ITEM_NOT_FOUND;
@@ -296,7 +296,7 @@ ck_err_t ck_send_page(uint8_t folder_no, uint8_t page_no) {
   if (folder->doc_no >= doc_list->record_count) {
     return CK_ERR_ITEM_NOT_FOUND;
   }
-  ck_document_t *doc = (ck_document_t *)doc_list->records[folder->doc_no];
+  ck_document_t* doc = (ck_document_t*)doc_list->records[folder->doc_no];
 
   // If it's a receive document, return OK.
   if (doc->direction != CK_DIRECTION_TRANSMIT) {
@@ -333,7 +333,7 @@ ck_err_t ck_send_mayors_page(uint8_t page_no) {
   if (ck_get_comm_mode() == CK_COMM_MODE_SILENT) {
     return CK_OK;
   }
-  ck_folder_t *folder = &mayor.user_data.folders[CK_MAYORS_FOLDER_NO];
+  ck_folder_t* folder = &mayor.user_data.folders[CK_MAYORS_FOLDER_NO];
   // If folder is disabled or is a receive folder, return OK.
   if (!folder->enable || folder->direction != CK_DIRECTION_TRANSMIT) {
     return CK_OK;
@@ -363,12 +363,12 @@ ck_err_t ck_send_mayors_page(uint8_t page_no) {
   return CK_OK;
 }
 
-ck_err_t ck_is_kings_envelope(const ck_envelope_t *envelope) {
+ck_err_t ck_is_kings_envelope(const ck_envelope_t* envelope) {
   return is_envelope_in_folder(envelope, CK_KINGS_FOLDER_NO);
 }
 
-ck_err_t ck_get_envelopes_folder(const ck_envelope_t *envelope,
-                                 ck_folder_t **folder) {
+ck_err_t ck_get_envelopes_folder(const ck_envelope_t* envelope,
+                                 ck_folder_t** folder) {
   // Check if mayor has been initialized
   if (mayor.user_data.ck_id.city_address == 0) {
     return CK_ERR_NOT_INITIALIZED;
@@ -411,7 +411,7 @@ uint32_t ck_get_base_number(void) {
   return mayor.user_data.ck_id.base_no;
 }
 
-ck_err_t ck_is_default_letter(ck_letter_t *letter) {
+ck_err_t ck_is_default_letter(ck_letter_t* letter) {
   ck_letter_t dletter = ck_default_letter();
   if (letter->envelope.envelope_no == dletter.envelope.envelope_no &&
       letter->page.line_count == dletter.page.line_count &&
@@ -550,11 +550,11 @@ static void init_folders(void) {
 
 static ck_err_t init_lists(void) {
   // Transmit document list 0 and receive document list 0 must exist.
-  ck_list_t *rx_list = find_list(CK_LIST_DOCUMENT, CK_DIRECTION_RECEIVE, 0);
+  ck_list_t* rx_list = find_list(CK_LIST_DOCUMENT, CK_DIRECTION_RECEIVE, 0);
   if (!rx_list) {
     return CK_ERR_ITEM_NOT_FOUND;
   }
-  ck_list_t *tx_list = find_list(CK_LIST_DOCUMENT, CK_DIRECTION_TRANSMIT, 0);
+  ck_list_t* tx_list = find_list(CK_LIST_DOCUMENT, CK_DIRECTION_TRANSMIT, 0);
   if (!tx_list) {
     return CK_ERR_ITEM_NOT_FOUND;
   }
@@ -575,7 +575,7 @@ static ck_err_t init_lists(void) {
   return CK_OK;
 }
 
-static ck_err_t process_kp0(const ck_page_t *page) {
+static ck_err_t process_kp0(const ck_page_t* page) {
   ck_action_mode_t action_mode = page->lines[2];
   ck_err_t ret = ck_check_action_mode(action_mode);
   if (ret != CK_OK) {
@@ -654,11 +654,12 @@ static ck_err_t process_kp0(const ck_page_t *page) {
   return mayor.user_data.set_city_mode(city_mode);
 }
 
-static ck_err_t process_kp1(const ck_page_t *page) {
+static ck_err_t process_kp1(const ck_page_t* page) {
   uint32_t base_no = 0;
   memcpy(&base_no, &page->lines[4], sizeof(base_no));
   base_no &= CK_CAN_ID_MASK;
-  bool extended_id = (page->lines[7] >> 7) & 0x01;  // NOLINT(*-magic-numbers)
+  bool extended_id =
+      ((page->lines[7] >> 7) & 0x01) != 0;  // NOLINT(*-magic-numbers)
 
   ck_envelope_t mayors_envelope = {
       .envelope_no = base_no + mayor.user_data.ck_id.city_address,
@@ -687,17 +688,17 @@ static ck_err_t process_kp1(const ck_page_t *page) {
   return CK_OK;
 }
 
-static ck_err_t process_kp2(const ck_page_t *page) {
+static ck_err_t process_kp2(const ck_page_t* page) {
   // NOLINTBEGIN(*-magic-numbers)
   ck_envelope_t envelope;
   memcpy(&envelope.envelope_no, &page->lines[2], sizeof(envelope.envelope_no));
   envelope.envelope_no &= CK_CAN_ID_MASK;
-  envelope.has_extended_id = (page->lines[5] >> 7) & 0x01;
-  envelope.is_compressed = (page->lines[5] >> 6) & 0x01;
+  envelope.has_extended_id = (((page->lines[5] >> 7) & 0x01) != 0);
+  envelope.is_compressed = (((page->lines[5] >> 6) & 0x01) != 0);
   envelope.is_remote = false;
 
   uint8_t folder_no = page->lines[6];
-  envelope.enable = page->lines[7] & 0x01;
+  envelope.enable = ((page->lines[7] & 0x01) != 0);
   ck_envelope_action_t envelope_action = (page->lines[7] >> 1) & 0x03;
   // NOLINTEND(*-magic-numbers)
 
@@ -725,7 +726,7 @@ static ck_err_t process_kp2(const ck_page_t *page) {
   }
 }
 
-static ck_err_t process_kp8(const ck_page_t *page) {
+static ck_err_t process_kp8(const ck_page_t* page) {
   // NOLINTBEGIN(*-magic-numbers)
   mayor.next_bit_timing.prescaler = page->lines[4];
   mayor.next_bit_timing.time_quanta = page->lines[5];
@@ -739,7 +740,7 @@ static ck_err_t process_kp8(const ck_page_t *page) {
   return CK_OK;
 }
 
-static ck_err_t process_kp16(const ck_page_t *page) {
+static ck_err_t process_kp16(const ck_page_t* page) {
   uint8_t folder_no = page->lines[2];
   // Folder numbers 0 and 1 are reserved
   if (folder_no < 2) {
@@ -753,10 +754,10 @@ static ck_err_t process_kp16(const ck_page_t *page) {
   // NOLINTBEGIN(*-magic-numbers)
   // If all bits in line 3 are 0, then the settings on that line remain
   // unchanged.
-  ck_folder_t *folder = &mayor.user_data.folders[folder_index];
+  ck_folder_t* folder = &mayor.user_data.folders[folder_index];
   if (page->lines[3] != 0) {
     folder->dlc = page->lines[3] & 0x0F;
-    folder->has_rtr = (page->lines[3] >> 6) & 0x01;
+    folder->has_rtr = (((page->lines[3] >> 6) & 0x01) != 0);
     for (uint8_t i = 0; i < folder->envelope_count; i++) {
       folder->envelopes[i].is_remote = folder->has_rtr;
     }
@@ -769,7 +770,7 @@ static ck_err_t process_kp16(const ck_page_t *page) {
   }
 
   folder->direction = page->lines[4] & 0x01;
-  folder->enable = (page->lines[4] >> 6) & 0x01;
+  folder->enable = (((page->lines[4] >> 6) & 0x01) != 0);
 
   ck_document_action_t action = (page->lines[4] >> 4) & 0x03;  // Two bits
 
@@ -795,7 +796,7 @@ static ck_err_t process_kp16(const ck_page_t *page) {
   // NOLINTEND(*-magic-numbers)
 }
 
-static ck_err_t process_kp17(const ck_page_t *page) {
+static ck_err_t process_kp17(const ck_page_t* page) {
   // Parse the page
   // NOLINTBEGIN(*-magic-numbers)
   ck_list_type_t target_list_type = (page->lines[2] >> 3) & 0x3;  // Two bits
@@ -819,9 +820,9 @@ static ck_err_t process_kp17(const ck_page_t *page) {
   }
 
   // Find the lists
-  ck_list_t *source_list =
+  ck_list_t* source_list =
       find_list(source_list_type, direction, source_list_no);
-  ck_list_t *target_list =
+  ck_list_t* target_list =
       find_list(target_list_type, direction, target_list_no);
 
   if (!source_list || !target_list) {
@@ -853,12 +854,12 @@ static ck_err_t process_kp17(const ck_page_t *page) {
       const uint8_t source_byte_no = source_record_no / 8;
       const uint8_t bit_pos_in_byte = source_record_no % 8;
 
-      uint8_t *source_byte =
-          ((uint8_t **)(source_list->records))[source_byte_no];
+      uint8_t* source_byte =
+          ((uint8_t**)(source_list->records))[source_byte_no];
       uint8_t source_bit = (*source_byte >> bit_pos_in_byte) & 0x01;  // 1 or 0
 
-      uint8_t *target_line =
-          ((uint8_t **)(target_list->records))[target_record_no];
+      uint8_t* target_line =
+          ((uint8_t**)(target_list->records))[target_record_no];
 
       // First clears the bit at the target position, then set it to
       // source_bit.
@@ -873,10 +874,10 @@ static ck_err_t process_kp17(const ck_page_t *page) {
         return CK_ERR_INVALID_PARAMETER;
       }
 
-      uint8_t *source_line =
-          ((uint8_t **)(source_list->records))[source_record_no];
-      ck_page_t *target_page =
-          ((ck_page_t **)(target_list->records))[target_record_no];
+      uint8_t* source_line =
+          ((uint8_t**)(source_list->records))[source_record_no];
+      ck_page_t* target_page =
+          ((ck_page_t**)(target_list->records))[target_record_no];
 
       // Increase size of page if needed.
       if (target_position >= target_page->line_count) {
@@ -893,10 +894,10 @@ static ck_err_t process_kp17(const ck_page_t *page) {
         return CK_ERR_INVALID_PARAMETER;
       }
 
-      ck_page_t *source_page =
-          ((ck_page_t **)(source_list->records))[source_record_no];
-      ck_document_t *target_doc =
-          ((ck_document_t **)(target_list->records))[target_record_no];
+      ck_page_t* source_page =
+          ((ck_page_t**)(source_list->records))[source_record_no];
+      ck_document_t* target_doc =
+          ((ck_document_t**)(target_list->records))[target_record_no];
 
       target_doc->direction = direction;
 
@@ -969,9 +970,9 @@ static int find_folder(uint8_t folder_no) {
   return -1;
 }
 
-static ck_err_t is_envelope_in_folder(const ck_envelope_t *envelope,
+static ck_err_t is_envelope_in_folder(const ck_envelope_t* envelope,
                                       uint8_t folder_no) {
-  ck_folder_t *folder = &mayor.user_data.folders[folder_no];
+  ck_folder_t* folder = &mayor.user_data.folders[folder_no];
   if (ck_find_envelope(folder, envelope) < 0) {
     return CK_ERR_FALSE;
   }
@@ -979,7 +980,7 @@ static ck_err_t is_envelope_in_folder(const ck_envelope_t *envelope,
   return CK_OK;
 }
 
-static ck_err_t update_envelope(const ck_envelope_t *envelope) {
+static ck_err_t update_envelope(const ck_envelope_t* envelope) {
   // Loop through folders and update the envelope if found.
   for (uint8_t i = 0; i < mayor.user_data.folder_count; i++) {
     int envelope_number =
@@ -995,13 +996,13 @@ static ck_err_t update_envelope(const ck_envelope_t *envelope) {
 }
 
 static ck_err_t assign_envelope(uint8_t folder_no,
-                                const ck_envelope_t *envelope) {
+                                const ck_envelope_t* envelope) {
   int folder_index = find_folder(folder_no);
   if (folder_index < 0) {
     return CK_ERR_ITEM_NOT_FOUND;
   }
 
-  ck_folder_t *folder = &mayor.user_data.folders[folder_index];
+  ck_folder_t* folder = &mayor.user_data.folders[folder_index];
   if (folder->envelope_count >= CK_MAX_ENVELOPES_PER_FOLDER) {
     return CK_ERR_CAPACITY_REACHED;
   }
@@ -1018,8 +1019,8 @@ static ck_err_t assign_envelope(uint8_t folder_no,
   return CK_OK;
 }
 
-static ck_err_t remove_envelope_from_folder(ck_folder_t *folder,
-                                            const ck_envelope_t *envelope) {
+static ck_err_t remove_envelope_from_folder(ck_folder_t* folder,
+                                            const ck_envelope_t* envelope) {
   int envelope_index = ck_find_envelope(folder, envelope);
   if (envelope_index < 0) {
     return CK_ERR_ITEM_NOT_FOUND;
@@ -1037,7 +1038,7 @@ static ck_err_t remove_envelope_from_folder(ck_folder_t *folder,
   return 0;
 }
 
-static ck_err_t expel_envelope(const ck_envelope_t *envelope) {
+static ck_err_t expel_envelope(const ck_envelope_t* envelope) {
   // Expelling only works if the envelope is also disabled.
   if (envelope->enable) {
     return CK_ERR_INVALID_PARAMETER;
@@ -1054,7 +1055,7 @@ static ck_err_t expel_envelope(const ck_envelope_t *envelope) {
 }
 
 static ck_err_t transfer_envelope(uint8_t folder_no,
-                                  const ck_envelope_t *envelope) {
+                                  const ck_envelope_t* envelope) {
   for (uint8_t i = 0; i < mayor.user_data.folder_count; i++) {
     if (remove_envelope_from_folder(&mayor.user_data.folders[i], envelope) ==
         0) {
@@ -1065,7 +1066,7 @@ static ck_err_t transfer_envelope(uint8_t folder_no,
   return assign_envelope(folder_no, envelope);
 }
 
-static ck_list_t *find_list(ck_list_type_t type, ck_direction_t direction,
+static ck_list_t* find_list(ck_list_type_t type, ck_direction_t direction,
                             uint8_t list_no) {
   for (uint8_t i = 0; i < mayor.user_data.list_count; i++) {
     if (mayor.user_data.lists[i].type == type &&
@@ -1078,7 +1079,7 @@ static ck_list_t *find_list(ck_list_type_t type, ck_direction_t direction,
 }
 
 static ck_err_t get_source_list_type(ck_list_type_t target_list_type,
-                                     ck_list_type_t *source_list_type) {
+                                     ck_list_type_t* source_list_type) {
   switch (target_list_type) {
     case CK_LIST_LINE:
       *source_list_type = CK_LIST_BIT;

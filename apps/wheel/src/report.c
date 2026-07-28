@@ -21,7 +21,7 @@ static StackType_t report_task_stack[configMINIMAL_STACK_SIZE];
 #define DEFAULT_REPORT_PERIOD_MS 200
 static uint16_t report_period_ms = DEFAULT_REPORT_PERIOD_MS;
 
-void report(void *unused);
+static void report(void* unused);
 
 void init_report_task(uint8_t priority) {
   report_task =
@@ -33,8 +33,8 @@ void init_report_task(uint8_t priority) {
 //
 // bytes 0-1: reporting period in ms, i.e. how often to send
 //            measurements over CAN.
-int process_report_freq_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_report_freq_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->set_report_freq_folder->dlc) {
     return APP_NOT_OK;
   }
@@ -48,15 +48,15 @@ int process_report_freq_letter(const ck_letter_t *letter) {
   return APP_OK;
 }
 
-void report_timer(TimerHandle_t timer) {
+static void report_timer(TimerHandle_t timer) {
   (void)timer;
   xTaskNotifyGive(report_task);
 }
 
-void report(void *unused) {
+void report(void* unused) {
   (void)unused;
 
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
 
   StaticTimer_t timer_buf;
 

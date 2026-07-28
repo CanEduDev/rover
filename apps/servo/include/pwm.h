@@ -15,6 +15,7 @@ extern "C" {
 #define PWM_SUBTRIM_MIN_PULSE (-500)
 
 void pwm_init(void);
+// NOLINTNEXTLINE(readability-inconsistent-declaration-parameter-name)
 void pwm_set_pulse(uint32_t pulse_mus);
 void pwm_set_subtrim_pulse(int16_t pulse_mus);
 void pwm_set_frequency(uint16_t frequency_hz);
