@@ -1,9 +1,11 @@
+#include "float.h"
+
 #include <stdio.h>
 
 // The float functions from newlib-nano take up too much flash area to fit in
 // the bootloader. We define our own dumb printer instead. Does not handle edge
 // cases, but should be enough for our purposes.
-int float_sprint(char *str, float num) {
+int float_sprint(char* str, float num) {
   // Extract integer part
   int ipart = (int)num;
 

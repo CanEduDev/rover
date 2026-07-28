@@ -4,11 +4,11 @@
 
 #include "lfs-wrapper.h"
 
-static const char *bit_timing_file = "/ck_bit_timing";
+static const char* bit_timing_file = "/ck_bit_timing";
 
 static ck_can_bit_timing_t bit_timing_storage;
 
-ck_err_t ck_save_bit_timing(const ck_can_bit_timing_t *bit_timing) {
+ck_err_t ck_save_bit_timing(const ck_can_bit_timing_t* bit_timing) {
   bit_timing_storage = *bit_timing;
 
   file_t file = {
@@ -26,7 +26,7 @@ ck_err_t ck_save_bit_timing(const ck_can_bit_timing_t *bit_timing) {
   return CK_OK;
 }
 
-ck_err_t ck_load_bit_timing(ck_can_bit_timing_t *bit_timing) {
+ck_err_t ck_load_bit_timing(ck_can_bit_timing_t* bit_timing) {
   file_t file = {
       .name = bit_timing_file,
       .data = bit_timing,

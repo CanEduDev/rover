@@ -1,2 +1,4 @@
 BasedOnStyle: Google
 AllowShortFunctionsOnASingleLine: false
+DerivePointerAlignment: false
+PointerAlignment: Left

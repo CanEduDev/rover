@@ -64,7 +64,7 @@ typedef struct {
   /// Pointer to user-allocated folders. Folder numbers 0 and 1 are reserved by
   /// CAN Kingdom for the king's document and the mayor's document,
   /// respectively.
-  ck_folder_t *folders;
+  ck_folder_t* folders;
 
   /// Number of lists this mayor has. Must be at least 2, since we need at least
   /// one transmit document list and one receive document list.
@@ -75,7 +75,7 @@ typedef struct {
   /// receive document list. Record no 0 in the transmit document list and the
   /// receive document list is reserved by CAN Kingdom and will be set up by
   /// ck_mayor_init().
-  ck_list_t *lists;
+  ck_list_t* lists;
 
 } ck_mayor_t;
 
@@ -103,7 +103,7 @@ typedef struct {
  *   @return #CK_ERR_CAPACITY_REACHED if a requred list is too small.
  *   @return #CK_OK on success.
  ******************************************************************************/
-ck_err_t ck_mayor_init(const ck_mayor_t *mayor);
+ck_err_t ck_mayor_init(const ck_mayor_t* mayor);
 
 /*******************************************************************************
  * Parse the king's letter and act on it.
@@ -137,7 +137,7 @@ ck_err_t ck_mayor_init(const ck_mayor_t *mayor);
  *
  * @return #CK_OK on success or if the letter is not addressed to the caller.
  ******************************************************************************/
-ck_err_t ck_process_kings_letter(const ck_letter_t *letter);
+ck_err_t ck_process_kings_letter(const ck_letter_t* letter);
 
 /*******************************************************************************
  * Adds a user-defined mayor's page to the mayor's document.
@@ -152,7 +152,7 @@ ck_err_t ck_process_kings_letter(const ck_letter_t *letter);
  *         pages.
  * @return #CK_OK on success.
  ******************************************************************************/
-ck_err_t ck_add_mayors_page(ck_page_t *page);
+ck_err_t ck_add_mayors_page(ck_page_t* page);
 
 /*******************************************************************************
  * Send the document in the specified folder.
@@ -224,7 +224,7 @@ ck_err_t ck_send_mayors_page(uint8_t page_no);
  * @return #CK_ERR_FALSE if it's not assigned.
  * @return #CK_OK if it's assigned.
  ******************************************************************************/
-ck_err_t ck_is_kings_envelope(const ck_envelope_t *envelope);
+ck_err_t ck_is_kings_envelope(const ck_envelope_t* envelope);
 
 /*******************************************************************************
  * Tries to find the folder that the given envelope is assigned to.
@@ -236,8 +236,8 @@ ck_err_t ck_is_kings_envelope(const ck_envelope_t *envelope);
  * @return #CK_ERR_FALSE if the envelope is not assigned to any folder.
  * @return #CK_OK if it's assigned.
  ******************************************************************************/
-ck_err_t ck_get_envelopes_folder(const ck_envelope_t *envelope,
-                                 ck_folder_t **folder);
+ck_err_t ck_get_envelopes_folder(const ck_envelope_t* envelope,
+                                 ck_folder_t** folder);
 
 /*******************************************************************************
  * Set the communication mode.
@@ -280,7 +280,7 @@ uint32_t ck_get_base_number(void);
  * @return #CK_ERR_FALSE if it's not the default letter.
  * @return #CK_OK if it is.
  ******************************************************************************/
-ck_err_t ck_is_default_letter(ck_letter_t *letter);
+ck_err_t ck_is_default_letter(ck_letter_t* letter);
 
 /*******************************************************************************
  * Function that should be called when the default letter is received.

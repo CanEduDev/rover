@@ -23,19 +23,19 @@ typedef struct {
 static const uint16_t sbus_timeout_ms = 10;
 static TaskHandle_t sbus_task;
 
-static int sbus_read_header(uint8_t *header);
-static int sbus_read_data(uint8_t *sbus_data);
-static int sbus_read_footer(uint8_t *footer);
-static void sbus_parse_packet(const sbus_packet_t *packet,
-                              sbus_message_t *message);
+static int sbus_read_header(uint8_t* header);
+static int sbus_read_data(uint8_t* sbus_data);
+static int sbus_read_footer(uint8_t* footer);
+static void sbus_parse_packet(const sbus_packet_t* packet,
+                              sbus_message_t* message);
 
-static int read_uart_stream(uint8_t *dest, size_t size);
+static int read_uart_stream(uint8_t* dest, size_t size);
 
 void sbus_init(TaskHandle_t task_to_notify) {
   sbus_task = task_to_notify;
 }
 
-int sbus_read_message(sbus_message_t *message) {
+int sbus_read_message(sbus_message_t* message) {
   sbus_task = xTaskGetCurrentTaskHandle();
 
   sbus_packet_t packet;
@@ -62,7 +62,7 @@ int sbus_read_message(sbus_message_t *message) {
 }
 
 // Try to read a header in a loop. Return error on timeout or bad UART read.
-static int sbus_read_header(uint8_t *header) {
+static int sbus_read_header(uint8_t* header) {
   int err = read_uart_stream(header, sizeof(uint8_t));
   if (err != APP_OK) {
     // Don't print anything here since it's a common failure mode and will
@@ -73,7 +73,7 @@ static int sbus_read_header(uint8_t *header) {
   if (*header != SBUS_HEADER) {
     // We're in the middle of a packet, so need to flush UART register
     printf("Error: invalid SBUS header.\r\n");
-    peripherals_t *peripherals = get_peripherals();
+    peripherals_t* peripherals = get_peripherals();
     __HAL_UART_FLUSH_DRREGISTER(&peripherals->huart2);
     return APP_NOT_OK;
   }
@@ -82,7 +82,7 @@ static int sbus_read_header(uint8_t *header) {
 }
 
 // Try to read an sbus packet.
-static int sbus_read_data(uint8_t *sbus_data) {
+static int sbus_read_data(uint8_t* sbus_data) {
   int err = read_uart_stream(sbus_data, SBUS_PACKET_DATA_LENGTH);
   if (err != APP_OK) {
     printf("Error: failed to read SBUS data: %d.\r\n", err);
@@ -91,7 +91,7 @@ static int sbus_read_data(uint8_t *sbus_data) {
 }
 
 // Try to read a header in a loop. Return error on timeout or bad UART read.
-static int sbus_read_footer(uint8_t *footer) {
+static int sbus_read_footer(uint8_t* footer) {
   int err = read_uart_stream(footer, sizeof(uint8_t));
   if (err != APP_OK) {
     printf("Error: failed to read SBUS footer: %d.\r\n", err);
@@ -112,9 +112,9 @@ static int sbus_read_footer(uint8_t *footer) {
  * Byte[24]: SBUS footer
  *
  */
-static void sbus_parse_packet(const sbus_packet_t *packet,
-                              sbus_message_t *message) {
-  const uint8_t *data = packet->data;
+static void sbus_parse_packet(const sbus_packet_t* packet,
+                              sbus_message_t* message) {
+  const uint8_t* data = packet->data;
 
   // NOLINTBEGIN(*-magic-numbers)
   message->channels[0] = data[0] | ((data[1] << 8) & 0x07FF);
@@ -144,13 +144,13 @@ static void sbus_parse_packet(const sbus_packet_t *packet,
 
   message->channels[16] = data[22] & 0x01;
   message->channels[17] = data[22] & 0x02;
-  message->frame_lost = data[22] & 0x04;
-  message->failsafe_activated = data[22] & 0x08;
+  message->frame_lost = (data[22] & 0x04) != 0;
+  message->failsafe_activated = (data[22] & 0x08) != 0;
   // NOLINTEND(*-magic-numbers)
 }
 
-static int read_uart_stream(uint8_t *dest, size_t size) {
-  peripherals_t *peripherals = get_peripherals();
+static int read_uart_stream(uint8_t* dest, size_t size) {
+  peripherals_t* peripherals = get_peripherals();
 
   HAL_UART_Receive_IT(&peripherals->huart2, dest, size);
 
@@ -169,7 +169,7 @@ static int read_uart_stream(uint8_t *dest, size_t size) {
   return APP_OK;
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
   if (huart->Instance != USART2) {
     return;
   }

@@ -1,15 +1,17 @@
+#include "settings.h"
+
 #include <stdio.h>
 
 #include "json.h"
 #include "jsondb.h"
 #include "servo.h"
 
-void set_reverse_setting(json_object_t *settings);
-void set_position_sensor_setting(json_object_t *settings);
+static void set_reverse_setting(json_object_t* settings);
+static void set_position_sensor_setting(json_object_t* settings);
 
 void settings_init(void) {
-  json_object_t *json = get_jsondb();
-  json_object_t *settings = json_get_object("settings", json);
+  json_object_t* json = get_jsondb();
+  json_object_t* settings = json_get_object("settings", json);
   if (!settings) {
     printf("note: no settings stored\r\n");
     return;
@@ -19,8 +21,8 @@ void settings_init(void) {
   set_position_sensor_setting(settings);
 }
 
-void set_reverse_setting(json_object_t *settings) {
-  json_object_t *reverse = json_get_object("reverse", settings);
+void set_reverse_setting(json_object_t* settings) {
+  json_object_t* reverse = json_get_object("reverse", settings);
   if (!reverse) {
     return;
   }
@@ -30,12 +32,12 @@ void set_reverse_setting(json_object_t *settings) {
     return;
   }
 
-  servo_state_t *s = get_servo_state();
+  servo_state_t* s = get_servo_state();
   s->reverse = reverse->value->boolean;
 }
 
-void set_position_sensor_setting(json_object_t *settings) {
-  json_object_t *position_enabled =
+void set_position_sensor_setting(json_object_t* settings) {
+  json_object_t* position_enabled =
       json_get_object("position_enabled", settings);
   if (!position_enabled) {
     return;
@@ -46,6 +48,6 @@ void set_position_sensor_setting(json_object_t *settings) {
     return;
   }
 
-  servo_state_t *s = get_servo_state();
+  servo_state_t* s = get_servo_state();
   s->position_enabled = position_enabled->value->boolean;
 }

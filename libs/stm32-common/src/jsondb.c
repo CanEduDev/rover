@@ -1,3 +1,5 @@
+#include "jsondb.h"
+
 #include <stdio.h>
 
 #include "error.h"
@@ -12,15 +14,15 @@ static file_t db_file = {
     .size = sizeof(db_storage),
 };
 
-static json_object_t *jsondb = NULL;
+static json_object_t* jsondb = NULL;
 
-static void jsondb_sync(json_object_t *new_json);
+static void jsondb_sync(json_object_t* new_json);
 
-json_object_t *get_jsondb(void) {
+json_object_t* get_jsondb(void) {
   return jsondb;
 }
 
-char *get_jsondb_raw(void) {
+char* get_jsondb_raw(void) {
   return db_storage;
 }
 
@@ -42,7 +44,7 @@ void jsondb_init(void) {
   }
 }
 
-int jsondb_update(json_object_t *new_json) {
+int jsondb_update(json_object_t* new_json) {
   jsondb_sync(new_json);
 
   if (write_file(&db_file) != APP_OK) {
@@ -53,7 +55,7 @@ int jsondb_update(json_object_t *new_json) {
   return APP_OK;
 }
 
-int jsondb_update_async(json_object_t *new_json) {
+int jsondb_update_async(json_object_t* new_json) {
   jsondb_sync(new_json);
 
   if (write_file_async(&db_file) != APP_OK) {
@@ -64,8 +66,8 @@ int jsondb_update_async(json_object_t *new_json) {
   return APP_OK;
 }
 
-static void jsondb_sync(json_object_t *new_json) {
-  json_object_t *target_json = jsondb;
+static void jsondb_sync(json_object_t* new_json) {
+  json_object_t* target_json = jsondb;
   if (new_json) {
     target_json = new_json;
   }

@@ -12,34 +12,34 @@
 #define LIPO_OVERVOLTAGE (LIPO_CELL_MAX_VOLTAGE_MV + 100)
 #define LIPO_UNDERVOLTAGE (LIPO_CELL_MIN_VOLTAGE_MV - 100)
 
-void test_handle_faults_vbat_out_overcurrent_fault(void);
-void test_handle_faults_reg_out_overcurrent_fault(void);
-void test_handle_faults_low_voltage_fault(void);
-void test_handle_faults_no_fault(void);
-void test_update_battery_cells(void);
-void test_update_battery_charge(void);
-void test_update_battery_charge_no_cells(void);
-void test_update_battery_charge_overcharged(void);
-void test_update_battery_charge_undercharged(void);
-void test_update_battery_leds_full_charge(void);
-void test_update_battery_leds_half_charge(void);
-void test_update_battery_leds_low_charge(void);
-void test_is_reg_out_voltage_stable(void);
-void test_is_low_voltage_fault(void);
-void test_get_lowest_cell_all_full(void);
-void test_get_lowest_cell_one_lowest(void);
-void test_get_lowest_cell_no_cells(void);
-void test_update_reg_out_voltage_controller_stable_voltage(void);
-void test_update_reg_out_voltage_controller_increase_voltage(void);
-void test_update_reg_out_voltage_controller_decrease_voltage(void);
-void test_update_reg_out_voltage_controller_startup_low_voltage(void);
-void test_update_reg_out_voltage_controller_startup_high_voltage(void);
+static void test_handle_faults_vbat_out_overcurrent_fault(void);
+static void test_handle_faults_reg_out_overcurrent_fault(void);
+static void test_handle_faults_low_voltage_fault(void);
+static void test_handle_faults_no_fault(void);
+static void test_update_battery_cells(void);
+static void test_update_battery_charge(void);
+static void test_update_battery_charge_no_cells(void);
+static void test_update_battery_charge_overcharged(void);
+static void test_update_battery_charge_undercharged(void);
+static void test_update_battery_leds_full_charge(void);
+static void test_update_battery_leds_half_charge(void);
+static void test_update_battery_leds_low_charge(void);
+static void test_is_reg_out_voltage_stable(void);
+static void test_is_low_voltage_fault(void);
+static void test_get_lowest_cell_all_full(void);
+static void test_get_lowest_cell_one_lowest(void);
+static void test_get_lowest_cell_no_cells(void);
+static void test_update_reg_out_voltage_controller_stable_voltage(void);
+static void test_update_reg_out_voltage_controller_increase_voltage(void);
+static void test_update_reg_out_voltage_controller_decrease_voltage(void);
+static void test_update_reg_out_voltage_controller_startup_low_voltage(void);
+static void test_update_reg_out_voltage_controller_startup_high_voltage(void);
 
 // Helpers
-int read_potentiometer_value_returns_almost_max(uint8_t* pot_value);
-int read_potentiometer_value_returns_max(uint8_t* pot_value);
-int read_potentiometer_value_returns_almost_min(uint8_t* pot_value);
-int read_potentiometer_value_returns_min(uint8_t* pot_value);
+static int read_potentiometer_value_returns_almost_max(uint8_t* pot_value);
+static int read_potentiometer_value_returns_max(uint8_t* pot_value);
+static int read_potentiometer_value_returns_almost_min(uint8_t* pot_value);
+static int read_potentiometer_value_returns_min(uint8_t* pot_value);
 
 int main(void) {
   test_handle_faults_vbat_out_overcurrent_fault();
@@ -66,7 +66,7 @@ int main(void) {
   test_update_reg_out_voltage_controller_startup_high_voltage();
 }
 
-void setup_test(void) {
+static void setup_test(void) {
   battery_state_init();
   init_default_calibration();
   battery_state_t* battery_state = get_battery_state();

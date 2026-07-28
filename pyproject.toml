@@ -6,24 +6,26 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "cantools==39.4.11",
+    "clang-format>=22.1.8",
+    "clang-tidy>=22.1.8",
     "common-interfaces-intellisense>=0.1.0",
     "matplotlib==3.9.2",
     "meson>=1.5.2",
     "mkdocs-glightbox>=0.5.2",
-    "mkdocs-material>=9.2.6",
     "mkdocs-macros-plugin>=1.0.0",
+    "mkdocs-material>=9.2.6",
     "mkdocs-to-pdf>=0.10.1",
     "mkdocstrings-python>=1.18.2",
     "ninja>=1.11",
     "numpy==1.26.4",
-    "pyright==1.1.382.post1",
+    "pyright>=1.1.411",
     "python-can==4.4.2",
     "rclpy-intellisense>=1.2.0",
     "rover-py",
-    "ruff>=0.9.4",
+    "ruff>=0.14.3",
     "setuptools==75.1.0",
-    "shellcheck-py==0.10.0.1",
-    "shfmt-py==3.7.0.1",
+    "shellcheck-py>=0.11.0.1",
+    "shfmt-py>=4",
 ]
 
 [tool.uv.sources]

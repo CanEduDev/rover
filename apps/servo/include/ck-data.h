@@ -22,33 +22,33 @@ typedef struct {
   ck_folder_t folders[CK_DATA_FOLDER_COUNT];
 
   // Convenience pointers
-  ck_list_t *tx_list;
-  ck_list_t *rx_list;
+  ck_list_t* tx_list;
+  ck_list_t* rx_list;
 
-  ck_page_t *servo_position_page;
-  ck_page_t *servo_current_page;
-  ck_page_t *battery_voltage_page;
-  ck_page_t *servo_voltage_page;
+  ck_page_t* servo_position_page;
+  ck_page_t* servo_current_page;
+  ck_page_t* battery_voltage_page;
+  ck_page_t* servo_voltage_page;
 
   // Transmit
-  ck_folder_t *servo_position_folder;
-  ck_folder_t *servo_current_folder;
-  ck_folder_t *battery_voltage_folder;
-  ck_folder_t *servo_voltage_folder;
+  ck_folder_t* servo_position_folder;
+  ck_folder_t* servo_current_folder;
+  ck_folder_t* battery_voltage_folder;
+  ck_folder_t* servo_voltage_folder;
 
   // Receive
-  ck_folder_t *set_servo_voltage_folder;
-  ck_folder_t *pwm_conf_folder;
-  ck_folder_t *steering_folder;
-  ck_folder_t *subtrim_folder;
-  ck_folder_t *report_freq_folder;
-  ck_folder_t *reverse_folder;
-  ck_folder_t *failsafe_folder;
+  ck_folder_t* set_servo_voltage_folder;
+  ck_folder_t* pwm_conf_folder;
+  ck_folder_t* steering_folder;
+  ck_folder_t* subtrim_folder;
+  ck_folder_t* report_freq_folder;
+  ck_folder_t* reverse_folder;
+  ck_folder_t* failsafe_folder;
 
 } ck_data_t;
 
 void ck_data_init(void);
-ck_data_t *get_ck_data(void);
+ck_data_t* get_ck_data(void);
 
 #ifdef __cplusplus
 }

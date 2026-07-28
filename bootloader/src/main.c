@@ -53,29 +53,29 @@ static TimerHandle_t default_letter_timer;
 static void default_letter_timer_callback(TimerHandle_t timer);
 static void start_default_letter_timer(void);
 
-static int handle_letter(const ck_folder_t *folder, const ck_letter_t *letter);
+static int handle_letter(const ck_folder_t* folder, const ck_letter_t* letter);
 
 // Bootloader
 static bool bootloader_entered = false;
-static void enter_bootloader(const ck_letter_t *letter);
-static void exit_bootloader(const ck_letter_t *letter);
-static int process_flash_erase_letter(const ck_letter_t *letter);
-static int process_fs_format_letter(const ck_letter_t *letter);
-static int process_block_transfer(const ck_letter_t *letter,
+static void enter_bootloader(const ck_letter_t* letter);
+static void exit_bootloader(const ck_letter_t* letter);
+static int process_flash_erase_letter(const ck_letter_t* letter);
+static int process_fs_format_letter(const ck_letter_t* letter);
+static int process_block_transfer(const ck_letter_t* letter,
                                   enum block_type block_type);
 
-const uint8_t receive_timeout_ms = 100;
+static const uint8_t receive_timeout_ms = 100;
 static bool transfer_in_progress = false;
 static bool transfer_failed = false;
 
 #define WRITE_CONFIG_STACK_SIZE (4 * configMINIMAL_STACK_SIZE)
 
-char *flash_program_task_name = "flash program";
+static char* flash_program_task_name = "flash program";
 static TaskHandle_t flash_program_task;
 static StaticTask_t flash_program_buf;
 static StackType_t flash_program_stack[configMINIMAL_STACK_SIZE];
 
-char *write_config_task_name = "write config";
+static char* write_config_task_name = "write config";
 static TaskHandle_t write_config_task;
 static StaticTask_t write_config_buf;
 static StackType_t write_config_stack[WRITE_CONFIG_STACK_SIZE];
@@ -83,14 +83,14 @@ static StackType_t write_config_stack[WRITE_CONFIG_STACK_SIZE];
 static StreamBufferHandle_t byte_stream;
 static StaticStreamBuffer_t byte_stream_buf;
 static uint8_t byte_stream_storage[32 * 1024];  // NOLINT(*-magic-numbers)
-static void flash_program(void *unused);
-static void write_config(void *unused);
+static void flash_program(void* unused);
+static void write_config(void* unused);
 
 static void send_abort_page(uint8_t folder_no);
 static int send_bundle_request_page(uint8_t folder_no,
                                     enum bundle_request_command command);
-static void send_ack(const ck_letter_t *letter);
-static void send_nack(const ck_letter_t *letter);
+static void send_ack(const ck_letter_t* letter);
+static void send_nack(const ck_letter_t* letter);
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 static void start_app(uint32_t pc, uint32_t sp);
@@ -152,7 +152,7 @@ static void mayor_init(void) {
       default_letter_timer_callback, &default_letter_timer_buf);
 
   ck_data_init();
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
   ck_id_t ck_id;
 
   if (read_ck_id(&ck_id) != APP_OK) {
@@ -214,8 +214,8 @@ static ck_err_t set_city_mode(ck_city_mode_t mode) {
   return CK_OK;
 }
 
-int handle_letter(const ck_folder_t *folder, const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int handle_letter(const ck_folder_t* folder, const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
 
   if (folder->folder_no == ck_data->enter_bootloader_folder->folder_no) {
     enter_bootloader(letter);
@@ -253,13 +253,13 @@ int handle_letter(const ck_folder_t *folder, const ck_letter_t *letter) {
   return APP_OK;
 }
 
-static void enter_bootloader(const ck_letter_t *letter) {
+static void enter_bootloader(const ck_letter_t* letter) {
   printf("Entered bootloader.\r\n");
   bootloader_entered = true;
   send_ack(letter);
 }
 
-static void exit_bootloader(const ck_letter_t *letter) {
+static void exit_bootloader(const ck_letter_t* letter) {
   // Send ACK with received CAN ID if triggered by flasher.
   if (letter != NULL) {
     send_ack(letter);
@@ -280,15 +280,15 @@ static void exit_bootloader(const ck_letter_t *letter) {
   SCB->VTOR = approm_start;
 
   // Jump to app
-  uint32_t *app_code = (uint32_t *)approm_start;
+  uint32_t* app_code = (uint32_t*)approm_start;
   uint32_t app_sp = app_code[0];
   uint32_t app_pc = app_code[1];
 
   start_app(app_pc, app_sp);
 }
 
-static int process_flash_erase_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+static int process_flash_erase_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
 
   if (letter->page.line_count != ck_data->flash_erase_folder->dlc) {
     printf("Incorrect flash erase page length.\r\n");
@@ -342,8 +342,8 @@ static int process_flash_erase_letter(const ck_letter_t *letter) {
   return APP_OK;
 }
 
-static int process_fs_format_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+static int process_fs_format_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
 
   if (letter->page.line_count != ck_data->fs_format_folder->dlc) {
     printf("fs format: incorrect page length.\r\n");
@@ -366,15 +366,15 @@ static int process_fs_format_letter(const ck_letter_t *letter) {
   return APP_OK;
 }
 
-static int process_block_transfer(const ck_letter_t *letter,
+static int process_block_transfer(const ck_letter_t* letter,
                                   enum block_type block_type) {
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
 
   uint32_t folder_no = 0;
   uint32_t dlc = 0;
   size_t max_data_size = 0;
-  void *task = NULL;
-  char *task_name = NULL;
+  void* task = NULL;
+  char* task_name = NULL;
 
   switch (block_type) {
     case BLOCK_PROGRAM_DATA:
@@ -492,10 +492,10 @@ static int process_block_transfer(const ck_letter_t *letter,
   return APP_OK;
 }
 
-static void flash_program(void *unused) {
+static void flash_program(void* unused) {
   (void)unused;
 
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
 
   uint8_t word[4];
 
@@ -532,7 +532,7 @@ static void flash_program(void *unused) {
       // Program flash with word
       HAL_StatusTypeDef status = HAL_OK;
       status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, current_address,
-                                 *(uint32_t *)word);
+                                 *(uint32_t*)word);
 
       if (status != HAL_OK) {
         printf("%s: fatal error: flashing failed.\r\n",
@@ -552,12 +552,12 @@ static void flash_program(void *unused) {
   }
 }
 
-static void write_config(void *unused) {
+static void write_config(void* unused) {
   (void)unused;
 
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
 
-  char *config_storage = get_jsondb_raw();
+  char* config_storage = get_jsondb_raw();
 
   for (;;) {
     memset(config_storage, 0, get_jsondb_max_size());
@@ -592,7 +592,7 @@ static void write_config(void *unused) {
       written_bytes += read_bytes;
     }
 
-    json_object_t *json = NULL;
+    json_object_t* json = NULL;
     if (!transfer_failed) {
       json = json_parse(config_storage);
       if (!json) {
@@ -618,7 +618,7 @@ static void write_config(void *unused) {
 }
 
 static void send_abort_page(uint8_t folder_no) {
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
   if (ck_send_page(folder_no, ck_data->abort_page->lines[0]) != CK_OK) {
     printf("Error sending block transfer abort page.\r\n");
   }
@@ -627,7 +627,7 @@ static void send_abort_page(uint8_t folder_no) {
 // NOLINTNEXTLINE(readability*,bugprone*)
 static int send_bundle_request_page(uint8_t folder_no,
                                     enum bundle_request_command command) {
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
   uint16_t page_data = (uint16_t)command;
   memcpy(&ck_data->bundle_request_page->lines[1], &page_data,
          sizeof(page_data));
@@ -639,9 +639,9 @@ static int send_bundle_request_page(uint8_t folder_no,
   return APP_OK;
 }
 
-static void send_ack(const ck_letter_t *letter) {
+static void send_ack(const ck_letter_t* letter) {
   // Send ACK with received CAN ID
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
   ck_data->command_ack_page->lines[0] = 0;  // ACK
   memcpy(&ck_data->command_ack_page->lines[1], &letter->envelope.envelope_no,
          sizeof(letter->envelope.envelope_no));
@@ -653,8 +653,8 @@ static void send_ack(const ck_letter_t *letter) {
   }
 }
 
-static void send_nack(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+static void send_nack(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   ck_data->command_ack_page->lines[0] = 1;  // NACK
   memcpy(&ck_data->command_ack_page->lines[1], &letter->envelope.envelope_no,
          sizeof(letter->envelope.envelope_no));
@@ -678,19 +678,19 @@ static void start_app(uint32_t pc, uint32_t sp) {
       : [sp] "r"(sp), [pc] "r"(pc));  // Replace [sp] by sp, and [pc] by pc.
 }
 
-void HAL_CAN_MspInit(CAN_HandleTypeDef *hcan) {
+void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan) {
   if (hcan->Instance == CAN) {
     can_msp_init();
   }
 }
 
-void HAL_CAN_MspDeInit(CAN_HandleTypeDef *hcan) {
+void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan) {
   if (hcan->Instance == CAN) {
     can_msp_deinit();
   }
 }
 
-void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi) {
+void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi) {
   if (hspi->Instance == SPI1) {
     spi1_msp_init();
   }
@@ -699,7 +699,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi) {
   }
 }
 
-void HAL_SPI_MspDeInit(SPI_HandleTypeDef *hspi) {
+void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi) {
   if (hspi->Instance == SPI1) {
     spi1_msp_deinit();
   }
@@ -708,13 +708,13 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *hspi) {
   }
 }
 
-void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
+void HAL_UART_MspInit(UART_HandleTypeDef* huart) {
   if (huart->Instance == USART1) {
     uart1_msp_init();
   }
 }
 
-void HAL_UART_MspDeInit(UART_HandleTypeDef *huart) {
+void HAL_UART_MspDeInit(UART_HandleTypeDef* huart) {
   if (huart->Instance == USART1) {
     uart1_msp_deinit();
   }

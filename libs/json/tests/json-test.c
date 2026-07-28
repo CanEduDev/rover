@@ -6,18 +6,18 @@
 
 #include "test.h"
 
-char test_data[JSON_MAX_SIZE];
+static char test_data[JSON_MAX_SIZE];
 
-void setup_test(char *test_data_path);
-void test_json_parse(void);
-void test_get_object(void);
-void test_get_nonexistent_object(void);
-void test_get_nested_object(void);
-void test_empty_object(void);
-void test_json_insert_object(void);
-void test_json_insert_nested_object(void);
+static void setup_test(char* test_data_path);
+static void test_json_parse(void);
+static void test_get_object(void);
+static void test_get_nonexistent_object(void);
+static void test_get_nested_object(void);
+static void test_empty_object(void);
+static void test_json_insert_object(void);
+static void test_json_insert_nested_object(void);
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   if (argc != 2) {
     printf("Please specify test-data.json path");
     exit(TEST_SETUP_FAIL);
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 }
 
 void test_json_parse(void) {
-  json_object_t *json = json_parse(test_data);
+  json_object_t* json = json_parse(test_data);
   ASSERT(json != NULL, "couldn't parse JSON");
 
   char str[JSON_MAX_SIZE];
@@ -43,7 +43,7 @@ void test_json_parse(void) {
   // String generated using
   // `jq . -c libs/json/tests/test-data.json | jq . -R`
   // Plus some massaging of floats
-  char *expected =
+  char* expected =
       "{\"n1\":123,\"n2\":-123,\"n3\":1.250000,\"n4\":-1.250000,\"n5\":0."
       "200000,\"n6\":-2000.000000,\"true\":true,\"false\":false,\"null\":"
       "null,\"str\":\"abc\",\"str2\":\"xyz \\\" "
@@ -66,10 +66,10 @@ void test_json_parse(void) {
 }
 
 void test_get_object(void) {
-  json_object_t *json = json_parse(test_data);
+  json_object_t* json = json_parse(test_data);
   ASSERT(json != NULL, "couldn't parse JSON");
 
-  json_object_t *object = json_get_object("n1", json);
+  json_object_t* object = json_get_object("n1", json);
   ASSERT(object != NULL, "couldn't find object");
   ASSERT(object->value != NULL, "object has no value");
 
@@ -79,48 +79,48 @@ void test_get_object(void) {
 }
 
 void test_get_nonexistent_object(void) {
-  json_object_t *json = json_parse(test_data);
+  json_object_t* json = json_parse(test_data);
   ASSERT(json != NULL, "couldn't parse JSON");
 
-  json_object_t *object = json_get_object("none", json);
+  json_object_t* object = json_get_object("none", json);
   ASSERT(object == NULL, "found nonexistent object");
 }
 
 void test_get_nested_object(void) {
-  json_object_t *json = json_parse(test_data);
+  json_object_t* json = json_parse(test_data);
   ASSERT(json != NULL, "couldn't parse JSON");
 
-  json_object_t *object = json_get_object("d1", json);
+  json_object_t* object = json_get_object("d1", json);
   ASSERT(object != NULL, "couldn't find object");
 
-  json_object_t *nested_object = json_get_object("str", object);
+  json_object_t* nested_object = json_get_object("str", object);
   ASSERT(nested_object != NULL, "couldn't find nested object");
 
   ASSERT(nested_object->value != NULL, "object has no value");
 
-  char *expected = "abc";
+  char* expected = "abc";
   ASSERT(strcmp(nested_object->value->string, expected) == 0,
          "expected: %s, got: %s", expected, nested_object->value->string);
 }
 
 void test_empty_object(void) {
-  json_object_t *json = json_parse(test_data);
+  json_object_t* json = json_parse(test_data);
   ASSERT(json != NULL, "couldn't parse JSON");
-  json_object_t *object = json_get_object("o1", json);
+  json_object_t* object = json_get_object("o1", json);
   ASSERT(object != NULL, "couldn't find object");
   ASSERT(object->value == NULL, "empty object has value");
   ASSERT(object->child == NULL, "empty object has child object");
 }
 
 void test_json_insert_object(void) {
-  json_object_t *json = json_parse(test_data);
+  json_object_t* json = json_parse(test_data);
   ASSERT(json != NULL, "couldn't parse JSON");
 
-  const char *new_object = "\"new\": \"object\"";
+  const char* new_object = "\"new\": \"object\"";
 
   ASSERT(json_insert_object(new_object, json) == 0, "failed to insert object");
 
-  json_object_t *object = json_get_object("new", json);
+  json_object_t* object = json_get_object("new", json);
 
   ASSERT(object != NULL, "couldn't find object");
   ASSERT(object->value != NULL, "object has no value");
@@ -133,7 +133,7 @@ void test_json_insert_object(void) {
   char str[JSON_MAX_SIZE];
   json_sprint(str, json);
 
-  char *expected =
+  char* expected =
       "{\"n1\":123,\"n2\":-123,\"n3\":1.250000,\"n4\":-1.250000,\"n5\":0."
       "200000,\"n6\":-2000.000000,\"true\":true,\"false\":false,\"null\":"
       "null,\"str\":\"abc\",\"str2\":\"xyz \\\" "
@@ -147,12 +147,12 @@ void test_json_insert_object(void) {
 }
 
 void test_json_insert_nested_object(void) {
-  json_object_t *json = json_parse(test_data);
+  json_object_t* json = json_parse(test_data);
   ASSERT(json != NULL, "couldn't parse JSON");
 
-  const char *new_object = "\"new\": \"object\"";
+  const char* new_object = "\"new\": \"object\"";
 
-  json_object_t *object = json_get_object("o1", json);
+  json_object_t* object = json_get_object("o1", json);
   ASSERT(object != NULL, "couldn't find object");
 
   ASSERT(json_insert_object(new_object, object) == 0,
@@ -171,7 +171,7 @@ void test_json_insert_nested_object(void) {
   char str[JSON_MAX_SIZE];
   json_sprint(str, json);
 
-  char *expected =
+  char* expected =
       "{\"n1\":123,\"n2\":-123,\"n3\":1.250000,\"n4\":-1.250000,\"n5\":0."
       "200000,\"n6\":-2000.000000,\"true\":true,\"false\":false,\"null\":"
       "null,\"str\":\"abc\",\"str2\":\"xyz \\\" "
@@ -184,9 +184,9 @@ void test_json_insert_nested_object(void) {
          str);
 }
 
-void setup_test(char *test_data_path) {
+void setup_test(char* test_data_path) {
   // Open the JSON file in read mode
-  FILE *file = fopen(test_data_path, "r");
+  FILE* file = fopen(test_data_path, "r");
   if (!file) {
     printf("Could not open file\n");
     exit(TEST_SETUP_FAIL);

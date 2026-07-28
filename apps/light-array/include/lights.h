@@ -7,7 +7,7 @@ extern "C" {
 
 #include "ck-types.h"
 
-int process_light_state_letter(const ck_letter_t *letter);
+int process_light_state_letter(const ck_letter_t* letter);
 
 #ifdef __cplusplus
 } /* extern "C" */

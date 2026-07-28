@@ -18,7 +18,7 @@ static StaticTask_t king_buf;
 static StackType_t king_stack[configMINIMAL_STACK_SIZE];
 
 // King task helpers
-static void king(void *unused);
+static void king(void* unused);
 static void king_timer_callback(TimerHandle_t timer);
 
 void init_king_task(uint32_t priority) {
@@ -26,7 +26,7 @@ void init_king_task(uint32_t priority) {
                                 priority, king_stack, &king_buf);
 }
 
-static void king(void *unused) {
+static void king(void* unused) {
   (void)unused;
 
   StaticTimer_t timer_buf;

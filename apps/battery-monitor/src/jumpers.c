@@ -57,7 +57,7 @@ void update_voltage_regulator_jumper_state(void) {
     return;
   }
 
-  battery_state_t *battery_state = get_battery_state();
+  battery_state_t* battery_state = get_battery_state();
   uint8_t pot_val = 0;
 
   if (read_potentiometer_value(&pot_val) != APP_OK) {

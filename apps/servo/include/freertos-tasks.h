@@ -13,7 +13,7 @@ typedef struct {
 } task_periods_t;
 
 void task_init(void);
-void set_task_periods(task_periods_t *task_periods);
+void set_task_periods(task_periods_t* task_periods);
 
 #ifdef __cplusplus
 }

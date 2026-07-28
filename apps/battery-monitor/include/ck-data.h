@@ -24,40 +24,40 @@ typedef struct {
   ck_folder_t folders[CK_DATA_FOLDER_COUNT];
 
   // Convenience pointers
-  ck_list_t *tx_list;
-  ck_list_t *rx_list;
+  ck_list_t* tx_list;
+  ck_list_t* rx_list;
 
-  ck_page_t *cell_page0;
-  ck_page_t *cell_page1;
-  ck_page_t *reg_out_page;
-  ck_page_t *vbat_out_page;
-  ck_page_t *alarm_page;
+  ck_page_t* cell_page0;
+  ck_page_t* cell_page1;
+  ck_page_t* reg_out_page;
+  ck_page_t* vbat_out_page;
+  ck_page_t* alarm_page;
 
-  ck_document_t *cell_doc;
-  ck_document_t *reg_out_doc;
-  ck_document_t *vbat_out_doc;
-  ck_document_t *alarm_doc;
+  ck_document_t* cell_doc;
+  ck_document_t* reg_out_doc;
+  ck_document_t* vbat_out_doc;
+  ck_document_t* alarm_doc;
 
   // Transmit
-  ck_folder_t *cell_folder;
-  ck_folder_t *reg_out_folder;
-  ck_folder_t *vbat_out_folder;
-  ck_folder_t *alarm_folder;
+  ck_folder_t* cell_folder;
+  ck_folder_t* reg_out_folder;
+  ck_folder_t* vbat_out_folder;
+  ck_folder_t* alarm_folder;
 
   // Receive
-  ck_folder_t *jumper_config_folder;
-  ck_folder_t *vbat_out_overcurrent_threshold_folder;
-  ck_folder_t *reg_out_overcurrent_threshold_folder;
-  ck_folder_t *set_reg_out_voltage_folder;
-  ck_folder_t *output_on_off_folder;
-  ck_folder_t *report_freq_folder;
-  ck_folder_t *low_voltage_cutoff_folder;
-  ck_folder_t *cell_calibration_folder;
+  ck_folder_t* jumper_config_folder;
+  ck_folder_t* vbat_out_overcurrent_threshold_folder;
+  ck_folder_t* reg_out_overcurrent_threshold_folder;
+  ck_folder_t* set_reg_out_voltage_folder;
+  ck_folder_t* output_on_off_folder;
+  ck_folder_t* report_freq_folder;
+  ck_folder_t* low_voltage_cutoff_folder;
+  ck_folder_t* cell_calibration_folder;
 
 } ck_data_t;
 
 void ck_data_init(void);
-ck_data_t *get_ck_data(void);
+ck_data_t* get_ck_data(void);
 
 #ifdef __cplusplus
 }

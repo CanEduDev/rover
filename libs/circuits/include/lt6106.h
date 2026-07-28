@@ -12,7 +12,7 @@ typedef struct {
 } lt6106_current_sensor_t;
 
 float lt6106_sense_current(float output_voltage,
-                           const lt6106_current_sensor_t *sensor);
+                           const lt6106_current_sensor_t* sensor);
 
 #ifdef __cplusplus
 }

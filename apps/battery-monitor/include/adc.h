@@ -27,7 +27,7 @@ typedef struct {
   uint32_t vbat_out_current;
 } adc_reading_t;
 
-void adc_average_samples(const adc_samples_t *samples, adc_reading_t *reading);
+void adc_average_samples(const adc_samples_t* samples, adc_reading_t* reading);
 
 uint16_t adc_to_cell_voltage(uint16_t adc_value);
 uint16_t adc_to_reg_out_current(uint16_t adc_value);

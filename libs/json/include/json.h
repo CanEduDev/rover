@@ -22,28 +22,28 @@ enum json_value_type {
 };
 
 typedef union {
-  char *string;
+  char* string;
   int int_;
   float float_;
   bool boolean;
 } __attribute__((packed)) json_value_t;
 
 typedef struct json_object {
-  char *name;
+  char* name;
   enum json_value_type type;
-  json_value_t *value;
+  json_value_t* value;
 
-  struct json_object *prev;
-  struct json_object *next;
-  struct json_object *child;
+  struct json_object* prev;
+  struct json_object* next;
+  struct json_object* child;
 
 } json_object_t;
 
-json_object_t *json_parse(const char *data);
-json_object_t *json_get_object(const char *name, json_object_t *root);
-int json_insert_object(const char *json, json_object_t *root);
+json_object_t* json_parse(const char* data);
+json_object_t* json_get_object(const char* name, json_object_t* root);
+int json_insert_object(const char* json, json_object_t* root);
 
-void json_sprint(char *str, json_object_t *root);
+void json_sprint(char* str, json_object_t* root);
 
 #ifdef __cplusplus
 } /* extern "C" */

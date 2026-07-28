@@ -18,8 +18,8 @@ typedef struct {
   uint16_t adc1_buf[ADC_NUM_SAMPLES * ADC1_NUM_CHANNELS];
 } adc_samples_t;
 
-void adc_average_samples(adc_reading_t *average,
-                         const volatile adc_samples_t *samples);
+void adc_average_samples(adc_reading_t* average,
+                         const volatile adc_samples_t* samples);
 
 float adc_value_to_distance(uint16_t adc_value);
 

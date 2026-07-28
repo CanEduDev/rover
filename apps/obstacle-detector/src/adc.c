@@ -2,8 +2,8 @@
 
 #define ADC_RESOLUTION_12BIT ((1 << 12) - 1)
 
-void adc_average_samples(adc_reading_t *average,
-                         const volatile adc_samples_t *samples) {
+void adc_average_samples(adc_reading_t* average,
+                         const volatile adc_samples_t* samples) {
   uint32_t sum_adc1[ADC1_NUM_CHANNELS] = {0};
 
   for (uint32_t i = 0; i < ADC_NUM_SAMPLES * ADC1_NUM_CHANNELS; i++) {

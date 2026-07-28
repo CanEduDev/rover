@@ -27,7 +27,7 @@
 #define MEASURE_STACK_SIZE \
   (sizeof(adc_samples_t) + (2 * configMINIMAL_STACK_SIZE))
 
-task_periods_t task_periods = {
+static task_periods_t task_periods = {
     .report_period_ms = REPORT_DEFAULT_PERIOD_MS,
 };
 
@@ -39,13 +39,13 @@ static TaskHandle_t report_task;
 static StaticTask_t report_buf;
 static StackType_t report_stack[configMINIMAL_STACK_SIZE];
 
-void measure(void *unused);
-void report(void *unused);
-void report_timer(TimerHandle_t timer);
-void sample_adc(volatile adc_samples_t *adc_samples);
+static void measure(void* unused);
+static void report(void* unused);
+static void report_timer(TimerHandle_t timer);
+static void sample_adc(volatile adc_samples_t* adc_samples);
 
-void send_docs(void);
-int handle_letter(const ck_folder_t *folder, const ck_letter_t *letter);
+static void send_docs(void);
+static int handle_letter(const ck_folder_t* folder, const ck_letter_t* letter);
 
 void task_init(void) {
   uint8_t priority = LOWEST_TASK_PRIORITY;
@@ -70,23 +70,23 @@ void task_init(void) {
   }
 }
 
-void set_task_periods(task_periods_t *periods) {
+void set_task_periods(task_periods_t* periods) {
   if (periods->report_period_ms != 0) {
     task_periods.report_period_ms = periods->report_period_ms;
   }
 }
 
-void measure(void *unused) {
+void measure(void* unused) {
   (void)unused;
 
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
 
   volatile adc_samples_t adc_samples;
   adc_reading_t adc_average;
 
   uint16_t battery_voltage = 0;
 
-  servo_state_t *servo = get_servo_state();
+  servo_state_t* servo = get_servo_state();
 
   if (!servo->position_enabled) {
     ck_data->servo_position_folder->enable = false;
@@ -112,18 +112,18 @@ void measure(void *unused) {
   }
 }
 
-void sample_adc(volatile adc_samples_t *adc_samples) {
-  peripherals_t *peripherals = get_peripherals();
+void sample_adc(volatile adc_samples_t* adc_samples) {
+  peripherals_t* peripherals = get_peripherals();
 
-  HAL_ADC_Start_DMA(&peripherals->hadc1, (uint32_t *)adc_samples->adc1_buf,
+  HAL_ADC_Start_DMA(&peripherals->hadc1, (uint32_t*)adc_samples->adc1_buf,
                     ADC_NUM_SAMPLES * ADC1_NUM_CHANNELS);
-  HAL_ADC_Start_DMA(&peripherals->hadc2, (uint32_t *)adc_samples->adc2_buf,
+  HAL_ADC_Start_DMA(&peripherals->hadc2, (uint32_t*)adc_samples->adc2_buf,
                     ADC_NUM_SAMPLES * ADC2_NUM_CHANNELS);
 
   ulTaskNotifyTake(pdTRUE, portMAX_DELAY);  // Wait for DMA
 }
 
-void report(void *unused) {
+void report(void* unused) {
   (void)unused;
 
   StaticTimer_t timer_buf;
@@ -149,7 +149,7 @@ void report_timer(TimerHandle_t timer) {
 }
 
 void send_docs(void) {
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
 
   ck_err_t ret = ck_send_document(ck_data->servo_position_folder->folder_no);
   if (ret != CK_OK && ret != CK_ERR_TIMEOUT) {
@@ -172,12 +172,12 @@ void send_docs(void) {
   }
 }
 
-int handle_letter(const ck_folder_t *folder, const ck_letter_t *letter) {
+int handle_letter(const ck_folder_t* folder, const ck_letter_t* letter) {
   if (ck_get_action_mode() == CK_ACTION_MODE_FREEZE) {
     return APP_OK;
   }
 
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
 
   if (folder->folder_no == ck_data->set_servo_voltage_folder->folder_no) {
     return process_set_servo_voltage_letter(letter);
@@ -203,7 +203,7 @@ int handle_letter(const ck_folder_t *folder, const ck_letter_t *letter) {
   return APP_OK;
 }
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
   // Avoid double notifications by notifying on the slower of the two ADCs
   if (hadc->Instance == ADC1) {
     BaseType_t higher_priority_task_woken = pdFALSE;

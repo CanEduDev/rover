@@ -21,8 +21,8 @@ typedef struct {
   uint16_t adc2_buf[ADC_NUM_SAMPLES * ADC2_NUM_CHANNELS];
 } adc_samples_t;
 
-void adc_average_samples(adc_reading_t *average,
-                         const volatile adc_samples_t *samples);
+void adc_average_samples(adc_reading_t* average,
+                         const volatile adc_samples_t* samples);
 
 float adc_to_servo_position(uint16_t adc_value);
 uint16_t adc_to_servo_current(uint16_t adc_value);

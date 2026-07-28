@@ -61,14 +61,14 @@ typedef struct {
 
 } battery_state_t;
 
-battery_state_t *get_battery_state(void);
+battery_state_t* get_battery_state(void);
 
 void battery_state_init(void);
 void battery_state_reset(void);
-void power_output_reset(power_output_t *output);
+void power_output_reset(power_output_t* output);
 
 // Parses an adc reading and uses it to update the battery state.
-void update_battery_state(const adc_reading_t *adc_reading);
+void update_battery_state(const adc_reading_t* adc_reading);
 
 #ifdef __cplusplus
 }
