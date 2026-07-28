@@ -16,9 +16,9 @@ static bool failsafe_active = false;
 static uint16_t failsafe_timeout = FAILSAFE_DEFAULT_TIMEOUT_MS;
 static uint16_t failsafe_pulse = PWM_NEUTRAL_PULSE_MUS;
 
-void failsafe_timer_callback(TimerHandle_t timer) {
+static void failsafe_timer_callback(TimerHandle_t timer) {
   (void)timer;
-  servo_state_t *servo_state = get_servo_state();
+  servo_state_t* servo_state = get_servo_state();
   if (servo_state->steering_pulse != failsafe_pulse) {
     update_servo_pulse(failsafe_pulse);
     printf("Failsafe triggered.\r\n");

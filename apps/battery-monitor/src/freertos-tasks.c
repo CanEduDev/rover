@@ -42,13 +42,13 @@ static TaskHandle_t battery_report_task;
 static StaticTask_t battery_report_buf;
 static StackType_t battery_report_stack[configMINIMAL_STACK_SIZE];
 
-void battery_monitor(void *unused);
-void battery_report(void *unused);
-void battery_report_timer(TimerHandle_t timer);
-void sample_adc(volatile adc_samples_t *adc_samples);
-void update_pages(void);
-void send_docs(void);
-int handle_letter(const ck_folder_t *folder, const ck_letter_t *letter);
+static void battery_monitor(void* unused);
+static void battery_report(void* unused);
+static void battery_report_timer(TimerHandle_t timer);
+static void sample_adc(volatile adc_samples_t* adc_samples);
+static void update_pages(void);
+static void send_docs(void);
+static int handle_letter(const ck_folder_t* folder, const ck_letter_t* letter);
 
 void task_init(void) {
   uint8_t priority = LOWEST_TASK_PRIORITY;
@@ -75,13 +75,13 @@ void task_init(void) {
   }
 }
 
-void set_task_periods(task_periods_t *periods) {
+void set_task_periods(task_periods_t* periods) {
   if (periods->battery_report_period_ms != 0) {
     task_periods.battery_report_period_ms = periods->battery_report_period_ms;
   }
 }
 
-void battery_monitor(void *unused) {
+void battery_monitor(void* unused) {
   (void)unused;
 
   set_current_measure_jumper_config(X11_ON_X12_ON);
@@ -119,18 +119,18 @@ void battery_monitor(void *unused) {
   }
 }
 
-void sample_adc(volatile adc_samples_t *adc_samples) {
-  peripherals_t *peripherals = get_peripherals();
+void sample_adc(volatile adc_samples_t* adc_samples) {
+  peripherals_t* peripherals = get_peripherals();
 
-  HAL_ADC_Start_DMA(&peripherals->hadc1, (uint32_t *)adc_samples->adc1_buf,
+  HAL_ADC_Start_DMA(&peripherals->hadc1, (uint32_t*)adc_samples->adc1_buf,
                     ADC_NUM_SAMPLES * ADC1_NUM_CHANNELS);
-  HAL_ADC_Start_DMA(&peripherals->hadc2, (uint32_t *)adc_samples->adc2_buf,
+  HAL_ADC_Start_DMA(&peripherals->hadc2, (uint32_t*)adc_samples->adc2_buf,
                     ADC_NUM_SAMPLES * ADC2_NUM_CHANNELS);
 
   ulTaskNotifyTake(pdTRUE, portMAX_DELAY);  // Wait for DMA
 }
 
-void battery_report(void *unused) {
+void battery_report(void* unused) {
   (void)unused;
 
   StaticTimer_t timer_buf;
@@ -162,8 +162,8 @@ void battery_report_timer(TimerHandle_t timer) {
 }
 
 void update_pages(void) {
-  ck_data_t *ck_data = get_ck_data();
-  battery_state_t *battery_state = get_battery_state();
+  ck_data_t* ck_data = get_ck_data();
+  battery_state_t* battery_state = get_battery_state();
 
   // Copy cells 0,1,2 to page 0 of cell doc, cells 3,4,5 to page 1.
   memcpy(&ck_data->cell_page0->lines[1], &battery_state->cells.voltage[0],
@@ -183,7 +183,7 @@ void update_pages(void) {
 }
 
 void send_docs(void) {
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
 
   ck_err_t ret = ck_send_document(ck_data->cell_folder->folder_no);
   if (ret != CK_OK && ret != CK_ERR_TIMEOUT) {
@@ -201,12 +201,12 @@ void send_docs(void) {
   }
 }
 
-int handle_letter(const ck_folder_t *folder, const ck_letter_t *letter) {
+int handle_letter(const ck_folder_t* folder, const ck_letter_t* letter) {
   if (ck_get_action_mode() == CK_ACTION_MODE_FREEZE) {
     return APP_OK;
   }
 
-  ck_data_t *ck_data = get_ck_data();
+  ck_data_t* ck_data = get_ck_data();
 
   if (folder->folder_no == ck_data->jumper_config_folder->folder_no) {
     return process_jumper_config_letter(letter);
@@ -238,7 +238,7 @@ int handle_letter(const ck_folder_t *folder, const ck_letter_t *letter) {
   return APP_OK;
 }
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
   // Avoid double notifications by notifying on the slower of the two ADCs
   if (hadc->Instance == ADC2) {
     BaseType_t higher_priority_task_woken = pdFALSE;

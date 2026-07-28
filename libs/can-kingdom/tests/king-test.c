@@ -5,13 +5,13 @@
 #include "ck-test.h"
 #include "test.h"
 
-void test_kp0(void);
-void test_kp1(void);
-void test_kp2(void);
-void test_kp8(void);
-void test_kp16(void);
-void test_kp17(void);
-void verify_kp_header(int page_no, ck_page_t *page);
+static void test_kp0(void);
+static void test_kp1(void);
+static void test_kp2(void);
+static void test_kp8(void);
+static void test_kp16(void);
+static void test_kp17(void);
+static void verify_kp_header(int page_no, ck_page_t* page);
 
 int main(void) {
   test_kp0();
@@ -83,7 +83,7 @@ void test_kp1(void) {
          "wrong base number, expected: %u, got: %u.", args.base_no,
          got_base_no);
 
-  bool got_has_extended_id = (page.lines[7] >> 7) & 0x01;
+  bool got_has_extended_id = ((page.lines[7] >> 7) & 0x01) != 0;
 
   ASSERT(got_has_extended_id == args.has_extended_id,
          "wrong extended ID flag, expected: %u, got: %u.", args.has_extended_id,
@@ -131,7 +131,7 @@ void test_kp2(void) {
          "wrong envelope number, expected: %u, got: %u.",
          args.envelope.envelope_no, got_envelope_no);
 
-  bool got_has_extended_id = (page.lines[5] >> 7) & 0x01;
+  bool got_has_extended_id = ((page.lines[5] >> 7) & 0x01) != 0;
 
   ASSERT(got_has_extended_id == args.envelope.has_extended_id,
          "wrong extended ID flag, expected: %u, got: %u.",
@@ -141,7 +141,7 @@ void test_kp2(void) {
          "wrong folder number, expected: %u, got: %u.", args.folder_no,
          page.lines[6]);
 
-  bool got_enable_envelope = page.lines[7] & 0x01;
+  bool got_enable_envelope = (page.lines[7] & 0x01) != 0;
 
   ASSERT(got_enable_envelope == args.envelope.enable,
          "wrong enable envelope flag, expected: %u, got: %u.",
@@ -212,7 +212,7 @@ void test_kp16(void) {
   ASSERT(got_dlc == args.dlc, "wrong DLC, expected: %u, got: %u.", args.dlc,
          got_dlc);
 
-  bool got_has_rtr = (page.lines[3] >> 6) & 0x01;
+  bool got_has_rtr = ((page.lines[3] >> 6) & 0x01) != 0;
 
   ASSERT(got_has_rtr == args.has_rtr, "wrong has_rtr, expected: %u, got: %u.",
          args.has_rtr, got_has_rtr);
@@ -230,7 +230,7 @@ void test_kp16(void) {
          "wrong document action, expected: %u, got: %u.", args.document_action,
          got_document_action);
 
-  bool got_enable_folder = (page.lines[4] >> 6) & 0x01;
+  bool got_enable_folder = ((page.lines[4] >> 6) & 0x01) != 0;
 
   ASSERT(got_enable_folder == args.enable_folder,
          "KP16: wrong enable folder flag, expected: %u, got: %u.",
@@ -312,7 +312,7 @@ void test_kp17(void) {
 }
 
 // These verifications are the same for all king's pages.
-void verify_kp_header(int page_no, ck_page_t *page) {
+void verify_kp_header(int page_no, ck_page_t* page) {
   ASSERT(page->line_count == CK_MAX_LINES_PER_PAGE,
          "KP%d: wrong line count, expected: %u, got: %u.", page_no,
          CK_MAX_LINES_PER_PAGE, page->line_count);

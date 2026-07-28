@@ -1,3 +1,4 @@
+// NOLINTBEGIN(readability-else-after-return,bugprone-multi-level-implicit-pointer-conversion)
 #include "pwm.h"
 #include "servo-internal.h"
 #include "servo.h"
@@ -11,7 +12,6 @@
 
 DEFINE_FFF_GLOBALS
 
-// NOLINTBEGIN
 FAKE_VOID_FUNC(failsafe_init)
 FAKE_VOID_FUNC(failsafe_on)
 FAKE_VOID_FUNC(failsafe_refresh)
@@ -39,22 +39,22 @@ void reset_fakes(void) {
   FFF_FAKES_LIST(RESET_FAKE);
   FFF_RESET_HISTORY();
 }
-// NOLINTEND
+// NOLINTEND(readability-else-after-return,bugprone-multi-level-implicit-pointer-conversion)
 
-void test_update_servo_pulse(void);
-void test_update_servo_pulse_reverse(void);
-void test_update_servo_angle(void);
-void test_update_servo_angle_reverse(void);
-void test_update_voltage_controller_stable_voltage(void);
-void test_update_voltage_controller_increase_voltage(void);
-void test_update_voltage_controller_decrease_voltage(void);
+static void test_update_servo_pulse(void);
+static void test_update_servo_pulse_reverse(void);
+static void test_update_servo_angle(void);
+static void test_update_servo_angle_reverse(void);
+static void test_update_voltage_controller_stable_voltage(void);
+static void test_update_voltage_controller_increase_voltage(void);
+static void test_update_voltage_controller_decrease_voltage(void);
 
 // Helpers
 bool float_equal(float a, float b);
-int read_servo_potentiometer_returns_almost_max(uint8_t* pot_value);
-int read_servo_potentiometer_returns_max(uint8_t* pot_value);
-int read_servo_potentiometer_returns_almost_min(uint8_t* pot_value);
-int read_servo_potentiometer_returns_min(uint8_t* pot_value);
+static int read_servo_potentiometer_returns_almost_max(uint8_t* pot_value);
+static int read_servo_potentiometer_returns_max(uint8_t* pot_value);
+static int read_servo_potentiometer_returns_almost_min(uint8_t* pot_value);
+static int read_servo_potentiometer_returns_min(uint8_t* pot_value);
 
 int main(void) {
   test_update_servo_pulse();
@@ -66,7 +66,7 @@ int main(void) {
   test_update_voltage_controller_decrease_voltage();
 }
 
-void setup_test(void) {
+static void setup_test(void) {
   servo_init();
   reset_fakes();
 }

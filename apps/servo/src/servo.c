@@ -133,7 +133,7 @@ static int32_t angle_to_pulse(float angle) {
 }
 
 static float pulse_to_angle(int32_t pulse) {
-  return ((float)(pulse)-m_angle_to_pulse) / k_angle_to_pulse;
+  return ((float)pulse - m_angle_to_pulse) / k_angle_to_pulse;
 }
 
 static float subtrim_pulse_to_angle(int32_t pulse) {

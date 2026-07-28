@@ -11,7 +11,7 @@ extern "C" {
 #include "ck-types.h"
 
 void init_wheel_speed_task(uint8_t priority);
-int process_set_wheel_parameters_letter(const ck_letter_t *letter);
+int process_set_wheel_parameters_letter(const ck_letter_t* letter);
 
 #ifdef __cplusplus
 } /* extern "C" */

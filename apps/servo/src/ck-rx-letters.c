@@ -11,13 +11,13 @@
 
 // 2 bytes in page
 // bytes 1-2: desired servo voltage in mV.
-int process_set_servo_voltage_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_set_servo_voltage_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->set_servo_voltage_folder->dlc) {
     return APP_NOT_OK;
   }
 
-  servo_state_t *servo = get_servo_state();
+  servo_state_t* servo = get_servo_state();
 
   memcpy(&servo->target_voltage, letter->page.lines,
          sizeof(servo->target_voltage));
@@ -26,8 +26,8 @@ int process_set_servo_voltage_letter(const ck_letter_t *letter) {
 }
 
 // 2 bytes in page, the PWM frequency in Hz. At most 333 Hz.
-int process_pwm_conf_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_pwm_conf_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->pwm_conf_folder->dlc) {
     return APP_NOT_OK;
   }
@@ -55,8 +55,8 @@ int process_pwm_conf_letter(const ck_letter_t *letter) {
 //
 // -90 degrees pulse width: 500 microseconds.
 // +90 degrees pulse width: 2500 microseconds.
-int process_steering_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_steering_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->steering_folder->dlc) {
     return APP_NOT_OK;
   }
@@ -82,8 +82,8 @@ int process_steering_letter(const ck_letter_t *letter) {
 
 // 2 bytes in page.
 // Signed integer representing a subtrim value as a pulse width in microseconds.
-int process_subtrim_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_subtrim_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->subtrim_folder->dlc) {
     return APP_NOT_OK;
   }
@@ -91,7 +91,7 @@ int process_subtrim_letter(const ck_letter_t *letter) {
   int16_t trim_pulse = 0;
   memcpy(&trim_pulse, letter->page.lines, sizeof(trim_pulse));
 
-  servo_state_t *servo_state = get_servo_state();
+  servo_state_t* servo_state = get_servo_state();
   if (servo_state->reverse) {
     trim_pulse = (int16_t)-trim_pulse;
   }
@@ -105,8 +105,8 @@ int process_subtrim_letter(const ck_letter_t *letter) {
 //
 // bytes 0-1: reporting period in ms, i.e. how often to send
 //            measurements over CAN.
-int process_report_freq_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_report_freq_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->report_freq_folder->dlc) {
     return APP_NOT_OK;
   }
@@ -119,13 +119,13 @@ int process_report_freq_letter(const ck_letter_t *letter) {
   return APP_OK;
 }
 
-int process_reverse_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_reverse_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->reverse_folder->dlc) {
     return APP_NOT_OK;
   }
 
-  servo_state_t *servo_state = get_servo_state();
+  servo_state_t* servo_state = get_servo_state();
   servo_state->reverse = !servo_state->reverse;
 
   return APP_OK;
@@ -139,8 +139,8 @@ int process_reverse_letter(const ck_letter_t *letter) {
 //
 // bytes 3-4: Failsafe PWM pulse setting, unsigned 16-bit int.
 //
-int process_failsafe_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_failsafe_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->failsafe_folder->dlc) {
     return APP_NOT_OK;
   }

@@ -10,9 +10,9 @@
 static peripherals_t peripherals;
 static uint32_t hal_rcc_adc12_clk_enabled = 0;
 
-void gpio_init(void);
-void dma_init(void);
-void adc1_init(void);
+static void gpio_init(void);
+static void dma_init(void);
+static void adc1_init(void);
 
 peripherals_t* get_peripherals(void) {
   return &peripherals;
@@ -133,7 +133,7 @@ void dma_init(void) {
 }
 
 /* ADC1 DMA Init */
-void adc1_dma_init(ADC_HandleTypeDef* hadc) {
+static void adc1_dma_init(ADC_HandleTypeDef* hadc) {
   DMA_HandleTypeDef* hdma_adc1 = &peripherals.hdma_adc1;
   hdma_adc1->Instance = DMA1_Channel1;
   hdma_adc1->Init.Direction = DMA_PERIPH_TO_MEMORY;

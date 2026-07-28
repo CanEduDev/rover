@@ -9,15 +9,15 @@
 
 static ck_data_t ck_data;
 
-void page_init(void);
-void doc_init(void);
-void list_init(void);
-void folder_init(void);
+static void page_init(void);
+static void doc_init(void);
+static void list_init(void);
+static void folder_init(void);
 static void assign_stored(void);
 
-static int check_folder(json_object_t *folder);
-static int check_envelope(json_object_t *envelope);
-static void assign(json_object_t *folder, json_object_t *envelope);
+static int check_folder(json_object_t* folder);
+static int check_envelope(json_object_t* envelope);
+static void assign(json_object_t* folder, json_object_t* envelope);
 
 void ck_data_init(void) {
   page_init();
@@ -27,7 +27,7 @@ void ck_data_init(void) {
   assign_stored();
 }
 
-ck_data_t *get_ck_data(void) {
+ck_data_t* get_ck_data(void) {
   return &ck_data;
 }
 
@@ -123,7 +123,7 @@ void folder_init(void) {
   ck_data.reverse_folder->dlc = 0;
 
   ck_data.failsafe_folder->direction = CK_DIRECTION_RECEIVE;
-  ck_data.failsafe_folder->dlc = sizeof(uint8_t) + 2 * sizeof(uint16_t);
+  ck_data.failsafe_folder->dlc = sizeof(uint8_t) + (2 * sizeof(uint16_t));
 
   // Set up the doc lists, folder numbers and enable flags
   const uint8_t tx_doc_list_no = 0;
@@ -146,24 +146,24 @@ void folder_init(void) {
 }
 
 static void assign_stored(void) {
-  json_object_t *json = get_jsondb();
-  json_object_t *assignments = json_get_object("assignments", json);
+  json_object_t* json = get_jsondb();
+  json_object_t* assignments = json_get_object("assignments", json);
   if (!assignments || !assignments->child) {
     printf("note: no assignments stored\r\n");
     return;
   }
 
-  json_object_t *assignment = assignments->child;
+  json_object_t* assignment = assignments->child;
 
   do {
-    json_object_t *folder = json_get_object("folder", assignment);
-    json_object_t *envelope = json_get_object("envelope", assignment);
+    json_object_t* folder = json_get_object("folder", assignment);
+    json_object_t* envelope = json_get_object("envelope", assignment);
     assign(folder, envelope);
     assignment = assignment->next;
   } while (assignment != NULL);
 }
 
-static int check_folder(json_object_t *folder) {
+static int check_folder(json_object_t* folder) {
   if (folder->type != JSON_INT || folder->value->int_ < 2 ||
       folder->value->int_ >= CK_DATA_FOLDER_COUNT) {
     return APP_NOT_OK;
@@ -171,7 +171,7 @@ static int check_folder(json_object_t *folder) {
   return APP_OK;
 }
 
-static int check_envelope(json_object_t *envelope) {
+static int check_envelope(json_object_t* envelope) {
   if (envelope->type != JSON_INT || envelope->value->int_ < 0) {
     return APP_NOT_OK;
   }
@@ -188,7 +188,7 @@ static int check_envelope(json_object_t *envelope) {
   return APP_OK;
 }
 
-static void assign(json_object_t *folder, json_object_t *envelope) {
+static void assign(json_object_t* folder, json_object_t* envelope) {
   static int i = 0;
   char s[32];  // NOLINT(*-magic-numbers)
   if (check_folder(folder) != APP_OK) {
@@ -204,7 +204,7 @@ static void assign(json_object_t *folder, json_object_t *envelope) {
 
   i++;
 
-  ck_folder_t *f = &ck_data.folders[folder->value->int_];
+  ck_folder_t* f = &ck_data.folders[folder->value->int_];
   if (f->envelope_count >= CK_MAX_ENVELOPES_PER_FOLDER) {
     return;
   }

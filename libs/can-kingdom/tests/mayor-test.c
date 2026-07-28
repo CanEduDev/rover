@@ -17,7 +17,7 @@
 #define TX_DOCUMENT_COUNT 2  // Mayor's document + test doc
 #define FOLDER_COUNT 4
 
-#define RX_BIT_ARRAY_LENGTH (1 + RX_BIT_COUNT / 8)
+#define RX_BIT_ARRAY_LENGTH (1 + (RX_BIT_COUNT / 8))
 
 #define BIT_LIST_COUNT 1
 #define LINE_LIST_COUNT 1
@@ -37,52 +37,52 @@ struct city_data {
   ck_folder_t folders[FOLDER_COUNT];
 
   // Convenience pointers
-  ck_list_t *rx_bit_list;
-  ck_list_t *rx_line_list;
-  ck_list_t *rx_page_list;
-  ck_list_t *rx_doc_list;
-  ck_list_t *tx_doc_list;
+  ck_list_t* rx_bit_list;
+  ck_list_t* rx_line_list;
+  ck_list_t* rx_page_list;
+  ck_list_t* rx_doc_list;
+  ck_list_t* tx_doc_list;
 };
 
 // This mayor's predefined data
 static struct city_data data;
 
-void test_process_before_init(void);
-void test_mayor_init(void);
-void test_add_mayors_page(void);
-void test_send_document(void);
-void test_send_page(void);
-void test_send_mayors_page(void);
-void test_is_kings_envelope(void);
-void test_get_envelopes_folder(void);
-void test_set_comm_mode(void);
-void test_is_default_letter(void);
-void test_default_letter_received(void);
-void test_process_invalid_kings_letter(void);
-void test_process_kp0(void);
-void test_process_kp1(void);
-void test_process_kp2(void);
-void test_process_kp8(void);
-void test_process_kp16(void);
-void test_process_kp17(void);
+static void test_process_before_init(void);
+static void test_mayor_init(void);
+static void test_add_mayors_page(void);
+static void test_send_document(void);
+static void test_send_page(void);
+static void test_send_mayors_page(void);
+static void test_is_kings_envelope(void);
+static void test_get_envelopes_folder(void);
+static void test_set_comm_mode(void);
+static void test_is_default_letter(void);
+static void test_default_letter_received(void);
+static void test_process_invalid_kings_letter(void);
+static void test_process_kp0(void);
+static void test_process_kp1(void);
+static void test_process_kp2(void);
+static void test_process_kp8(void);
+static void test_process_kp16(void);
+static void test_process_kp17(void);
 
 // Helpers
-ck_err_t set_action_mode(ck_action_mode_t mode);
-ck_err_t set_city_mode(ck_city_mode_t mode);
-void start_200ms_timer(void);
+static ck_err_t set_action_mode(ck_action_mode_t mode);
+static ck_err_t set_city_mode(ck_city_mode_t mode);
+static void start_200ms_timer(void);
 
-void check_kings_doc_folder(ck_folder_t *folder);
-void check_mayors_doc_folder(ck_folder_t *folder);
-void check_ck_folder(ck_folder_t *folder);
+static void check_kings_doc_folder(ck_folder_t* folder);
+static void check_mayors_doc_folder(ck_folder_t* folder);
+static void check_ck_folder(ck_folder_t* folder);
 
-void setup_test(void);
+static void setup_test(void);
 
 // Functions for setting up the city data
-void init_pages(void);
-void init_docs(void);
-void init_lists(void);
-void init_folders(void);
-void init_data(void);
+static void init_pages(void);
+static void init_docs(void);
+static void init_lists(void);
+static void init_folders(void);
+static void init_data(void);
 
 int main(void) {
   test_process_before_init();
@@ -231,7 +231,7 @@ void test_get_envelopes_folder(void) {
 
   const ck_envelope_t envelope = {.envelope_no = 200};
 
-  ck_folder_t *folder = NULL;
+  ck_folder_t* folder = NULL;
 
   ASSERT(ck_get_envelopes_folder(&envelope, &folder) == CK_ERR_FALSE,
          "checking for non-existent envelope did not return false.");
@@ -539,7 +539,7 @@ void test_process_kp16(void) {
   letter.page.line_count = CK_MAX_LINES_PER_PAGE;
   letter.page.lines[0] = test_city_address;
   letter.page.lines[1] = CK_KP16;
-  uint8_t *folder_no = &letter.page.lines[2];
+  uint8_t* folder_no = &letter.page.lines[2];
   *folder_no = 3;
 
   uint8_t dlc = 4;
@@ -609,11 +609,11 @@ void test_process_kp17(void) {
   const uint8_t illegal_target_position = 8;
 
   // NOLINTBEGIN(*-magic-numbers)
-  uint8_t *source_list_number = &letter.page.lines[3];
-  uint8_t *source_record_number = &letter.page.lines[4];
+  uint8_t* source_list_number = &letter.page.lines[3];
+  uint8_t* source_record_number = &letter.page.lines[4];
   letter.page.lines[5] = 0;  // Target list no, will be the same for all
-  uint8_t *target_record_number = &letter.page.lines[6];
-  uint8_t *target_position = &letter.page.lines[7];
+  uint8_t* target_record_number = &letter.page.lines[6];
+  uint8_t* target_position = &letter.page.lines[7];
   // NOLINTEND(*-magic-numbers)
 
   *source_list_number = illegal_list_number;
@@ -641,8 +641,8 @@ void test_process_kp17(void) {
   ASSERT(ck_process_kings_letter(&letter) == CK_OK, "");
 
   // Verify the data
-  uint8_t *line_r00 = (uint8_t *)data.rx_line_list->records[0];
-  uint8_t *line_r01 = (uint8_t *)data.rx_line_list->records[1];
+  uint8_t* line_r00 = (uint8_t*)data.rx_line_list->records[0];
+  uint8_t* line_r01 = (uint8_t*)data.rx_line_list->records[1];
   ASSERT(*line_r00 == 1 && *line_r01 == 2,
          "wrong line data, expected: 1, 2, got: %u, %u.", *line_r00, *line_r01);
 
@@ -658,7 +658,7 @@ void test_process_kp17(void) {
   ASSERT(ck_process_kings_letter(&letter) == CK_OK, "");
 
   // Verify the data
-  ck_page_t *page_r01 = (ck_page_t *)data.rx_page_list->records[1];
+  ck_page_t* page_r01 = (ck_page_t*)data.rx_page_list->records[1];
   ASSERT(page_r01->line_count == 2, "wrong line count, expected: 2, got: %u.",
          page_r01->line_count);
 
@@ -677,7 +677,7 @@ void test_process_kp17(void) {
   ASSERT(ck_process_kings_letter(&letter) == CK_OK, "");
 
   // Verify the data
-  ck_document_t *doc_r01 = (ck_document_t *)data.rx_doc_list->records[1];
+  ck_document_t* doc_r01 = (ck_document_t*)data.rx_doc_list->records[1];
   ASSERT(doc_r01->page_count == 2, "wrong page count, expected: 2, got: %u.",
          doc_r01->page_count);
 
@@ -703,7 +703,7 @@ ck_err_t set_city_mode(ck_city_mode_t mode) {
 void start_200ms_timer(void) {
 }
 
-void check_kings_doc_folder(ck_folder_t *folder) {
+void check_kings_doc_folder(ck_folder_t* folder) {
   check_ck_folder(folder);
 
   ASSERT(folder->envelopes[0].envelope_no == 0,
@@ -715,7 +715,7 @@ void check_kings_doc_folder(ck_folder_t *folder) {
          folder->direction);
 }
 
-void check_mayors_doc_folder(ck_folder_t *folder) {
+void check_mayors_doc_folder(ck_folder_t* folder) {
   check_ck_folder(folder);
 
   ASSERT(folder->envelopes[0].envelope_no == test_base_no + test_city_address,
@@ -727,7 +727,7 @@ void check_mayors_doc_folder(ck_folder_t *folder) {
          folder->direction);
 }
 
-void check_ck_folder(ck_folder_t *folder) {
+void check_ck_folder(ck_folder_t* folder) {
   ASSERT(folder->enable, "folder not enabled.");
   ASSERT(folder->envelopes[0].enable, "envelope not enabled.");
 

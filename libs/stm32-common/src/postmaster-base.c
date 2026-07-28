@@ -7,10 +7,10 @@
 #include "task.h"
 
 // Helpers
-static ck_err_t check_bit_timing(const ck_can_bit_timing_t *bit_timing);
-static int get_tseg1(const ck_can_bit_timing_t *bit_timing);
-static int get_tseg2(const ck_can_bit_timing_t *bit_timing);
-static int get_sjw(const ck_can_bit_timing_t *bit_timing);
+static ck_err_t check_bit_timing(const ck_can_bit_timing_t* bit_timing);
+static int get_tseg1(const ck_can_bit_timing_t* bit_timing);
+static int get_tseg2(const ck_can_bit_timing_t* bit_timing);
+static int get_sjw(const ck_can_bit_timing_t* bit_timing);
 
 inline int min(int a, int b) {  // NOLINT
   if (a < b) {
@@ -23,7 +23,7 @@ static StaticSemaphore_t can_tx_sem_buf;
 static SemaphoreHandle_t can_tx_sem = NULL;
 
 ck_err_t ck_postmaster_init(void) {
-  CAN_HandleTypeDef *hcan = &get_common_peripherals()->hcan;
+  CAN_HandleTypeDef* hcan = &get_common_peripherals()->hcan;
   HAL_CAN_ActivateNotification(hcan, CAN_IT_TX_MAILBOX_EMPTY);
   const uint8_t mailbox_count = 3;
   can_tx_sem =
@@ -37,8 +37,8 @@ ck_err_t ck_postmaster_init(void) {
   return CK_OK;
 }
 
-ck_err_t ck_send_letter(const ck_letter_t *letter) {
-  CAN_HandleTypeDef *hcan = &get_common_peripherals()->hcan;
+ck_err_t ck_send_letter(const ck_letter_t* letter) {
+  CAN_HandleTypeDef* hcan = &get_common_peripherals()->hcan;
 
   if (can_tx_sem == NULL) {
     return CK_ERR_NOT_INITIALIZED;
@@ -85,15 +85,15 @@ static void tx_complete(void) {
   portYIELD_FROM_ISR(higher_priority_task_woken);
 }
 
-void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef *hcan) {
+void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef* hcan) {
   (void)hcan;
   tx_complete();
 }
-void HAL_CAN_TxMailbox1CompleteCallback(CAN_HandleTypeDef *hcan) {
+void HAL_CAN_TxMailbox1CompleteCallback(CAN_HandleTypeDef* hcan) {
   (void)hcan;
   tx_complete();
 }
-void HAL_CAN_TxMailbox2CompleteCallback(CAN_HandleTypeDef *hcan) {
+void HAL_CAN_TxMailbox2CompleteCallback(CAN_HandleTypeDef* hcan) {
   (void)hcan;
   tx_complete();
 }
@@ -116,8 +116,8 @@ ck_err_t ck_apply_comm_mode(ck_comm_mode_t mode) {
     new_can_mode = CAN_MODE_SILENT;
   }
 
-  common_peripherals_t *common_peripherals = get_common_peripherals();
-  CAN_HandleTypeDef *hcan = &common_peripherals->hcan;
+  common_peripherals_t* common_peripherals = get_common_peripherals();
+  CAN_HandleTypeDef* hcan = &common_peripherals->hcan;
 
   HAL_CAN_StateTypeDef can_state = HAL_CAN_GetState(hcan);
 
@@ -151,7 +151,7 @@ uint8_t ck_get_125kbit_prescaler(void) {
   return 18;  // NOLINT
 }
 
-ck_err_t ck_set_bit_timing(const ck_can_bit_timing_t *bit_timing) {
+ck_err_t ck_set_bit_timing(const ck_can_bit_timing_t* bit_timing) {
   if (!bit_timing) {
     return CK_ERR_INVALID_PARAMETER;
   }
@@ -161,8 +161,8 @@ ck_err_t ck_set_bit_timing(const ck_can_bit_timing_t *bit_timing) {
     return ret;
   }
 
-  common_peripherals_t *common_peripherals = get_common_peripherals();
-  CAN_HandleTypeDef *hcan = &common_peripherals->hcan;
+  common_peripherals_t* common_peripherals = get_common_peripherals();
+  CAN_HandleTypeDef* hcan = &common_peripherals->hcan;
 
   // Store old values
   CAN_InitTypeDef old_init = hcan->Init;
@@ -190,7 +190,7 @@ ck_err_t ck_set_bit_timing(const ck_can_bit_timing_t *bit_timing) {
 }
 
 // Check bit timing based on stm32 hardware constraints.
-static ck_err_t check_bit_timing(const ck_can_bit_timing_t *bit_timing) {
+static ck_err_t check_bit_timing(const ck_can_bit_timing_t* bit_timing) {
   if (bit_timing->prescaler < 1) {
     return CK_ERR_INVALID_CAN_BIT_TIMING;
   }
@@ -210,7 +210,7 @@ static ck_err_t check_bit_timing(const ck_can_bit_timing_t *bit_timing) {
   return CK_OK;
 }
 
-static int get_tseg1(const ck_can_bit_timing_t *bit_timing) {
+static int get_tseg1(const ck_can_bit_timing_t* bit_timing) {
   int tseg1 = bit_timing->time_quanta - 1 - bit_timing->phase_seg2;
 
   // NOLINTBEGIN(*-magic-numbers)
@@ -253,7 +253,7 @@ static int get_tseg1(const ck_can_bit_timing_t *bit_timing) {
   // NOLINTEND(*-magic-numbers)
 }
 
-static int get_tseg2(const ck_can_bit_timing_t *bit_timing) {
+static int get_tseg2(const ck_can_bit_timing_t* bit_timing) {
   // NOLINTBEGIN(*-magic-numbers)
   switch (bit_timing->phase_seg2) {
     case 1:
@@ -278,7 +278,7 @@ static int get_tseg2(const ck_can_bit_timing_t *bit_timing) {
   // NOLINTEND(*-magic-numbers)
 }
 
-static int get_sjw(const ck_can_bit_timing_t *bit_timing) {
+static int get_sjw(const ck_can_bit_timing_t* bit_timing) {
   switch (bit_timing->sjw) {
     case 1:
       return CAN_SJW_1TQ;

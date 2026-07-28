@@ -190,7 +190,7 @@ from geometry_msgs.msg import Twist
 import math
 
 cmd = Twist()
-cmd.linear.x = 0.5    # 50% forward throttle
+cmd.linear.x = 0.5  # 50% forward throttle
 cmd.angular.z = math.radians(20)  # 20 degrees right
 publisher.publish(cmd)
 ```

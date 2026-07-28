@@ -14,7 +14,7 @@
             ],
             "svdFile": "stm32f302.svd",
             "device": "STM32F302",
-            "gdbPath": ".tools/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-gdb",
+            "gdbPath": ".tools/arm-gnu-toolchain/bin/arm-none-eabi-gdb",
             "preLaunchTask": "Flash ${input:targetName}"
         },
         {
@@ -30,7 +30,7 @@
             ],
             "svdFile": "stm32f302.svd",
             "device": "STM32F302",
-            "gdbPath": ".tools/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-gdb",
+            "gdbPath": ".tools/arm-gnu-toolchain/bin/arm-none-eabi-gdb",
             "preLaunchTask": "Flash bootloader"
         },
         {
@@ -46,7 +46,7 @@
             ],
             "svdFile": "stm32f302.svd",
             "device": "STM32F302",
-            "gdbPath": ".tools/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-gdb",
+            "gdbPath": ".tools/arm-gnu-toolchain/bin/arm-none-eabi-gdb",
         },
         {
             "name": "Debug Bootloader",
@@ -61,7 +61,7 @@
             ],
             "svdFile": "stm32f302.svd",
             "device": "STM32F302",
-            "gdbPath": ".tools/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi/bin/arm-none-eabi-gdb",
+            "gdbPath": ".tools/arm-gnu-toolchain/bin/arm-none-eabi-gdb",
         },
     ],
     "inputs": [

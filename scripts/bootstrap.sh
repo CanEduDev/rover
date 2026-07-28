@@ -5,28 +5,32 @@ set -euo pipefail
 ROOT_DIR=$(git rev-parse --show-toplevel)
 TOOL_DIR=${ROOT_DIR}/.tools
 
-TOOLCHAIN_URL=https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz
-YAMLFMT_URL=https://github.com/google/yamlfmt/releases/download/v0.13.0/yamlfmt_0.13.0_Linux_x86_64.tar.gz
+TOOLCHAIN_URL=https://gitlab.arm.com/api/v4/projects/tooling%2Fgnu-toolchains-for-arm/packages/generic/gnu-toolchain/15.3.rel1/arm-gnu-toolchain-15.3.rel1-x86_64-arm-none-eabi.tar.xz
+YAMLFMT_URL=https://github.com/google/yamlfmt/releases/download/v0.21.0/yamlfmt_0.21.0_Linux_x86_64.tar.gz
 
 echo "Installing APT dependencies..."
 sudo apt-get -qq update
 sudo apt-get -qq install --no-upgrade -y \
     curl \
-    clang-format \
-    clang-tidy \
     openocd \
     zip
 
-if [[ ! -e "${TOOL_DIR}/.complete" ]]; then
+# Stamp the marker with the tool URLs so that bumping a version invalidates any
+# previously installed toolchain instead of silently keeping the stale one.
+TOOL_STAMP="${TOOLCHAIN_URL} ${YAMLFMT_URL}"
+
+if [[ $(cat "${TOOL_DIR}/.complete" 2>/dev/null || true) != "${TOOL_STAMP}" ]]; then
     echo "Installing tools..."
 
+    rm -rf "${TOOL_DIR}"
     mkdir -p "${TOOL_DIR}"
     pushd "${TOOL_DIR}" >/dev/null
 
-    curl --progress-bar -LSf "${TOOLCHAIN_URL}" | tar xJf -
+    mkdir -p arm-gnu-toolchain
+    curl --progress-bar -LSf "${TOOLCHAIN_URL}" | tar xJf - --strip-components=1 -C arm-gnu-toolchain
     curl --progress-bar -LSf "${YAMLFMT_URL}" | tar xzf - yamlfmt
 
-    touch .complete
+    echo "${TOOL_STAMP}" >.complete
     popd >/dev/null
 fi
 

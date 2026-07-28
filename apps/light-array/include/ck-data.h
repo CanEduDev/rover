@@ -20,16 +20,16 @@ typedef struct {
   ck_folder_t folders[CK_DATA_FOLDER_COUNT];
 
   // Convenience pointers
-  ck_list_t *tx_list;
-  ck_list_t *rx_list;
+  ck_list_t* tx_list;
+  ck_list_t* rx_list;
 
   // Receive
-  ck_folder_t *set_light_state_folder;
+  ck_folder_t* set_light_state_folder;
 
 } ck_data_t;
 
 void ck_data_init(void);
-ck_data_t *get_ck_data(void);
+ck_data_t* get_ck_data(void);
 
 #ifdef __cplusplus
 }

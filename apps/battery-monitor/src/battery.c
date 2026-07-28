@@ -19,26 +19,26 @@
 #include "float.h"
 
 static battery_state_t battery_state;
-static const char *calibration_filename = "/calibration";
+static const char* calibration_filename = "/calibration";
 
-void battery_cells_reset(void);
+static void battery_cells_reset(void);
 
-void handle_battery_state(const adc_reading_t *adc_reading);
+void handle_battery_state(const adc_reading_t* adc_reading);
 void handle_faults(void);
-void update_battery_cells(const adc_reading_t *adc_reading);
+void update_battery_cells(const adc_reading_t* adc_reading);
 void update_battery_charge(void);
 void update_battery_leds(void);
 void update_reg_out_voltage_controller(void);
 bool is_reg_out_voltage_stable(void);
 bool is_low_voltage_fault(void);
-uint16_t *get_lowest_cell(void);
+uint16_t* get_lowest_cell(void);
 
-void calibrate_cells(const adc_reading_t *reading);
+void calibrate_cells(const adc_reading_t* reading);
 void load_calibration(void);
 void save_calibration(void);
 void init_default_calibration(void);
 
-battery_state_t *get_battery_state(void) {
+battery_state_t* get_battery_state(void) {
   return &battery_state;
 }
 
@@ -72,7 +72,7 @@ void battery_state_reset(void) {
   battery_cells_reset();
 }
 
-void power_output_reset(power_output_t *output) {
+void power_output_reset(power_output_t* output) {
   output->voltage = 0;
   output->current = 0;
   output->overcurrent_fault = false;
@@ -85,7 +85,7 @@ void battery_cells_reset(void) {
   led_stop_signal_fault();
 }
 
-void update_battery_state(const adc_reading_t *adc_reading) {
+void update_battery_state(const adc_reading_t* adc_reading) {
   if (battery_state.calibration_voltage) {
     printf("calibration initiated\r\n");
     battery_cells_reset();
@@ -137,7 +137,7 @@ void handle_faults(void) {
   }
 }
 
-void update_battery_cells(const adc_reading_t *adc_reading) {
+void update_battery_cells(const adc_reading_t* adc_reading) {
   int32_t total_voltage = 0;
 
   for (int i = 0; i < BATTERY_CELLS_MAX; i++) {
@@ -154,7 +154,7 @@ void update_battery_cells(const adc_reading_t *adc_reading) {
 
 // Always report lowest detected charge to detect the most discharged cell.
 void update_battery_charge(void) {
-  uint16_t *lowest_cell = get_lowest_cell();
+  uint16_t* lowest_cell = get_lowest_cell();
 
   // If no cells are connected for some reason
   if (!lowest_cell) {
@@ -260,7 +260,7 @@ bool is_reg_out_voltage_stable(void) {
 }
 
 bool is_low_voltage_fault(void) {
-  uint16_t *lowest_cell = get_lowest_cell();
+  uint16_t* lowest_cell = get_lowest_cell();
   if (!lowest_cell) {
     return false;
   }
@@ -268,9 +268,9 @@ bool is_low_voltage_fault(void) {
   return *lowest_cell <= battery_state.cells.low_voltage_cutoff;
 }
 
-uint16_t *get_lowest_cell(void) {
+uint16_t* get_lowest_cell(void) {
   uint16_t lowest_voltage = battery_state.cells.max_voltage;
-  uint16_t *lowest_cell = NULL;
+  uint16_t* lowest_cell = NULL;
   for (uint8_t i = 0; i < BATTERY_CELLS_MAX; i++) {
     // If cell is not connected, do not use its values in the low voltage
     // detection logic.
@@ -285,7 +285,7 @@ uint16_t *get_lowest_cell(void) {
   return lowest_cell;
 }
 
-void calibrate_cells(const adc_reading_t *reading) {
+void calibrate_cells(const adc_reading_t* reading) {
   for (int i = 0; i < BATTERY_CELLS_MAX; i++) {
     battery_state.cells.calibration_factor[i] =
         (float)battery_state.calibration_voltage / (float)reading->cells[i];

@@ -9,11 +9,11 @@
 
 static peripherals_t peripherals;
 
-void gpio_init(void);
-void dma_init(void);
+static void gpio_init(void);
+static void dma_init(void);
 void adc1_init(void);
-void i2c1_init(void);
-void tim2_init(void);
+static void i2c1_init(void);
+static void tim2_init(void);
 
 peripherals_t* get_peripherals(void) {
   return &peripherals;
@@ -139,7 +139,7 @@ void gpio_init(void) {
   HAL_GPIO_Init(DEBUG_LED_GPIO_PORT, &gpio_init);
 }
 
-void tim2_dma_init(TIM_HandleTypeDef* htim) {
+static void tim2_dma_init(TIM_HandleTypeDef* htim) {
   DMA_HandleTypeDef* hdma_tim2_ch1 = &peripherals.hdma_tim2_ch1;
   hdma_tim2_ch1->Instance = DMA1_Channel5;
   hdma_tim2_ch1->Init.Direction = DMA_PERIPH_TO_MEMORY;

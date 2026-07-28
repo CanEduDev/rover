@@ -23,8 +23,8 @@
 //         All other values will cause over-current threshold to be set to the
 //         fuse config - 500mA.
 //
-int process_jumper_config_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_jumper_config_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->jumper_config_folder->dlc) {
     return APP_NOT_OK;
   }
@@ -38,13 +38,13 @@ int process_jumper_config_letter(const ck_letter_t *letter) {
 //
 // bytes 0-1: desired output voltage on the regulated output.
 //
-int process_set_reg_out_voltage_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_set_reg_out_voltage_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->set_reg_out_voltage_folder->dlc) {
     return APP_NOT_OK;
   }
 
-  battery_state_t *battery_state = get_battery_state();
+  battery_state_t* battery_state = get_battery_state();
   memcpy(&battery_state->target_reg_out_voltage, letter->page.lines,
          sizeof(battery_state->target_reg_out_voltage));
 
@@ -56,13 +56,13 @@ int process_set_reg_out_voltage_letter(const ck_letter_t *letter) {
 // byte 0: reg out on/off, set to 0 for OFF, 1 for ON, all other values are
 // ignored byte 1: power on/off, set to 0 for OFF, 1 for ON, all other values
 // are ignored
-int process_output_on_off_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_output_on_off_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->output_on_off_folder->dlc) {
     return APP_NOT_OK;
   }
 
-  battery_state_t *battery_state = get_battery_state();
+  battery_state_t* battery_state = get_battery_state();
 
   uint8_t vbat_out = letter->page.lines[0];
   switch (vbat_out) {
@@ -101,8 +101,8 @@ int process_output_on_off_letter(const ck_letter_t *letter) {
 //
 // bytes 0-1: battery reporting period in ms, i.e. how often to send
 // measurements over CAN.
-int process_report_freq_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_report_freq_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->report_freq_folder->dlc) {
     return APP_NOT_OK;
   }
@@ -124,13 +124,13 @@ int process_report_freq_letter(const ck_letter_t *letter) {
 //            each individual cell in the battery may have, not the total
 //            voltage of the cells combined.
 //
-int process_low_voltage_cutoff_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_low_voltage_cutoff_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->low_voltage_cutoff_folder->dlc) {
     return APP_NOT_OK;
   }
 
-  battery_cells_t *battery_cells = &get_battery_state()->cells;
+  battery_cells_t* battery_cells = &get_battery_state()->cells;
 
   memcpy(&battery_cells->low_voltage_cutoff, letter->page.lines,
          sizeof(battery_cells->low_voltage_cutoff));
@@ -147,14 +147,14 @@ int process_low_voltage_cutoff_letter(const ck_letter_t *letter) {
 //            with caution, since setting it too high can result in burned
 //            fuses.
 //
-int process_vbat_out_overcurrent_threshold_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_vbat_out_overcurrent_threshold_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count !=
       ck_data->vbat_out_overcurrent_threshold_folder->dlc) {
     return APP_NOT_OK;
   }
 
-  power_output_t *power_output = &get_battery_state()->vbat_out;
+  power_output_t* power_output = &get_battery_state()->vbat_out;
 
   memcpy(&power_output->overcurrent_threshold, letter->page.lines,
          sizeof(power_output->overcurrent_threshold));
@@ -169,14 +169,14 @@ int process_vbat_out_overcurrent_threshold_letter(const ck_letter_t *letter) {
 // bytes 0-3: REG OUT over-current threshold in mA. value is a 32-bit unsigned
 //            integer in little endian format. Typical range 0-8000 mA.
 //
-int process_reg_out_overcurrent_threshold_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_reg_out_overcurrent_threshold_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count !=
       ck_data->reg_out_overcurrent_threshold_folder->dlc) {
     return APP_NOT_OK;
   }
 
-  power_output_t *power_output = &get_battery_state()->reg_out;
+  power_output_t* power_output = &get_battery_state()->reg_out;
 
   memcpy(&power_output->overcurrent_threshold, letter->page.lines,
          sizeof(power_output->overcurrent_threshold));
@@ -186,13 +186,13 @@ int process_reg_out_overcurrent_threshold_letter(const ck_letter_t *letter) {
   return APP_OK;
 }
 
-int process_cell_calibration_letter(const ck_letter_t *letter) {
-  ck_data_t *ck_data = get_ck_data();
+int process_cell_calibration_letter(const ck_letter_t* letter) {
+  ck_data_t* ck_data = get_ck_data();
   if (letter->page.line_count != ck_data->cell_calibration_folder->dlc) {
     return APP_NOT_OK;
   }
 
-  battery_state_t *bs = get_battery_state();
+  battery_state_t* bs = get_battery_state();
   memcpy(&bs->calibration_voltage, letter->page.lines,
          sizeof(bs->calibration_voltage));
   return APP_OK;

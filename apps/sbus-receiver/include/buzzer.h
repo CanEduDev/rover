@@ -11,7 +11,7 @@ extern "C" {
 
 void init_buzzer_task(uint8_t priority);
 
-int process_buzzer_sound_letter(const ck_letter_t *letter);
+int process_buzzer_sound_letter(const ck_letter_t* letter);
 
 #ifdef __cplusplus
 }

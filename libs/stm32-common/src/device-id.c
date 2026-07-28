@@ -27,29 +27,29 @@ ck_id_t get_default_ck_id(uint8_t city_address) {
   return ck_id;
 }
 
-ck_id_t *get_cached_ck_id(void) {
+ck_id_t* get_cached_ck_id(void) {
   return &cached_ck_id;
 }
 
-int read_ck_id(ck_id_t *ck_id) {
-  json_object_t *json = get_jsondb();
+int read_ck_id(ck_id_t* ck_id) {
+  json_object_t* json = get_jsondb();
   if (!json) {
     printf("error: JSON DB not initialized or does not exist.\r\n");
     return APP_NOT_OK;
   }
 
-  json_object_t *ck_id_json = json_get_object("ck_id", json);
+  json_object_t* ck_id_json = json_get_object("ck_id", json);
   if (!ck_id_json) {
     printf("error: no CK ID stored.\r\n");
     return APP_NOT_OK;
   }
 
   // Ignore group addresses for now.
-  json_object_t *city_address = json_get_object("city_address", ck_id_json);
-  json_object_t *base_no = json_get_object("base_no", ck_id_json);
-  json_object_t *base_no_has_extended_id =
+  json_object_t* city_address = json_get_object("city_address", ck_id_json);
+  json_object_t* base_no = json_get_object("base_no", ck_id_json);
+  json_object_t* base_no_has_extended_id =
       json_get_object("base_no_has_extended_id", ck_id_json);
-  json_object_t *base_no_is_known =
+  json_object_t* base_no_is_known =
       json_get_object("base_no_is_known", ck_id_json);
 
   if (!(city_address && base_no && base_no_has_extended_id &&
@@ -76,8 +76,8 @@ int read_ck_id(ck_id_t *ck_id) {
   return APP_OK;
 }
 
-int write_ck_id(ck_id_t *ck_id) {
-  json_object_t *json = get_jsondb();
+int write_ck_id(ck_id_t* ck_id) {
+  json_object_t* json = get_jsondb();
   if (!json) {
     printf("error: JSON DB not initialized or does not exist.\r\n");
     return APP_NOT_OK;
@@ -123,7 +123,7 @@ uint32_t get_device_serial(void) {
       LL_GetUID_Word2(),
   };
 
-  common_peripherals_t *common_peripherals = get_common_peripherals();
+  common_peripherals_t* common_peripherals = get_common_peripherals();
   return HAL_CRC_Calculate(&common_peripherals->hcrc, uid,
                            sizeof(uid) / sizeof(uint32_t));
 }

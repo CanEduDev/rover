@@ -15,8 +15,8 @@ extern "C" {
 
 typedef struct {
   uint32_t priority;
-  int (*app_letter_handler_func)(const ck_folder_t *folder,
-                                 const ck_letter_t *letter);
+  int (*app_letter_handler_func)(const ck_folder_t* folder,
+                                 const ck_letter_t* letter);
 
 } letter_reader_cfg_t;
 

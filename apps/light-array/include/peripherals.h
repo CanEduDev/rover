@@ -14,11 +14,11 @@ extern "C" {
 
 typedef struct {
   // Provided by CPU board
-  common_peripherals_t *common_peripherals;
+  common_peripherals_t* common_peripherals;
 
 } peripherals_t;
 
-peripherals_t *get_peripherals(void);
+peripherals_t* get_peripherals(void);
 
 void peripherals_init(void);
 

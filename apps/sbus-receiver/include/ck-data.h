@@ -22,27 +22,27 @@ typedef struct {
   ck_folder_t folders[CK_DATA_FOLDER_COUNT];
 
   // Convenience pointers
-  ck_list_t *tx_list;
-  ck_list_t *rx_list;
+  ck_list_t* tx_list;
+  ck_list_t* rx_list;
 
-  ck_page_t *steering_page;
-  ck_page_t *throttle_page;
-  ck_page_t *steering_subtrim_page;
-  ck_page_t *throttle_subtrim_page;
+  ck_page_t* steering_page;
+  ck_page_t* throttle_page;
+  ck_page_t* steering_subtrim_page;
+  ck_page_t* throttle_subtrim_page;
 
   // Transmit
-  ck_folder_t *steering_folder;
-  ck_folder_t *throttle_folder;
-  ck_folder_t *steering_subtrim_folder;
-  ck_folder_t *throttle_subtrim_folder;
+  ck_folder_t* steering_folder;
+  ck_folder_t* throttle_folder;
+  ck_folder_t* steering_subtrim_folder;
+  ck_folder_t* throttle_subtrim_folder;
 
   // Receive
-  ck_folder_t *buzzer_sound_folder;
+  ck_folder_t* buzzer_sound_folder;
 
 } ck_data_t;
 
 void ck_data_init(void);
-ck_data_t *get_ck_data(void);
+ck_data_t* get_ck_data(void);
 
 #ifdef __cplusplus
 }

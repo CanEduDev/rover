@@ -5,12 +5,12 @@
 #include "ck-test.h"
 #include "test.h"
 
-void test_check_action_mode(void);
-void test_check_comm_mode(void);
-void test_check_list_type(void);
-void test_check_can_bit_timing(void);
-void test_default_letter(void);
-void test_check_ck_id(void);
+static void test_check_action_mode(void);
+static void test_check_comm_mode(void);
+static void test_check_list_type(void);
+static void test_check_can_bit_timing(void);
+static void test_default_letter(void);
+static void test_check_ck_id(void);
 
 int main(void) {
   test_check_action_mode();

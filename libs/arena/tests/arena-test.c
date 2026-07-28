@@ -5,10 +5,10 @@
 
 #include "test.h"
 
-void test_arena_reset(void);
-void test_arena_alloc(void);
+static void test_arena_reset(void);
+static void test_arena_alloc(void);
 
-const size_t capacity = 128;
+static const size_t capacity = 128;
 
 int main(void) {
   test_arena_reset();

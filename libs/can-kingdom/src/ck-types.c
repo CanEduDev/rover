@@ -45,7 +45,7 @@ ck_err_t ck_check_list_type(ck_list_type_t type) {
   }
 }
 
-ck_err_t ck_check_can_bit_timing(const ck_can_bit_timing_t *bit_timing) {
+ck_err_t ck_check_can_bit_timing(const ck_can_bit_timing_t* bit_timing) {
   if (!bit_timing) {
     return CK_ERR_INVALID_CAN_ID;
   }
@@ -71,7 +71,7 @@ ck_err_t ck_check_can_bit_timing(const ck_can_bit_timing_t *bit_timing) {
   return CK_OK;
 }
 
-ck_err_t ck_check_ck_id(const ck_id_t *id) {
+ck_err_t ck_check_ck_id(const ck_id_t* id) {
   if (id->city_address == 0 ||
       (!id->base_no_has_extended_id &&
        id->base_no + id->city_address > CK_CAN_MAX_STD_ID) ||
@@ -108,7 +108,7 @@ ck_can_bit_timing_t ck_default_bit_timing(void) {
   return bit_timing;
 }
 
-ck_err_t ck_check_envelope(ck_envelope_t *envelope) {
+ck_err_t ck_check_envelope(ck_envelope_t* envelope) {
   if (!envelope->has_extended_id && envelope->envelope_no > CK_CAN_MAX_STD_ID) {
     return CK_ERR_INVALID_CAN_ID;
   }
@@ -118,8 +118,8 @@ ck_err_t ck_check_envelope(ck_envelope_t *envelope) {
   return CK_OK;
 }
 
-bool ck_is_envelope_equal(const ck_envelope_t *envelope1,
-                          const ck_envelope_t *envelope2) {
+bool ck_is_envelope_equal(const ck_envelope_t* envelope1,
+                          const ck_envelope_t* envelope2) {
   // Don't check the enable flag
   return (envelope1->envelope_no == envelope2->envelope_no &&
           envelope1->has_extended_id == envelope2->has_extended_id &&
@@ -127,7 +127,7 @@ bool ck_is_envelope_equal(const ck_envelope_t *envelope1,
           envelope1->is_compressed == envelope2->is_compressed);
 }
 
-int ck_find_envelope(const ck_folder_t *folder, const ck_envelope_t *envelope) {
+int ck_find_envelope(const ck_folder_t* folder, const ck_envelope_t* envelope) {
   for (uint8_t i = 0; i < folder->envelope_count; i++) {
     if (ck_is_envelope_equal(&folder->envelopes[i], envelope)) {
       return i;

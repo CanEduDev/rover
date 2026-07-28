@@ -5,12 +5,12 @@
 // Testing
 #include "test.h"
 
-void test_adc_to_servo_position_neutral(void);
-void test_adc_to_servo_position_min(void);
-void test_adc_to_servo_position_max(void);
-void test_adc_to_servo_current(void);
-void test_adc_to_battery_voltage(void);
-void test_adc_to_servo_voltage(void);
+static void test_adc_to_servo_position_neutral(void);
+static void test_adc_to_servo_position_min(void);
+static void test_adc_to_servo_position_max(void);
+static void test_adc_to_servo_current(void);
+static void test_adc_to_battery_voltage(void);
+static void test_adc_to_servo_voltage(void);
 
 int main(void) {
   test_adc_to_servo_position_neutral();
