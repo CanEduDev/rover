@@ -31,10 +31,6 @@ static void sbus_parse_packet(const sbus_packet_t* packet,
 
 static int read_uart_stream(uint8_t* dest, size_t size);
 
-void sbus_init(TaskHandle_t task_to_notify) {
-  sbus_task = task_to_notify;
-}
-
 int sbus_read_message(sbus_message_t* message) {
   sbus_task = xTaskGetCurrentTaskHandle();
 
