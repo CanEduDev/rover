@@ -20,6 +20,14 @@
 
 #define PWM_MID_PULSE 1500
 
+// Steering angle at full stick deflection. The mapping is symmetric, so the
+// usable range is +-STEERING_MAX_ANGLE.
+#define STEERING_MAX_ANGLE 45
+
+// The servo converts a 500 us pulse width offset to 45 degrees of movement.
+// Subtrim is sent as a pulse width, so it has to use the same scale.
+#define PWM_MUS_PER_DEGREE (500 / 45.0F)
+
 static float sbus_to_steering_angle(float sbus_value);
 static int16_t sbus_to_throttle(float sbus_value);
 static void update_calibration(const sbus_message_t* sbus_packet);
@@ -27,7 +35,7 @@ static void send_subtrim_commands(void);
 static bool switch_is_active(uint16_t switch_value);
 static void save_calibration_data(void);
 static uint16_t get_press_time_in_seconds(uint16_t switch_message_count);
-static int16_t sbus_to_pwm(float value, float range);
+static int16_t sbus_to_pwm(float value, float min, float max);
 
 static int16_t steering_subtrim;
 static int16_t throttle_subtrim;
@@ -95,7 +103,7 @@ steering_command_t neutral_steering_command(void) {
   return command;
 }
 
-// Steering range varies between -45 and 45 deg.
+// Steering range varies between -STEERING_MAX_ANGLE and STEERING_MAX_ANGLE.
 static float sbus_to_steering_angle(float sbus_value) {
   if (sbus_value < calibration_values.steering_min) {
     calibration_values.steering_min = sbus_value;
@@ -104,15 +112,17 @@ static float sbus_to_steering_angle(float sbus_value) {
     calibration_values.steering_max = sbus_value;
   }
 
-  float sbus_range =
-      calibration_values.steering_max + calibration_values.steering_min;
+  const float sbus_min = calibration_values.steering_min;
+  const float sbus_max = calibration_values.steering_max;
+
+  const float angle = ((2 * STEERING_MAX_ANGLE) * (sbus_value - sbus_min) /
+                       (sbus_max - sbus_min)) -
+                      STEERING_MAX_ANGLE;
 
   // Always update subtrim and assume it will be correct when user triggers
   // calibration save.
-  steering_subtrim =
-      (int16_t)(sbus_to_pwm(sbus_value, sbus_range) - PWM_MID_PULSE);
+  steering_subtrim = (int16_t)roundf(angle * PWM_MUS_PER_DEGREE);
 
-  const float angle = (90 * sbus_value / sbus_range) - 45;
   return angle;
 }
 
@@ -126,10 +136,8 @@ static int16_t sbus_to_throttle(float sbus_value) {
     calibration_values.throttle_max = sbus_value;
   }
 
-  float sbus_range =
-      calibration_values.throttle_max + calibration_values.throttle_min;
-
-  int16_t pwm = sbus_to_pwm(sbus_value, sbus_range);
+  int16_t pwm = sbus_to_pwm(sbus_value, calibration_values.throttle_min,
+                            calibration_values.throttle_max);
 
   // Always update subtrim and assume it will be correct when user triggers
   // calibration save.
@@ -208,7 +216,7 @@ static uint16_t get_press_time_in_seconds(uint16_t switch_message_count) {
   return switch_message_count / switch_messages_per_second;
 }
 
-static int16_t sbus_to_pwm(float value, float range) {
-  const float pwm = (1000 * value / range) + 1000;
+static int16_t sbus_to_pwm(float value, float min, float max) {
+  const float pwm = (1000 * (value - min) / (max - min)) + 1000;
   return (int16_t)roundf(pwm);
 }
