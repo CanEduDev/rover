@@ -6,6 +6,12 @@ import can
 from rover import Envelope, bootloader, rover
 from rover.can_interface import create_bus
 
+NO_NODES_MESSAGE = "No response from the Rover. Check that the Rover is powered on and the CAN interface is connected."
+
+
+class FlasherError(RuntimeError):
+    """A problem the user has to fix, reported without a traceback."""
+
 
 class Flasher:
     def __init__(self, interface, channel, bitrate=125000, config=None):
@@ -36,14 +42,8 @@ class Flasher:
 
     def detect_online_nodes(self, restore_comm=True):
         print("Detecting online nodes...")
-        self.bus.send(rover.set_action_mode(mode=rover.ActionMode.FREEZE))
-
-        # Let the freeze propagate, then flush the rx buffer. Otherwise report
-        # frames already in flight (e.g. the AD battery monitor's 0x500 cell
-        # voltages) are read below and misidentified as base number responses.
-        time.sleep(self.default_timeout_s)
-        while self.bus.recv(timeout=0) is not None:
-            pass
+        self.__freeze_all()
+        self.__check_bus_is_quiet(restore_comm)
 
         self.bus.send(rover.give_base_number(response_page=1))
 
@@ -66,13 +66,74 @@ class Flasher:
 
         return self.online_node_ids
 
+    def __freeze_all(self):
+        try:
+            self.bus.send(
+                rover.set_action_mode(mode=rover.ActionMode.FREEZE),
+                timeout=self.default_timeout_s,
+            )
+        except can.CanOperationError as e:
+            # Nothing on the bus acknowledged the frame.
+            raise FlasherError(NO_NODES_MESSAGE) from e
+
+        # Let the freeze propagate, then flush the rx buffer. Otherwise report
+        # frames already in flight (e.g. the AD battery monitor's 0x500 cell
+        # voltages) are read below and misidentified as base number responses.
+        time.sleep(self.default_timeout_s)
+        while self.bus.recv(timeout=0) is not None:
+            pass
+
+    def __check_bus_is_quiet(self, restore_comm):
+        # Rover nodes are frozen and silent at this point, except for the
+        # battery monitor's low battery alarm. Any other frame is from an
+        # external device that can disrupt flashing.
+        seen_ids = self.__listen_for_traffic()
+        if seen_ids:
+            # Nodes that booted after the freeze, e.g. when the battery monitor
+            # powers them up, are still running. Freeze again: Rover nodes
+            # stop, external devices don't.
+            self.__freeze_all()
+            seen_ids = self.__listen_for_traffic()
+
+        errors = []
+        if Envelope.BUZZER_SOUND in seen_ids:
+            seen_ids.remove(Envelope.BUZZER_SOUND)
+            errors.append("Rover battery is low. Charge the battery before flashing.")
+
+        if seen_ids:
+            ids = ", ".join(f"0x{id:03X}" for id in sorted(seen_ids))
+            errors.append(
+                f"CAN traffic from outside the Rover detected (IDs: {ids}). Disconnect external CAN devices before flashing."
+            )
+
+        if errors:
+            if restore_comm:
+                self.bus.send(
+                    rover.set_action_mode(mode=rover.ActionMode.RUN),
+                    timeout=self.default_timeout_s,
+                )
+            raise FlasherError(" ".join(errors))
+
+    def __listen_for_traffic(self):
+        listen_time_s = 5
+        seen_ids = set()
+        t = time.monotonic()
+        while time.monotonic() - t < listen_time_s:
+            msg = self.bus.recv(timeout=self.default_timeout_s)
+            if msg is None or msg.is_error_frame:
+                continue
+
+            seen_ids.add(msg.arbitration_id)
+
+        return seen_ids
+
     def run(self):
         if self._config is None:
             raise ValueError("run method requires config parameter")
 
         self.detect_online_nodes()
         if self.online_node_ids == set():
-            raise RuntimeError("no nodes found. Please check your CAN connection.")
+            raise FlasherError(NO_NODES_MESSAGE)
 
         self.__check_bus_health()
 
@@ -98,7 +159,7 @@ class Flasher:
         self.detect_online_nodes()
 
         if id not in self.online_node_ids:
-            raise ValueError(
+            raise FlasherError(
                 f"node {id}: node is offline. Found: {self.online_node_ids}"
             )
 
@@ -121,7 +182,7 @@ class Flasher:
         self.detect_online_nodes()
 
         if id not in self.online_node_ids:
-            raise ValueError(
+            raise FlasherError(
                 f"{prefix}: node is offline. Found: {self.online_node_ids}"
             )
 
@@ -180,20 +241,18 @@ class Flasher:
 
             while (msg := self.bus.recv(timeout=0)) is not None:
                 if msg.is_error_frame:
-                    raise RuntimeError(
-                        "CAN bus is unhealthy. Make sure the bus is terminated with 120 ohm on each end. Flashing on an unhealthy bus may brick your devices."
+                    raise FlasherError(
+                        "CAN bus is unhealthy. Make sure the bus is terminated with 120 ohm on each end. Flashing on an unhealthy bus may brick your Rover."
                     )
-                msg = self.bus.recv(timeout=0)
 
         time.sleep(0.1)  # Give time for TX buffer to clear
 
         # Flush rx buffer and check for error frames
         while (msg := self.bus.recv(timeout=0)) is not None:
             if msg.is_error_frame:
-                raise RuntimeError(
-                    "CAN bus is unhealthy. Make sure the bus is terminated with 120 ohm on each end. Flashing on an unhealthy bus may brick your devices."
+                raise FlasherError(
+                    "CAN bus is unhealthy. Make sure the bus is terminated with 120 ohm on each end. Flashing on an unhealthy bus may brick your Rover."
                 )
-            msg = self.bus.recv(timeout=0)
 
     def __flash_node(self, id, node=None, binary=None, config=None):
         if not binary and not config:
@@ -348,7 +407,8 @@ class Flasher:
                 is_extended_id=False,
             )
 
-            self.__send_bootloader_command(msg)
+            # The target was just reset, give it extra time to respond.
+            self.__send_bootloader_command(msg, timeout=1.0)
         except can.CanError as e:
             raise RuntimeError(f"entering bootloader failed: {e}") from e
 
