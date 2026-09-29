@@ -118,6 +118,10 @@ def run_flasher(args):
             f.enter_recovery_mode(args.binary, args.config)
             sys.exit(0)
 
+    except flasher.FlasherError as e:
+        print(f"error: {e}", file=sys.stderr)
+        sys.exit(1)
+
     except Exception as e:
         traceback.print_exc()
         print(f"error: flashing failed: {e}", file=sys.stderr)
