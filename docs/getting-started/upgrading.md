@@ -21,7 +21,8 @@ If you just want to upgrade your existing system, refer to [Flashing Over CAN](#
 ### Prerequisites
 
 * CAN interface with SocketCAN, or Kvaser CAN interface, for example [Kvaser Leaf](https://kvaser.com/product/leaf-v3/) with [Kvaser CANlib and Kvaser Drivers](https://kvaser.com/download/)   
-* Python v3.7 or later
+* Python v3.11 or later
+* [python-can](https://python-can.readthedocs.io/), installed with `pip install python-can`
 
 ### Step-by-step Instructions
 
@@ -82,7 +83,8 @@ If you just want to upgrade your existing system, refer to [Flashing Over CAN](#
 * [STLINK-V3SET](https://www.st.com/en/development-tools/stlink-v3set.html)  
 * [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html)  
 * CAN interface with SocketCAN, or Kvaser CAN interface, for example [Kvaser Leaf](https://kvaser.com/product/leaf-v3/) with [Kvaser CANlib and Kvaser Drivers](https://kvaser.com/download/)   
-* Python v3.7 or later
+* Python v3.11 or later
+* [python-can](https://python-can.readthedocs.io/), installed with `pip install python-can`
 
 ### Step-by-step Instructions
 
