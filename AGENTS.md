@@ -136,6 +136,15 @@ meson test -C build
 python rover_py/tests/test_battery_conf.py
 ```
 
+### Before Pushing
+Run a full build and all source checks, not only the checks related to the diff:
+```bash
+meson compile -C build
+./scripts/check-src.sh
+```
+
+`check-src.sh` formats in place and ends with a git-index check that fails if a formatter rewrote a file, so it needs a clean working tree. Commit or amend first, run it, then amend again if it rewrote anything.
+
 ### Running ROS2 Gateway
 ```bash
 # From the project root directory:
